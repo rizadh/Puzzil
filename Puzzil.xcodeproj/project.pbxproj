@@ -7,21 +7,37 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4A03F6741FEEC66000A625D8 /* PUZGradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A03F6731FEEC66000A625D8 /* PUZGradientView.swift */; };
+		4A1B65EB1FEE409700A98FF7 /* PUZBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1B65EA1FEE409700A98FF7 /* PUZBoard.swift */; };
+		4A4573C41FF77FE600F13884 /* PUZTileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4573C31FF77FE600F13884 /* PUZTileView.swift */; };
+		4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59F7D81FFAD8BA0069ACB9 /* CGRect+Centered.swift */; };
+		4A59F7DB1FFC34530069ACB9 /* PUZTilePosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59F7DA1FFC34530069ACB9 /* PUZTilePosition.swift */; };
+		4A6C28D41FF5AAD9007D2F80 /* PUZBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C28D31FF5AAD9007D2F80 /* PUZBoardView.swift */; };
+		4A7341C21FFD4648003DB6C6 /* PUZRoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7341C11FFD4648003DB6C6 /* PUZRoundedButton.swift */; };
+		4A75ABC71FF0517000B0897F /* PUZTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A75ABC61FF0517000B0897F /* PUZTile.swift */; };
 		4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */; };
-		4AB63DCB1FEDA6B2003EBC29 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DCA1FEDA6B2003EBC29 /* ViewController.swift */; };
-		4AB63DCE1FEDA6B2003EBC29 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DCC1FEDA6B2003EBC29 /* Main.storyboard */; };
+		4AB63DCB1FEDA6B2003EBC29 /* PUZViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DCA1FEDA6B2003EBC29 /* PUZViewController.swift */; };
 		4AB63DD01FEDA6B2003EBC29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */; };
 		4AB63DD31FEDA6B2003EBC29 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DD11FEDA6B2003EBC29 /* LaunchScreen.storyboard */; };
+		4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4A03F6731FEEC66000A625D8 /* PUZGradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZGradientView.swift; sourceTree = "<group>"; };
+		4A1B65EA1FEE409700A98FF7 /* PUZBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZBoard.swift; sourceTree = "<group>"; };
+		4A4573C31FF77FE600F13884 /* PUZTileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZTileView.swift; sourceTree = "<group>"; };
+		4A59F7D81FFAD8BA0069ACB9 /* CGRect+Centered.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Centered.swift"; sourceTree = "<group>"; };
+		4A59F7DA1FFC34530069ACB9 /* PUZTilePosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZTilePosition.swift; sourceTree = "<group>"; };
+		4A6C28D31FF5AAD9007D2F80 /* PUZBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZBoardView.swift; sourceTree = "<group>"; };
+		4A7341C11FFD4648003DB6C6 /* PUZRoundedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZRoundedButton.swift; sourceTree = "<group>"; };
+		4A75ABC61FF0517000B0897F /* PUZTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZTile.swift; sourceTree = "<group>"; };
 		4AB63DC51FEDA6B2003EBC29 /* Puzzil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puzzil.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		4AB63DCA1FEDA6B2003EBC29 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		4AB63DCD1FEDA6B2003EBC29 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		4AB63DCA1FEDA6B2003EBC29 /* PUZViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PUZViewController.swift; sourceTree = "<group>"; };
 		4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4AB63DD21FEDA6B2003EBC29 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4AB63DD41FEDA6B3003EBC29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+ThemeColors.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +51,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4A03F6721FEEC61900A625D8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				4A03F6731FEEC66000A625D8 /* PUZGradientView.swift */,
+				4A6C28D31FF5AAD9007D2F80 /* PUZBoardView.swift */,
+				4A4573C31FF77FE600F13884 /* PUZTileView.swift */,
+				4A7341C11FFD4648003DB6C6 /* PUZRoundedButton.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		4A1B65E91FEE407500A98FF7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				4A1B65EA1FEE409700A98FF7 /* PUZBoard.swift */,
+				4A75ABC61FF0517000B0897F /* PUZTile.swift */,
+				4A59F7DA1FFC34530069ACB9 /* PUZTilePosition.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		4AB63DBC1FEDA6B2003EBC29 = {
 			isa = PBXGroup;
 			children = (
@@ -55,13 +92,32 @@
 			isa = PBXGroup;
 			children = (
 				4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */,
-				4AB63DCA1FEDA6B2003EBC29 /* ViewController.swift */,
-				4AB63DCC1FEDA6B2003EBC29 /* Main.storyboard */,
+				4AB63DDD1FEDCEA1003EBC29 /* Controllers */,
+				4A1B65E91FEE407500A98FF7 /* Models */,
+				4A03F6721FEEC61900A625D8 /* Views */,
+				4AB63DDC1FEDCE99003EBC29 /* Extensions */,
 				4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */,
 				4AB63DD11FEDA6B2003EBC29 /* LaunchScreen.storyboard */,
 				4AB63DD41FEDA6B3003EBC29 /* Info.plist */,
 			);
 			path = Puzzil;
+			sourceTree = "<group>";
+		};
+		4AB63DDC1FEDCE99003EBC29 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */,
+				4A59F7D81FFAD8BA0069ACB9 /* CGRect+Centered.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		4AB63DDD1FEDCEA1003EBC29 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				4AB63DCA1FEDA6B2003EBC29 /* PUZViewController.swift */,
+			);
+			path = Controllers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -125,7 +181,6 @@
 			files = (
 				4AB63DD31FEDA6B2003EBC29 /* LaunchScreen.storyboard in Resources */,
 				4AB63DD01FEDA6B2003EBC29 /* Assets.xcassets in Resources */,
-				4AB63DCE1FEDA6B2003EBC29 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,22 +191,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4AB63DCB1FEDA6B2003EBC29 /* ViewController.swift in Sources */,
+				4A1B65EB1FEE409700A98FF7 /* PUZBoard.swift in Sources */,
+				4AB63DCB1FEDA6B2003EBC29 /* PUZViewController.swift in Sources */,
+				4A59F7DB1FFC34530069ACB9 /* PUZTilePosition.swift in Sources */,
+				4A7341C21FFD4648003DB6C6 /* PUZRoundedButton.swift in Sources */,
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,
+				4A4573C41FF77FE600F13884 /* PUZTileView.swift in Sources */,
+				4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */,
+				4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */,
+				4A6C28D41FF5AAD9007D2F80 /* PUZBoardView.swift in Sources */,
+				4A03F6741FEEC66000A625D8 /* PUZGradientView.swift in Sources */,
+				4A75ABC71FF0517000B0897F /* PUZTile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		4AB63DCC1FEDA6B2003EBC29 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				4AB63DCD1FEDA6B2003EBC29 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		4AB63DD11FEDA6B2003EBC29 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -277,6 +333,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = UZW69BGU4W;
 				INFOPLIST_FILE = Puzzil/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rizadh.Puzzil;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -292,6 +349,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = UZW69BGU4W;
 				INFOPLIST_FILE = Puzzil/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rizadh.Puzzil;
 				PRODUCT_NAME = "$(TARGET_NAME)";
