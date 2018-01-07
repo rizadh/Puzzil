@@ -62,23 +62,38 @@ struct PUZBoard {
         return position.row < rows && position.column < columns
     }
 
-    func tileIsPresent(at position: PUZTilePosition) -> Bool {
-        guard boardContains(position) else { return false }
+    func tileIsPresent(at position: PUZTilePosition) -> Bool? {
+        guard boardContains(position) else { return nil }
 
         return tiles[position] != nil
     }
 
-    func canMoveTile(at source: PUZTilePosition, to target: PUZTilePosition) -> Bool {
-        return source.isAdjacentTo(target) && boardContains(target) &&
-            tileIsPresent(at: source) && !tileIsPresent(at: target)
+    func canMoveTile(at source: PUZTilePosition, to target: PUZTilePosition) -> Bool? {
+        guard let tileIsPresentAtSource = tileIsPresent(at: source) else {
+            assertionFailure("Checking a move from an out-of-bounds position")
+            return nil
+        }
+
+        guard let tileIsPresentAtTarget = tileIsPresent(at: target) else {
+            assertionFailure("Checking a move to an out-of-bounds position")
+            return nil
+        }
+
+        return source.isAdjacentTo(target) && tileIsPresentAtSource && tileIsPresentAtTarget
     }
 
-    func textOfTile(at position: PUZTilePosition) -> String {
-        return tiles[position]!.text
+    func textOfTile(at position: PUZTilePosition) -> String? {
+        precondition(boardContains(position))
+
+        return tiles[position]?.text
     }
 
     mutating func moveTile(at source: PUZTilePosition, to target: PUZTilePosition) {
-        precondition(canMoveTile(at: source, to: target))
+        guard let tileIsMovable = canMoveTile(at: source, to: target) else {
+            fatalError("Move operation exceeds the bounds of the board")
+        }
+
+        precondition(tileIsMovable, "Tile cannot be moved to desired position")
 
         tiles[target] = tiles[source]
         tiles[source] = nil

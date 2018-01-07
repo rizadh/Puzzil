@@ -29,7 +29,7 @@ class PUZViewController: UIViewController, PUZBoardViewDelegate {
         ["Seven", "Eight", "Nine"],
     ]
 
-    var board = PUZBoard(from: PUZViewController.regularBoard)
+    var board = PUZBoard(from: PUZViewController.textBoard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -94,15 +94,11 @@ class PUZViewController: UIViewController, PUZBoardViewDelegate {
         return board.columns
     }
 
-    func boardView(_ boardView: PUZBoardView, tileIsPresentAt position: PUZTilePosition) -> Bool {
-        return board.tileIsPresent(at: position)
-    }
-
-    func boardView(_ boardView: PUZBoardView, textForTileAt position: PUZTilePosition) -> String {
+    func boardView(_ boardView: PUZBoardView, textForTileAt position: PUZTilePosition) -> String? {
         return board.textOfTile(at: position)
     }
 
-    func boardView(_ boardView: PUZBoardView, canMoveTileAt source: PUZTilePosition, to target: PUZTilePosition) -> Bool {
+    func boardView(_ boardView: PUZBoardView, canMoveTileAt source: PUZTilePosition, to target: PUZTilePosition) -> Bool? {
         return board.canMoveTile(at: source, to: target)
     }
 

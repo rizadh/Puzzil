@@ -108,11 +108,10 @@ class PUZBoardView: PUZGradientView {
             for columnIndex in 0..<columns {
                 let position = PUZTilePosition(row: rowIndex, column: columnIndex)
 
-                guard delegate.boardView(self, tileIsPresentAt: position) else {
+                guard let text = delegate.boardView(self, textForTileAt: position) else {
                     continue
                 }
 
-                let text = delegate.boardView(self, textForTileAt: position)
                 let tile = PUZTileView()
                 tile.translatesAutoresizingMaskIntoConstraints = false
                 tile.text = text
