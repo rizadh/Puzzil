@@ -13,7 +13,7 @@ class ViewController: UIViewController, BoardViewDelegate {
     static let regularBoard = [
         [1, 2, 3],
         [4, 5, 6],
-        [6, 8, nil],
+        [7, 8, nil],
     ]
 
     static let telephoneBoard = [
@@ -29,7 +29,7 @@ class ViewController: UIViewController, BoardViewDelegate {
         ["Seven", "Eight", "Nine"],
     ]
 
-    var board = Board(from: ViewController.textBoard)
+    var board = Board(from: ViewController.regularBoard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,14 +40,12 @@ class ViewController: UIViewController, BoardViewDelegate {
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
 
-        let button1 = RoundedButton()
-        button1.text = "Back"
-        let button2 = RoundedButton()
-        button2.text = "Solve"
-        let button3 = RoundedButton()
-        button3.text = "Reset"
+        let backButton = RoundedButton()
+        backButton.text = "Back"
+        let resetButton = RoundedButton()
+        resetButton.text = "Reset"
 
-        let buttons = UIStackView(arrangedSubviews: [button1, button2, button3,])
+        let buttons = UIStackView(arrangedSubviews: [backButton, resetButton])
         buttons.translatesAutoresizingMaskIntoConstraints = false
         buttons.distribution = .fillEqually
         buttons.spacing = 8
