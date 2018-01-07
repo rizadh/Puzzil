@@ -1,5 +1,5 @@
 //
-//  PUZTile.swift
+//  Tile.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-24.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct PUZTile {
-    let target: PUZTilePosition
+struct Tile {
+    let target: TilePosition
     let text: String
 }

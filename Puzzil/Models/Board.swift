@@ -1,5 +1,5 @@
 //
-//  PUZBoard.swift
+//  Board.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-23.
@@ -8,17 +8,17 @@
 
 import Foundation
 
-struct PUZBoard {
+struct Board {
     let rows: Int
     let columns: Int
-    private var tiles = [[PUZTile?]]()
+    private var tiles = [[Tile?]]()
 
     var isSolved: Bool {
         for (rowIndex, row) in tiles.enumerated() {
             for (columnIndex, element) in row.enumerated() {
                 guard let tile = element else { continue }
 
-                if tile.target != PUZTilePosition(row: rowIndex, column: columnIndex) {
+                if tile.target != TilePosition(row: rowIndex, column: columnIndex) {
                     return false
                 }
             }
@@ -39,14 +39,14 @@ struct PUZBoard {
         for (columnIndex, row) in matrix.enumerated() {
             precondition(columns == row.count, "Provided matrix does not have a consistent row length")
 
-            var tileRow = [PUZTile?]()
+            var tileRow = [Tile?]()
             tileRow.reserveCapacity(columns)
 
             for (rowIndex, element) in row.enumerated() {
-                let tile: PUZTile?
+                let tile: Tile?
 
                 if let element = element {
-                    tile = PUZTile(target: PUZTilePosition(row: rowIndex, column: columnIndex), text: element.description)
+                    tile = Tile(target: TilePosition(row: rowIndex, column: columnIndex), text: element.description)
                 } else {
                     tile = nil
                 }
@@ -58,17 +58,17 @@ struct PUZBoard {
         }
     }
 
-    func boardContains(_ position: PUZTilePosition) -> Bool {
+    func boardContains(_ position: TilePosition) -> Bool {
         return position.row < rows && position.column < columns
     }
 
-    func tileIsPresent(at position: PUZTilePosition) -> Bool? {
+    func tileIsPresent(at position: TilePosition) -> Bool? {
         guard boardContains(position) else { return nil }
 
         return tiles[position] != nil
     }
 
-    func canMoveTile(at source: PUZTilePosition, to target: PUZTilePosition) -> Bool? {
+    func canMoveTile(at source: TilePosition, to target: TilePosition) -> Bool? {
         guard let tileIsPresentAtSource = tileIsPresent(at: source) else {
             assertionFailure("Checking a move from an out-of-bounds position")
             return nil
@@ -82,13 +82,13 @@ struct PUZBoard {
         return source.isAdjacentTo(target) && tileIsPresentAtSource && tileIsPresentAtTarget
     }
 
-    func textOfTile(at position: PUZTilePosition) -> String? {
+    func textOfTile(at position: TilePosition) -> String? {
         precondition(boardContains(position))
 
         return tiles[position]?.text
     }
 
-    mutating func moveTile(at source: PUZTilePosition, to target: PUZTilePosition) {
+    mutating func moveTile(at source: TilePosition, to target: TilePosition) {
         guard let tileIsMovable = canMoveTile(at: source, to: target) else {
             fatalError("Move operation exceeds the bounds of the board")
         }
@@ -100,8 +100,8 @@ struct PUZBoard {
     }
 }
 
-extension Array where Element == Array<PUZTile?> {
-    subscript(_ position: PUZTilePosition) -> PUZTile? {
+extension Array where Element == Array<Tile?> {
+    subscript(_ position: TilePosition) -> Tile? {
         get {
             return self[position.row][position.column]
         }

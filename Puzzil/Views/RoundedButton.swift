@@ -1,5 +1,5 @@
 //
-//  PUZRoundedButton.swift
+//  RoundedButton.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-01-03.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class PUZRoundedButton: PUZGradientView {
+class RoundedButton: GradientView {
     var text = "" {
         didSet {
             labelView.text = text

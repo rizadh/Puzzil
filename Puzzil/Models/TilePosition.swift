@@ -1,5 +1,5 @@
 //
-//  PUZTilePosition.swift
+//  TilePosition.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-01-02.
@@ -8,21 +8,21 @@
 
 import Foundation
 
-struct PUZTilePosition {
+struct TilePosition {
     let row: Int
     let column: Int
 
-    static func distanceBetween(_ a: PUZTilePosition, _ b: PUZTilePosition) -> Int {
+    static func distanceBetween(_ a: TilePosition, _ b: TilePosition) -> Int {
         return abs(a.row - b.row) + abs(a.column - b.column)
     }
 
-    func isAdjacentTo(_ otherPosition: PUZTilePosition) -> Bool {
-        return PUZTilePosition.distanceBetween(self, otherPosition) == 1
+    func isAdjacentTo(_ otherPosition: TilePosition) -> Bool {
+        return TilePosition.distanceBetween(self, otherPosition) == 1
     }
 }
 
-extension PUZTilePosition: Equatable {
-    static func == (lhs: PUZTilePosition, rhs: PUZTilePosition) -> Bool {
+extension TilePosition: Equatable {
+    static func == (lhs: TilePosition, rhs: TilePosition) -> Bool {
         return lhs.row == rhs.row && lhs.column == rhs.column
     }
 }

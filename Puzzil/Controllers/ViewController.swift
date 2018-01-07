@@ -1,5 +1,5 @@
 //
-//  PUZViewController.swift
+//  ViewController.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-22.
@@ -9,7 +9,7 @@
 import SpriteKit
 import CoreMotion
 
-class PUZViewController: UIViewController, PUZBoardViewDelegate {
+class ViewController: UIViewController, BoardViewDelegate {
     static let regularBoard = [
         [1, 2, 3],
         [4, 5, 6],
@@ -29,22 +29,22 @@ class PUZViewController: UIViewController, PUZBoardViewDelegate {
         ["Seven", "Eight", "Nine"],
     ]
 
-    var board = PUZBoard(from: PUZViewController.textBoard)
+    var board = Board(from: ViewController.textBoard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view = PUZGradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+        view = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
 
-        let boardView = PUZBoardView()
+        let boardView = BoardView()
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
 
-        let button1 = PUZRoundedButton()
+        let button1 = RoundedButton()
         button1.text = "Back"
-        let button2 = PUZRoundedButton()
+        let button2 = RoundedButton()
         button2.text = "Solve"
-        let button3 = PUZRoundedButton()
+        let button3 = RoundedButton()
         button3.text = "Reset"
 
         let buttons = UIStackView(arrangedSubviews: [button1, button2, button3,])
@@ -86,23 +86,23 @@ class PUZViewController: UIViewController, PUZBoardViewDelegate {
         ])
     }
 
-    func numberOfRows(in boardView: PUZBoardView) -> Int {
+    func numberOfRows(in boardView: BoardView) -> Int {
         return board.rows
     }
 
-    func numberOfColumns(in boardView: PUZBoardView) -> Int {
+    func numberOfColumns(in boardView: BoardView) -> Int {
         return board.columns
     }
 
-    func boardView(_ boardView: PUZBoardView, textForTileAt position: PUZTilePosition) -> String? {
+    func boardView(_ boardView: BoardView, textForTileAt position: TilePosition) -> String? {
         return board.textOfTile(at: position)
     }
 
-    func boardView(_ boardView: PUZBoardView, canMoveTileAt source: PUZTilePosition, to target: PUZTilePosition) -> Bool? {
+    func boardView(_ boardView: BoardView, canMoveTileAt source: TilePosition, to target: TilePosition) -> Bool? {
         return board.canMoveTile(at: source, to: target)
     }
 
-    func boardView(_ boardView: PUZBoardView, tileWasMovedFrom source: PUZTilePosition, to target: PUZTilePosition) {
+    func boardView(_ boardView: BoardView, tileWasMovedFrom source: TilePosition, to target: TilePosition) {
         board.moveTile(at: source, to: target)
     }
 }

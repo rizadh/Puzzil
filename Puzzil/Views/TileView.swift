@@ -1,5 +1,5 @@
 //
-//  PUZTileView.swift
+//  TileView.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-30.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class PUZTileView: PUZGradientView {
+class TileView: GradientView {
     var text = "" {
         didSet {
             labelView.text = text

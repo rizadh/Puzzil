@@ -1,5 +1,5 @@
 //
-//  PUZGradientView
+//  GradientView
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-23.
@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class PUZGradientView: UIView {
+class GradientView: UIView {
     private let gradient: CAGradientLayer
     private let gradientMask = CAShapeLayer()
 

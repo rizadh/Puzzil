@@ -1,5 +1,5 @@
 //
-//  PUZBoardView.swift
+//  BoardView.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-28.
@@ -8,11 +8,11 @@
 
 import UIKit
 
-class PUZBoardView: PUZGradientView {
-    var tileViews = [PUZTileView]()
+class BoardView: GradientView {
+    var tileViews = [TileView]()
     var rowGuides = [UILayoutGuide]()
     var columnGuides = [UILayoutGuide]()
-    var delegate: PUZBoardViewDelegate! {
+    var delegate: BoardViewDelegate! {
         didSet { setupSubviews() }
     }
 
@@ -106,13 +106,13 @@ class PUZBoardView: PUZGradientView {
 
         for rowIndex in 0..<rows {
             for columnIndex in 0..<columns {
-                let position = PUZTilePosition(row: rowIndex, column: columnIndex)
+                let position = TilePosition(row: rowIndex, column: columnIndex)
 
                 guard let text = delegate.boardView(self, textForTileAt: position) else {
                     continue
                 }
 
-                let tile = PUZTileView()
+                let tile = TileView()
                 tile.translatesAutoresizingMaskIntoConstraints = false
                 tile.text = text
                 addSubview(tile)
