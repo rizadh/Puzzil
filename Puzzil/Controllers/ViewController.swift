@@ -29,7 +29,7 @@ class PUZViewController: UIViewController, PUZBoardViewDelegate {
         ["Seven", "Eight", "Nine"],
     ]
 
-    var board = PUZBoard(from: PUZViewController.telephoneBoard)
+    var board = PUZBoard(from: PUZViewController.regularBoard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
