@@ -11,27 +11,50 @@ import Foundation
 struct PUZBoard {
     let rows: Int
     let columns: Int
-    var tiles = [[PUZTile?]]()
+    private var tiles = [[PUZTile?]]()
 
-    init(from matrix: [[String?]]) {
+    var isSolved: Bool {
+        for (rowIndex, row) in tiles.enumerated() {
+            for (columnIndex, element) in row.enumerated() {
+                guard let tile = element else { continue }
+
+                if tile.target != PUZTilePosition(row: rowIndex, column: columnIndex) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+    init(from matrix: [[CustomStringConvertible?]]) {
         precondition(matrix.count > 0, "Matrix must have at least one row")
         precondition(matrix.first!.count > 0, "Matrix must have at least one column")
 
-        columns = matrix.count
-        rows = matrix.first!.count
+        rows = matrix.count
+        columns = matrix.first!.count
 
-        matrix.enumerated().forEach { (columnIndex, row) in
+        tiles.reserveCapacity(rows)
+
+        for (columnIndex, row) in matrix.enumerated() {
             precondition(columns == row.count, "Provided matrix does not have a consistent row length")
 
-            tiles.append([])
+            var tileRow = [PUZTile?]()
+            tileRow.reserveCapacity(columns)
 
-            row.enumerated().forEach { (rowIndex, element) in
+            for (rowIndex, element) in row.enumerated() {
+                let tile: PUZTile?
+
                 if let element = element {
-                    tiles[columnIndex][rowIndex] = PUZTile(targetRow: rowIndex, targetColumn: columnIndex, text: element)
+                    tile = PUZTile(target: PUZTilePosition(row: rowIndex, column: columnIndex), text: element.description)
                 } else {
-                    tiles[columnIndex][rowIndex] = nil
+                    tile = nil
                 }
+
+                tileRow.append(tile)
             }
+
+            tiles.append(tileRow)
         }
     }
 
@@ -40,23 +63,37 @@ struct PUZBoard {
     }
 
     func tileIsPresent(at position: PUZTilePosition) -> Bool {
-        guard boardContains(position) else {
-            fatalError("Attempted to access a position not contained by the board")
-        }
+        guard boardContains(position) else { return false }
 
-        return tiles[position.row][position.column] != nil
+        return tiles[position] != nil
     }
 
     func canMoveTile(at source: PUZTilePosition, to target: PUZTilePosition) -> Bool {
-        return source.isAdjacentTo(target) &&
-            boardContains(source) &&
-            boardContains(target) &&
-            tileIsPresent(at: source) &&
-            !tileIsPresent(at: target)
+        return source.isAdjacentTo(target) && boardContains(target) &&
+            tileIsPresent(at: source) && !tileIsPresent(at: target)
     }
 
-    func moveTile(at source: PUZTilePosition, to target: PUZTilePosition) {
+    func textOfTile(at position: PUZTilePosition) -> String {
+        return tiles[position]!.text
+    }
+
+    mutating func moveTile(at source: PUZTilePosition, to target: PUZTilePosition) {
         precondition(canMoveTile(at: source, to: target))
+
+        tiles[target] = tiles[source]
+        tiles[source] = nil
+    }
+}
+
+extension Array where Element == Array<PUZTile?> {
+    subscript(_ position: PUZTilePosition) -> PUZTile? {
+        get {
+            return self[position.row][position.column]
+        }
+
+        set {
+            self[position.row][position.column] = newValue
+        }
     }
 }
 

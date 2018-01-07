@@ -8,14 +8,42 @@
 
 import UIKit
 
-class PUZTileView: UIView {
-    private(set) var label: String = ""
+class PUZTileView: PUZGradientView {
+    var text = "" {
+        didSet {
+            labelView.text = text
+        }
+    }
+    let labelView = UILabel()
 
-    convenience init(label: String) {
-        self.init()
+    init() {
+        super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
 
-        self.label = label
+        setupSubviews()
+    }
 
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupSubviews() {
         layer.cornerRadius = 16
+
+        labelView.translatesAutoresizingMaskIntoConstraints = false
+        labelView.textAlignment = .center
+        labelView.textColor = .white
+
+        addSubview(labelView)
+
+        NSLayoutConstraint.activate([
+            labelView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            labelView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        labelView.font = UIFont.systemFont(ofSize: frame.height / 2, weight: .bold)
     }
 }

@@ -9,63 +9,104 @@
 import SpriteKit
 import CoreMotion
 
-class PUZViewController: UIViewController {
-    private let gradient: CAGradientLayer = {
-        let gradient = CAGradientLayer()
-        gradient.startPoint = CGPoint(x: 0, y: 0)
-        gradient.endPoint = CGPoint(x: 1, y: 1)
-        gradient.colors = [
-            UIColor.themeBackgroundPink.cgColor,
-            UIColor.themeBackgroundOrange.cgColor
-        ]
+class PUZViewController: UIViewController, PUZBoardViewDelegate {
+    static let regularBoard = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [6, 8, nil],
+    ]
 
-        return gradient
-    }()
+    static let telephoneBoard = [
+        [7, 8, 9],
+        [4, 5, 6],
+        [1, 2, 3],
+        [nil, 0, nil],
+    ]
+
+    static let textBoard = [
+        ["One", "Two", "Three"],
+        ["Four", "Five", "Six"],
+        ["Seven", "Eight", "Nine"],
+    ]
+
+    var board = PUZBoard(from: PUZViewController.telephoneBoard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let boardView = PUZBoardView(rows: 4, columns: 3)
+        view = PUZGradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+
+        let boardView = PUZBoardView()
         boardView.translatesAutoresizingMaskIntoConstraints = false
+        boardView.delegate = self
 
-        let button1 = PUZGradientView(from: .themeForegroundPink, to: .themeForegroundOrange)
-        button1.layer.cornerRadius = 32
-        let button2 = PUZGradientView(from: .themeForegroundPink, to: .themeForegroundOrange)
-        button2.layer.cornerRadius = 32
-        let button3 = PUZGradientView(from: .themeForegroundPink, to: .themeForegroundOrange)
-        button3.layer.cornerRadius = 32
+        let button1 = PUZRoundedButton()
+        button1.text = "Back"
+        let button2 = PUZRoundedButton()
+        button2.text = "Solve"
+        let button3 = PUZRoundedButton()
+        button3.text = "Reset"
 
-        view.layer.addSublayer(gradient)
+        let buttons = UIStackView(arrangedSubviews: [button1, button2, button3,])
+        buttons.translatesAutoresizingMaskIntoConstraints = false
+        buttons.distribution = .fillEqually
+        buttons.spacing = 8
 
-        let buttonsWrapper = UIStackView(arrangedSubviews: [
-            button1,
-            button2,
-            button3,
-        ])
-        buttonsWrapper.translatesAutoresizingMaskIntoConstraints = false
-        buttonsWrapper.distribution = .fillEqually
-        buttonsWrapper.spacing = 16
+        let boardLayoutGuide = UILayoutGuide()
+
+        let optionalConstraints = [
+            boardView.widthAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: boardLayoutGuide.heightAnchor),
+        ]
+
+        optionalConstraints.forEach { $0.priority = .defaultHigh }
 
         view.addSubview(boardView)
-        view.addSubview(buttonsWrapper)
+        view.addSubview(buttons)
+        view.addLayoutGuide(boardLayoutGuide)
 
-        NSLayoutConstraint.activate([
-            boardView.leftAnchor.constraintEqualToSystemSpacingAfter(view.safeAreaLayoutGuide.leftAnchor, multiplier: 2),
-            view.safeAreaLayoutGuide.rightAnchor.constraintEqualToSystemSpacingAfter(boardView.rightAnchor, multiplier: 2),
-            boardView.topAnchor.constraintEqualToSystemSpacingBelow(view.safeAreaLayoutGuide.topAnchor, multiplier: 2),
+        let safeArea = view.safeAreaLayoutGuide
 
-            buttonsWrapper.leftAnchor.constraintEqualToSystemSpacingAfter(view.safeAreaLayoutGuide.leftAnchor, multiplier: 2),
-            view.safeAreaLayoutGuide.rightAnchor.constraintEqualToSystemSpacingAfter(buttonsWrapper.rightAnchor, multiplier: 2),
-            buttonsWrapper.topAnchor.constraintEqualToSystemSpacingBelow(boardView.bottomAnchor, multiplier: 1),
-            view.safeAreaLayoutGuide.bottomAnchor.constraintEqualToSystemSpacingBelow(buttonsWrapper.bottomAnchor, multiplier: 2),
+        NSLayoutConstraint.activate(optionalConstraints + [
+            boardLayoutGuide.leftAnchor.constraint(equalTo: buttons.leftAnchor),
+            boardLayoutGuide.rightAnchor.constraint(equalTo: buttons.rightAnchor),
+            boardLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
 
-            buttonsWrapper.heightAnchor.constraint(equalToConstant: 64),
+            boardView.widthAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.widthAnchor),
+            boardView.heightAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.heightAnchor),
+            boardView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
+            boardView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
+
+            buttons.heightAnchor.constraint(equalToConstant: 48),
+
+            buttons.leftAnchor.constraintEqualToSystemSpacingAfter(safeArea.leftAnchor, multiplier: 2),
+            safeArea.rightAnchor.constraintEqualToSystemSpacingAfter(buttons.rightAnchor, multiplier: 2),
+            buttons.topAnchor.constraintEqualToSystemSpacingBelow(boardLayoutGuide.bottomAnchor, multiplier: 2),
+            safeArea.bottomAnchor.constraintEqualToSystemSpacingBelow(buttons.bottomAnchor, multiplier: 2),
         ])
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    func numberOfRows(in boardView: PUZBoardView) -> Int {
+        return board.rows
+    }
 
-        gradient.frame = view.layer.bounds
+    func numberOfColumns(in boardView: PUZBoardView) -> Int {
+        return board.columns
+    }
+
+    func boardView(_ boardView: PUZBoardView, tileIsPresentAt position: PUZTilePosition) -> Bool {
+        return board.tileIsPresent(at: position)
+    }
+
+    func boardView(_ boardView: PUZBoardView, textForTileAt position: PUZTilePosition) -> String {
+        return board.textOfTile(at: position)
+    }
+
+    func boardView(_ boardView: PUZBoardView, canMoveTileAt source: PUZTilePosition, to target: PUZTilePosition) -> Bool {
+        return board.canMoveTile(at: source, to: target)
+    }
+
+    func boardView(_ boardView: PUZBoardView, tileWasMovedFrom source: PUZTilePosition, to target: PUZTilePosition) {
+        board.moveTile(at: source, to: target)
     }
 }

@@ -20,3 +20,9 @@ struct PUZTilePosition {
         return PUZTilePosition.distanceBetween(self, otherPosition) == 1
     }
 }
+
+extension PUZTilePosition: Equatable {
+    static func == (lhs: PUZTilePosition, rhs: PUZTilePosition) -> Bool {
+        return lhs.row == rhs.row && lhs.column == rhs.column
+    }
+}

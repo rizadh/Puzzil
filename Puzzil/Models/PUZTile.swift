@@ -9,11 +9,6 @@
 import Foundation
 
 struct PUZTile {
-    let targetRow: Int
-    let targetColumn: Int
+    let target: PUZTilePosition
     let text: String
-
-    func distance(from currentRow: Int, currentColumn: Int) -> Int {
-        return abs(currentRow - targetRow) + abs(currentColumn - targetColumn)
-    }
 }

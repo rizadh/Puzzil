@@ -41,13 +41,10 @@ class PUZGradientView: UIView {
             return
         }
 
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
         gradient.frame = UIScreen.main.bounds.offsetBy(dx: -position.x, dy: -position.y)
         gradientMask.frame = bounds.offsetBy(dx: position.x, dy: position.y)
         gradientMask.path = clippingPath(for: bounds)
         gradientMask.fillRule = kCAFillRuleEvenOdd
-        CATransaction.commit()
     }
 
     func clippingPath(for gradientBounds: CGRect) -> CGPath {

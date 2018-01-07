@@ -9,14 +9,15 @@
 import UIKit
 
 class PUZBoardView: PUZGradientView {
-    var rows: Int
-    var columns: Int
+    var tileViews = [PUZTileView]()
+    var rowGuides = [UILayoutGuide]()
+    var columnGuides = [UILayoutGuide]()
+    var delegate: PUZBoardViewDelegate! {
+        didSet { setupSubviews() }
+    }
 
-    init(rows: Int, columns: Int) {
-        self.rows = rows
-        self.columns = columns
-
-        super.init(from: .themeForegroundPink, to: .themeBackgroundOrange)
+    init() {
+        super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
 
         isOpaque = false
     }
@@ -25,25 +26,14 @@ class PUZBoardView: PUZGradientView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func boardDimensions(fitting bounds: CGRect) -> CGRect {
-        let tileSize = min(
-            bounds.height / CGFloat(rows),
-            bounds.width / CGFloat(columns)
-        )
-
-        let height = tileSize * CGFloat(rows)
-        let width = tileSize * CGFloat(columns)
-
-        return CGRect(center: bounds.center, size: CGSize(width: width, height: height))
-    }
-
     override func clippingPath(for gradientBounds: CGRect) -> CGPath {
         let cornerRadius: CGFloat = 32
-        let borderWidth: CGFloat = 12
-        let bounds = boardDimensions(fitting: gradientBounds)
+        let borderWidth: CGFloat = 8
 
-        let outer = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius)
-        let inner = UIBezierPath(roundedRect: bounds.insetBy(dx: borderWidth, dy: borderWidth), cornerRadius: cornerRadius - borderWidth)
+        let outer = UIBezierPath(roundedRect: gradientBounds, cornerRadius: cornerRadius)
+        let innerBounds = gradientBounds.insetBy(dx: borderWidth, dy: borderWidth)
+        let innerRadius = cornerRadius - borderWidth
+        let inner = UIBezierPath(roundedRect: innerBounds, cornerRadius: innerRadius)
 
         let shape = UIBezierPath()
         shape.append(inner)
@@ -52,7 +42,93 @@ class PUZBoardView: PUZGradientView {
         return shape.cgPath
     }
 
-    override func sizeThatFits(_ size: CGSize) -> CGSize {
-        return CGSize(width: 100, height: 100)
+    private func setupSubviews() {
+        clearTiles()
+        generateColumnLayoutGuides()
+        generateRowLayoutGuides()
+        layoutTiles()
+    }
+
+    private func clearTiles() {
+        tileViews.forEach { $0.removeFromSuperview() }
+        tileViews.removeAll()
+
+        rowGuides.forEach(removeLayoutGuide(_:))
+        rowGuides.removeAll()
+
+        columnGuides.forEach(removeLayoutGuide(_:))
+        rowGuides.removeAll()
+    }
+
+    private func generateColumnLayoutGuides() {
+        let columns = delegate.numberOfColumns(in: self)
+
+        var lastAnchor = leftAnchor
+        var constraints = [NSLayoutConstraint]()
+
+        for columnIndex in 0..<columns {
+            let columnGuide = UILayoutGuide()
+            constraints.append(columnGuide.leftAnchor.constraint(equalTo: lastAnchor, constant: columnIndex == 0 ? 16 : 8))
+            columnGuides.append(columnGuide)
+            columnGuide.widthAnchor.constraint(equalToConstant: 10)
+            addLayoutGuide(columnGuide)
+            lastAnchor = columnGuide.rightAnchor
+        }
+
+        constraints.append(rightAnchor.constraint(equalTo: lastAnchor, constant: 16))
+
+        NSLayoutConstraint.activate(constraints)
+    }
+
+    private func generateRowLayoutGuides() {
+        let rows = delegate.numberOfRows(in: self)
+
+        var lastAnchor = topAnchor
+        var constraints = [NSLayoutConstraint]()
+
+        for rowIndex in 0..<rows {
+            let rowGuide = UILayoutGuide()
+            constraints.append(rowGuide.topAnchor.constraint(equalTo: lastAnchor, constant: rowIndex == 0 ? 16 : 8))
+            rowGuides.append(rowGuide)
+            rowGuide.heightAnchor.constraint(equalToConstant: 10)
+            addLayoutGuide(rowGuide)
+            lastAnchor = rowGuide.bottomAnchor
+        }
+
+        constraints.append(bottomAnchor.constraint(equalTo: lastAnchor, constant: 16))
+
+        NSLayoutConstraint.activate(constraints)
+    }
+
+    private func layoutTiles() {
+        let columns = delegate.numberOfColumns(in: self)
+        let rows = delegate.numberOfRows(in: self)
+
+        for rowIndex in 0..<rows {
+            for columnIndex in 0..<columns {
+                let position = PUZTilePosition(row: rowIndex, column: columnIndex)
+
+                guard delegate.boardView(self, tileIsPresentAt: position) else {
+                    continue
+                }
+
+                let text = delegate.boardView(self, textForTileAt: position)
+                let tile = PUZTileView()
+                tile.translatesAutoresizingMaskIntoConstraints = false
+                tile.text = text
+                addSubview(tile)
+
+                let columnGuide = columnGuides[columnIndex]
+                let rowGuide = rowGuides[rowIndex]
+
+                NSLayoutConstraint.activate([
+                    tile.leftAnchor.constraint(equalTo: columnGuide.leftAnchor),
+                    tile.rightAnchor.constraint(equalTo: columnGuide.rightAnchor),
+                    tile.topAnchor.constraint(equalTo: rowGuide.topAnchor),
+                    tile.bottomAnchor.constraint(equalTo: rowGuide.bottomAnchor),
+                    tile.widthAnchor.constraint(equalTo: tile.heightAnchor),
+                ])
+            }
+        }
     }
 }
