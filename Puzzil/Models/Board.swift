@@ -59,7 +59,8 @@ struct Board {
     }
 
     func boardContains(_ position: TilePosition) -> Bool {
-        return position.row < rows && position.column < columns
+        return position.row >= 0 && position.row < rows &&
+            position.column >= 0 && position.column < columns
     }
 
     func tileIsPresent(at position: TilePosition) -> Bool? {
@@ -68,18 +69,24 @@ struct Board {
         return tiles[position] != nil
     }
 
-    func canMoveTile(at source: TilePosition, to target: TilePosition) -> Bool? {
-        guard let tileIsPresentAtSource = tileIsPresent(at: source) else {
-            assertionFailure("Checking a move from an out-of-bounds position")
-            return nil
+    func canMoveTile(at position: TilePosition, _ direction: TileMoveDirection) -> Bool? {
+        let target = position.moved(direction)
+
+        guard let tileIsPresentAtSource = tileIsPresent(at: position) else { return nil }
+
+        guard let _ = tileIsPresent(at: target) else { return nil }
+
+        if !tileIsPresentAtSource { return false }
+
+        var currentPosition = target
+
+        while (currentPosition != position) {
+            if tileIsPresent(at: currentPosition)! { return false }
+
+            currentPosition = target.moved(direction.opposite)
         }
 
-        guard let tileIsPresentAtTarget = tileIsPresent(at: target) else {
-            assertionFailure("Checking a move to an out-of-bounds position")
-            return nil
-        }
-
-        return source.isAdjacentTo(target) && tileIsPresentAtSource && tileIsPresentAtTarget
+        return true
     }
 
     func textOfTile(at position: TilePosition) -> String? {
@@ -88,15 +95,17 @@ struct Board {
         return tiles[position]?.text
     }
 
-    mutating func moveTile(at source: TilePosition, to target: TilePosition) {
-        guard let tileIsMovable = canMoveTile(at: source, to: target) else {
+    mutating func moveTile(at position: TilePosition, _ direction: TileMoveDirection) {
+        guard let tileIsMovable = canMoveTile(at: position, direction) else {
             fatalError("Move operation exceeds the bounds of the board")
         }
 
         precondition(tileIsMovable, "Tile cannot be moved to desired position")
 
-        tiles[target] = tiles[source]
-        tiles[source] = nil
+        let targetPosition = position.moved(direction)
+
+        tiles[targetPosition] = tiles[position]
+        tiles[position] = nil
     }
 }
 

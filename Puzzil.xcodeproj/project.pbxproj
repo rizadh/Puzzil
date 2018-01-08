@@ -10,6 +10,7 @@
 		4A03F6741FEEC66000A625D8 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A03F6731FEEC66000A625D8 /* GradientView.swift */; };
 		4A1B65EB1FEE409700A98FF7 /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1B65EA1FEE409700A98FF7 /* Board.swift */; };
 		4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */; };
+		4A3772FE2002E2B400C3C0F9 /* TileMoveDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A3772FD2002E2B400C3C0F9 /* TileMoveDirection.swift */; };
 		4A4573C41FF77FE600F13884 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4573C31FF77FE600F13884 /* TileView.swift */; };
 		4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59F7D81FFAD8BA0069ACB9 /* CGRect+Centered.swift */; };
 		4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */; };
@@ -27,6 +28,7 @@
 		4A03F6731FEEC66000A625D8 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		4A1B65EA1FEE409700A98FF7 /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewDelegate.swift; sourceTree = "<group>"; };
+		4A3772FD2002E2B400C3C0F9 /* TileMoveDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileMoveDirection.swift; sourceTree = "<group>"; };
 		4A4573C31FF77FE600F13884 /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
 		4A59F7D81FFAD8BA0069ACB9 /* CGRect+Centered.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Centered.swift"; sourceTree = "<group>"; };
 		4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TilePosition.swift; sourceTree = "<group>"; };
@@ -71,6 +73,7 @@
 				4A1B65EA1FEE409700A98FF7 /* Board.swift */,
 				4A75ABC61FF0517000B0897F /* Tile.swift */,
 				4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */,
+				4A3772FD2002E2B400C3C0F9 /* TileMoveDirection.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -202,6 +205,7 @@
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */,
+				4A3772FE2002E2B400C3C0F9 /* TileMoveDirection.swift in Sources */,
 				4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */,
 				4A6C28D41FF5AAD9007D2F80 /* BoardView.swift in Sources */,
 				4A03F6741FEEC66000A625D8 /* GradientView.swift in Sources */,

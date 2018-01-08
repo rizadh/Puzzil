@@ -36,15 +36,18 @@ class GradientView: UIView {
         updateGradient()
     }
 
-    private func updateGradient() {
+    @objc func updateGradient() {
         guard let position = superview?.convert(frame.origin, to: nil) else {
             return
         }
 
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         gradient.frame = UIScreen.main.bounds.offsetBy(dx: -position.x, dy: -position.y)
         gradientMask.frame = bounds.offsetBy(dx: position.x, dy: position.y)
         gradientMask.path = clippingPath(for: bounds)
         gradientMask.fillRule = kCAFillRuleEvenOdd
+        CATransaction.commit()
     }
 
     func clippingPath(for gradientBounds: CGRect) -> CGPath {

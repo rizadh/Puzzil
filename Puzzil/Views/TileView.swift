@@ -27,8 +27,6 @@ class TileView: GradientView {
     }
 
     private func setupSubviews() {
-        layer.cornerRadius = 16
-
         labelView.translatesAutoresizingMaskIntoConstraints = false
         labelView.textAlignment = .center
         labelView.textColor = .white
@@ -44,6 +42,7 @@ class TileView: GradientView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
+        layer.cornerRadius = min(32, frame.width, frame.height) / 2
         labelView.font = UIFont.systemFont(ofSize: frame.height / 2, weight: .bold)
     }
 }
