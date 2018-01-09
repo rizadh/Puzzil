@@ -9,21 +9,35 @@
 import UIKit
 
 class RoundedButton: GradientView {
+    typealias ButtonHandler = (RoundedButton) -> Void
+
     var text = "" {
         didSet {
             labelView.text = text
         }
     }
+    let handler: ButtonHandler
     let labelView = UILabel()
 
-    init() {
+    init(handler: @escaping ButtonHandler) {
+        self.handler = handler
+
         super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
 
+        setupGestureRecognizer()
         setupSubviews()
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupGestureRecognizer() {
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(buttonWasTapped(_:))))
+    }
+
+    @objc private func buttonWasTapped(_ sender: UITapGestureRecognizer) {
+        handler(self)
     }
 
     private func setupSubviews() {

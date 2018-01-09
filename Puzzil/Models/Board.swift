@@ -14,17 +14,33 @@ struct Board {
     private var tiles = [[Tile?]]()
 
     var isSolved: Bool {
-        for (rowIndex, row) in tiles.enumerated() {
-            for (columnIndex, element) in row.enumerated() {
-                guard let tile = element else { continue }
-
-                if tile.target != TilePosition(row: rowIndex, column: columnIndex) {
-                    return false
-                }
+        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
+            if let tile = tiles[position], tile.target != position {
+                return false
             }
         }
 
         return true
+    }
+
+    private var distanceLeft: Int {
+        var distance = 0
+
+        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
+            if let tile = tiles[position], tile.target != position {
+                distance += position.distance(to: tile.target)
+            }
+        }
+
+        return distance
+    }
+
+    private var maxDistanceLeft: Int {
+        return (rows + columns - 2) * rows * columns
+    }
+
+    var progress: Double {
+        return 1 - Double(distanceLeft) / Double(maxDistanceLeft)
     }
 
     init(from matrix: [[CustomStringConvertible?]]) {
@@ -36,13 +52,13 @@ struct Board {
 
         tiles.reserveCapacity(rows)
 
-        for (columnIndex, row) in matrix.enumerated() {
+        for (rowIndex, row) in matrix.enumerated() {
             precondition(columns == row.count, "Provided matrix does not have a consistent row length")
 
             var tileRow = [Tile?]()
             tileRow.reserveCapacity(columns)
 
-            for (rowIndex, element) in row.enumerated() {
+            for (columnIndex, element) in row.enumerated() {
                 let tile: Tile?
 
                 if let element = element {

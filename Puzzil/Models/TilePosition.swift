@@ -16,12 +16,12 @@ struct TilePosition {
         return abs(a.row - b.row) + abs(a.column - b.column)
     }
 
-    static func traversePositions(boundedBy position: TilePosition, _ body: (TilePosition) throws -> Void) rethrows {
-        for rowIndex in 0..<position.row {
-            for columnIndex in 0..<position.column {
-                try body(TilePosition(row: rowIndex, column: columnIndex))
-            }
-        }
+    static func traversePositions(rows: Int, columns: Int) -> TilePositionIterator {
+        return TilePositionIterator(rows: rows, columns: columns)
+    }
+
+    func distance(to otherPosition: TilePosition) -> Int {
+        return TilePosition.distanceBetween(self, otherPosition)
     }
 
     func isAdjacentTo(_ otherPosition: TilePosition) -> Bool {
@@ -45,5 +45,25 @@ struct TilePosition {
 extension TilePosition: Equatable {
     static func == (lhs: TilePosition, rhs: TilePosition) -> Bool {
         return lhs.row == rhs.row && lhs.column == rhs.column
+    }
+}
+
+struct TilePositionIterator: Sequence, IteratorProtocol {
+    private let columns: Int
+    private let rows: Int
+    private var count = 0
+
+    fileprivate init(rows: Int, columns: Int) {
+        self.rows = rows
+        self.columns = columns
+    }
+
+    mutating func next() -> TilePosition? {
+        if count < columns * rows {
+            defer { count += 1 }
+            return TilePosition(row: count / columns, column: count % columns)
+        } else {
+            return nil
+        }
     }
 }

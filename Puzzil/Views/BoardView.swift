@@ -13,9 +13,7 @@ class BoardView: GradientView {
     var tileConstraints = [TileView: [NSLayoutConstraint]]()
     var rowGuides = [UILayoutGuide]()
     var columnGuides = [UILayoutGuide]()
-    var delegate: BoardViewDelegate! {
-        didSet { setupSubviews() }
-    }
+    var delegate: BoardViewDelegate!
 
     init() {
         super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
@@ -70,7 +68,7 @@ class BoardView: GradientView {
         }
     }
 
-    private func setupSubviews() {
+    func reloadTiles() {
         clearTiles()
         generateColumnLayoutGuides()
         generateRowLayoutGuides()
@@ -81,11 +79,14 @@ class BoardView: GradientView {
         tilePositions.keys.forEach { $0.removeFromSuperview() }
         tilePositions.removeAll()
 
+        NSLayoutConstraint.deactivate(tileConstraints.values.flatMap { $0 })
+        tileConstraints.removeAll()
+
         rowGuides.forEach(removeLayoutGuide(_:))
         rowGuides.removeAll()
 
         columnGuides.forEach(removeLayoutGuide(_:))
-        rowGuides.removeAll()
+        columnGuides.removeAll()
     }
 
     private func generateColumnLayoutGuides() {
@@ -132,10 +133,8 @@ class BoardView: GradientView {
         let columns = delegate.numberOfColumns(in: self)
         let rows = delegate.numberOfRows(in: self)
 
-        TilePosition.traversePositions(boundedBy: TilePosition(row: rows, column: columns)) { position in
-            guard let text = delegate.boardView(self, textForTileAt: position) else {
-                return
-            }
+        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
+            guard let text = delegate.boardView(self, textForTileAt: position) else { continue }
 
             let tile = TileView()
             tile.translatesAutoresizingMaskIntoConstraints = false
