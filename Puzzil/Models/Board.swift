@@ -85,10 +85,10 @@ struct Board {
         return tiles[position] != nil
     }
 
-    func canMoveTile(at position: TilePosition, _ direction: TileMoveDirection) -> Bool? {
-        let target = position.moved(direction)
+    func canPerform(_ moveOperation: TileMoveOperation) -> Bool? {
+        let target = moveOperation.targetPosition
 
-        guard let tileIsPresentAtSource = tileIsPresent(at: position) else { return nil }
+        guard let tileIsPresentAtSource = tileIsPresent(at: moveOperation.position) else { return nil }
 
         guard let _ = tileIsPresent(at: target) else { return nil }
 
@@ -96,32 +96,32 @@ struct Board {
 
         var currentPosition = target
 
-        while (currentPosition != position) {
+        while (currentPosition != moveOperation.position) {
             if tileIsPresent(at: currentPosition)! { return false }
 
-            currentPosition = target.moved(direction.opposite)
+            currentPosition = target.moved(moveOperation.direction.opposite)
         }
 
         return true
     }
 
-    func textOfTile(at position: TilePosition) -> String? {
+    func tileText(at position: TilePosition) -> String? {
         precondition(boardContains(position))
 
         return tiles[position]?.text
     }
 
-    mutating func moveTile(at position: TilePosition, _ direction: TileMoveDirection) {
-        guard let tileIsMovable = canMoveTile(at: position, direction) else {
+    mutating func perform(_ moveOperation: TileMoveOperation) {
+        guard let tileIsMovable = canPerform(moveOperation) else {
             fatalError("Move operation exceeds the bounds of the board")
         }
 
         precondition(tileIsMovable, "Tile cannot be moved to desired position")
 
-        let targetPosition = position.moved(direction)
+        let targetPosition = moveOperation.targetPosition
 
-        tiles[targetPosition] = tiles[position]
-        tiles[position] = nil
+        tiles[targetPosition] = tiles[moveOperation.position]
+        tiles[moveOperation.position] = nil
     }
 }
 

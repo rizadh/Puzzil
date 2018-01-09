@@ -88,16 +88,16 @@ class ViewController: UIViewController, BoardViewDelegate {
         return board.columns
     }
 
-    func boardView(_ boardView: BoardView, textForTileAt position: TilePosition) -> String? {
-        return board.textOfTile(at: position)
+    func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String? {
+        return board.tileText(at: position)
     }
 
-    func boardView(_ boardView: BoardView, canMoveTileAt position: TilePosition, _ direction: TileMoveDirection) -> Bool? {
-        return board.canMoveTile(at: position, direction)
+    func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool? {
+        return board.canPerform(moveOperation)
     }
 
-    func boardView(_ boardView: BoardView, tileWasMoved direction: TileMoveDirection, from position: TilePosition) {
-        board.moveTile(at: position, direction)
+    func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
+        board.perform(moveOperation)
 
         if board.isSolved {
             let alert = UIAlertController(title: "You solved it!", message: nil, preferredStyle: .alert)

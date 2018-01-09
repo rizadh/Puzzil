@@ -27,41 +27,33 @@ struct BoardScrambler {
     }
 
     static func moveRandomTile(in board: inout Board) {
-        let moves = possibleMoves(in: board)
+        let moveOperations = possibleMoveOperations(in: board)
         var maximumProgressReduction = -Double.greatestFiniteMagnitude
-        for move in moves {
-            maximumProgressReduction = max(maximumProgressReduction, progressReduction(in: board, with: move))
+        for moveOperation in moveOperations {
+            maximumProgressReduction = max(maximumProgressReduction, progressReduction(in: board, after: moveOperation))
         }
 
-        let effectiveMoves = moves.filter { move in
-            return progressReduction(in: board, with: move) == maximumProgressReduction
+        let effectiveMoves = moveOperations.filter { moveOperation in
+            return progressReduction(in: board, after: moveOperation) == maximumProgressReduction
         }
 
         let index = Int(arc4random_uniform(UInt32(effectiveMoves.count)))
-        let move = effectiveMoves[index]
+        let moveOperation = effectiveMoves[index]
 
-        board.moveTile(at: move.position, move.direction)
+        board.perform(moveOperation)
     }
 
-    static func possibleMoves(in board: Board) -> [TileMove] {
+    static func possibleMoveOperations(in board: Board) -> [TileMoveOperation] {
         return TilePosition.traversePositions(rows: board.rows, columns: board.columns).flatMap { position in
-            return possibleMoves(in: board, from: position)
+            [.left, .right, . up, .down]
+                .map { direction in TileMoveOperation(position: position, direction: direction) }
+                .filter { moveOperation in board.canPerform(moveOperation) ?? false }
         }
     }
 
-    static func possibleMoves(in board: Board, from position: TilePosition) -> [TileMove] {
-        return [
-            TileMoveDirection.left,
-            TileMoveDirection.right,
-            TileMoveDirection.up,
-            TileMoveDirection.down,
-        ].filter { board.canMoveTile(at: position, $0) ?? false }
-            .map { TileMove(position: position, direction: $0) }
-    }
-
-    static func progressReduction(in board: Board, with move: TileMove) -> Double {
+    static func progressReduction(in board: Board, after moveOperation: TileMoveOperation) -> Double {
         var potentialBoard = board
-        potentialBoard.moveTile(at: move.position, move.direction)
+        potentialBoard.perform(moveOperation)
         return board.progress - potentialBoard.progress
     }
 }

@@ -49,12 +49,14 @@ class BoardView: GradientView {
         let tile = sender.view as! TileView
         let position = tilePositions[tile]!
         let direction = TileMoveDirection(from: sender.direction)!
+        let moveOperation = TileMoveOperation(position: position, direction: direction)
 
-        let newPosition = position.moved(direction)
-        if delegate.boardView(self, canMoveTileAt: position, direction) ?? false {
-            move(tile, to: newPosition)
+        if delegate.boardView(self, canPerform: moveOperation) ?? false {
+            perform(moveOperation, on: tile)
+
             let timer = CADisplayLink(target: tile, selector: #selector(tile.updateGradient))
             timer.add(to: .main, forMode: .defaultRunLoopMode)
+
             let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
                 self.layoutIfNeeded()
             }
@@ -64,7 +66,7 @@ class BoardView: GradientView {
             }
 
             animator.startAnimation()
-            delegate.boardView(self, tileWasMoved: direction, from: position)
+            delegate.boardView(self, didPerform: moveOperation)
         }
     }
 
@@ -134,7 +136,7 @@ class BoardView: GradientView {
         let rows = delegate.numberOfRows(in: self)
 
         for position in TilePosition.traversePositions(rows: rows, columns: columns) {
-            guard let text = delegate.boardView(self, textForTileAt: position) else { continue }
+            guard let text = delegate.boardView(self, tileTextAt: position) else { continue }
 
             let tile = TileView()
             tile.translatesAutoresizingMaskIntoConstraints = false
@@ -193,8 +195,8 @@ class BoardView: GradientView {
         tileConstraints[tile] = constraints
     }
 
-    private func move(_ tile: TileView, to position: TilePosition) {
+    private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
         remove(tile)
-        place(tile, at: position)
+        place(tile, at: moveOperation.targetPosition)
     }
 }

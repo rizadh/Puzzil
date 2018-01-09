@@ -8,7 +8,11 @@
 
 import Foundation
 
-struct TileMove {
+struct TileMoveOperation {
     let position: TilePosition
     let direction: TileMoveDirection
+
+    var targetPosition: TilePosition {
+        return position.moved(direction)
+    }
 }
