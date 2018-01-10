@@ -23,16 +23,23 @@ class ViewController: UIViewController, BoardViewDelegate {
         [nil, 0, nil],
     ]
 
-    static let difficulty = 0.5
+    static let difficulty = 0.1
 
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
+//    override var prefersStatusBarHidden: Bool {
+//        return true
+//    }
 
-    var board: Board!
+    var board = Board(from: [[nil]])
     let boardView = BoardView()
-    var startTime: Date!
+    var startTime = Date()
+    let timeStat = StatView("Time")
+    var timeStatRefresher: CADisplayLink!
     var moves = 0
+    let moveStat = StatView("Moves")
+
+    var elapsedTime: TimeInterval {
+        return Date().timeIntervalSince(startTime)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,7 +48,21 @@ class ViewController: UIViewController, BoardViewDelegate {
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
+
         resetBoard()
+        setupSubviews()
+    }
+
+    private func setupSubviews() {
+        timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
+        timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
+
+        moveStat.translatesAutoresizingMaskIntoConstraints = false
+        timeStat.translatesAutoresizingMaskIntoConstraints = false
+
+        let topBarGuide = UILayoutGuide()
+        let boardGuide = UILayoutGuide()
+        let bottomBarGuide = UILayoutGuide()
 
         let restartButton = RoundedButton() { [unowned self] _ in
             self.resetBoard()
@@ -53,18 +74,15 @@ class ViewController: UIViewController, BoardViewDelegate {
         buttons.distribution = .fillEqually
         buttons.spacing = 8
 
-        let boardLayoutGuide = UILayoutGuide()
-
-        let optionalConstraints = [
-            boardView.widthAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: boardLayoutGuide.heightAnchor),
-        ]
-
-        optionalConstraints.forEach { $0.priority = .defaultHigh }
-
+        view.addSubview(moveStat)
+        view.addSubview(timeStat)
         view.addSubview(boardView)
         view.addSubview(buttons)
-        view.addLayoutGuide(boardLayoutGuide)
+
+        view.addLayoutGuide(topBarGuide)
+
+        view.addLayoutGuide(boardGuide)
+        view.addLayoutGuide(bottomBarGuide)
 
         let safeArea: UILayoutGuide
 
@@ -76,40 +94,93 @@ class ViewController: UIViewController, BoardViewDelegate {
             view.addLayoutGuide(safeArea)
 
             NSLayoutConstraint.activate([
-                safeArea.topAnchor.constraint(equalTo: view.topAnchor),
-                safeArea.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                safeArea.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
+                safeArea.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
                 safeArea.leftAnchor.constraint(equalTo: view.leftAnchor),
                 safeArea.rightAnchor.constraint(equalTo: view.rightAnchor),
             ])
         }
 
+        let optionalConstraints = [
+            boardView.widthAnchor.constraint(equalTo: boardGuide.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: boardGuide.heightAnchor),
+        ]
+
+        optionalConstraints.forEach { $0.priority = .defaultHigh }
+
+        let buttonHeightConstraint = buttons.heightAnchor.constraint(equalToConstant: 48)
+        buttonHeightConstraint.priority = UILayoutPriority(UILayoutPriority.defaultHigh.rawValue + 1)
+        buttonHeightConstraint.isActive = true
+
         NSLayoutConstraint.activate(optionalConstraints + [
-            boardLayoutGuide.leftAnchor.constraint(equalTo: buttons.leftAnchor),
-            boardLayoutGuide.rightAnchor.constraint(equalTo: buttons.rightAnchor),
-            boardLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            topBarGuide.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            topBarGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            topBarGuide.bottomAnchor.constraint(equalTo: boardView.topAnchor),
 
-            boardView.widthAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.widthAnchor),
-            boardView.heightAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.heightAnchor),
-            boardView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
-            boardView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
+            boardGuide.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
+            boardGuide.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            boardGuide.widthAnchor.constraint(equalTo: safeArea.widthAnchor, constant: -32),
 
-            buttons.heightAnchor.constraint(equalToConstant: 48),
+            bottomBarGuide.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            bottomBarGuide.topAnchor.constraint(equalTo: boardView.bottomAnchor),
+            bottomBarGuide.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
 
-            buttons.leftAnchor.constraint(equalTo: safeArea.leftAnchor, constant: 16),
-            safeArea.rightAnchor.constraint(equalTo: buttons.rightAnchor, constant: 16),
-            buttons.topAnchor.constraint(equalTo: boardLayoutGuide.bottomAnchor, constant: 16),
-            safeArea.bottomAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 16),
+            topBarGuide.widthAnchor.constraint(equalTo: boardView.widthAnchor),
+            bottomBarGuide.widthAnchor.constraint(equalTo: boardView.widthAnchor),
+            topBarGuide.heightAnchor.constraint(equalTo: bottomBarGuide.heightAnchor),
+
+            moveStat.leftAnchor.constraint(equalTo: topBarGuide.leftAnchor),
+            moveStat.rightAnchor.constraint(equalTo: topBarGuide.centerXAnchor),
+            moveStat.centerYAnchor.constraint(equalTo: topBarGuide.centerYAnchor),
+
+            timeStat.leftAnchor.constraint(equalTo: topBarGuide.centerXAnchor),
+            timeStat.rightAnchor.constraint(equalTo: topBarGuide.rightAnchor),
+            timeStat.centerYAnchor.constraint(equalTo: topBarGuide.centerYAnchor),
+
+            boardView.widthAnchor.constraint(lessThanOrEqualTo: boardGuide.widthAnchor),
+            boardView.heightAnchor.constraint(lessThanOrEqualTo: boardGuide.heightAnchor),
+            boardView.centerXAnchor.constraint(equalTo: boardGuide.centerXAnchor),
+            boardView.centerYAnchor.constraint(equalTo: boardGuide.centerYAnchor),
+
+            buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            buttons.centerYAnchor.constraint(equalTo: bottomBarGuide.centerYAnchor),
+            buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
+            buttons.heightAnchor.constraint(lessThanOrEqualTo: boardView.heightAnchor, multiplier: 0.2)
         ])
     }
 
-    func resetBoard() {
-        board = Board(from: ViewController.telephoneBoard)
-        BoardScrambler.scramble(&board!, untilProgressIsBelow: 1 - ViewController.difficulty)
+    private func resetBoard() {
+        board = Board(from: ViewController.regularBoard)
+        BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - ViewController.difficulty)
+        timeStatRefresher?.isPaused = false
 
         boardView.reloadTiles()
 
         moves = 0
+        updateMoveStat()
         startTime = Date()
+        updateTimeStat()
+    }
+
+    private func updateMoveStat() {
+        moveStat.value = moves.description
+    }
+
+    @objc private func updateTimeStat() {
+        timeStat.value = "\(Int(elapsedTime)) s"
+    }
+
+    private func boardWasSolved() {
+        timeStatRefresher.isPaused = true
+
+        let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { [unowned self] _ in
+            self.resetBoard()
+        }))
+
+        present(alert, animated: true, completion: nil)
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {
@@ -131,19 +202,8 @@ class ViewController: UIViewController, BoardViewDelegate {
     func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
         board.perform(moveOperation)
         moves += 1
+        updateMoveStat()
 
-        if board.isSolved {
-            let endTime = Date()
-            let elapsedTime = endTime.timeIntervalSince(startTime)
-            let roundedTime = (elapsedTime * 1e2).rounded() / 1e2
-
-            let title = "Solved in \(moves) moves and \(roundedTime) seconds!"
-            let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { [unowned self] _ in
-                self.resetBoard()
-            }))
-
-            present(alert, animated: true, completion: nil)
-        }
+        if board.isSolved { boardWasSolved() }
     }
 }
