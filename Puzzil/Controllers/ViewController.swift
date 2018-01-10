@@ -23,11 +23,11 @@ class ViewController: UIViewController, BoardViewDelegate {
         [nil, 0, nil],
     ]
 
-    static let difficulty = 0.1
+    static let difficulty = 0.5
 
-//    override var prefersStatusBarHidden: Bool {
-//        return true
-//    }
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
 
     var board = Board(from: [[nil]])
     let boardView = BoardView()
