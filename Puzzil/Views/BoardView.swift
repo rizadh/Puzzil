@@ -50,9 +50,15 @@ class BoardView: GradientView {
         let position = tilePositions[tile]!
         let direction = TileMoveDirection(from: sender.direction)!
         let moveOperation = TileMoveOperation(position: position, direction: direction)
+        let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
 
-        if delegate.boardView(self, canPerform: moveOperation) ?? false {
-            perform(moveOperation, on: tile)
+        if operationIsPossible {
+            for operation in requiredOperations {
+                let tileToMove = tilePositions.keys.first { tilePositions[$0] == operation.position }!
+
+                perform(operation, on: tileToMove)
+                delegate.boardView(self, didPerform: operation)
+            }
 
             let timer = CADisplayLink(target: tile, selector: #selector(tile.updateGradient))
             timer.add(to: .main, forMode: .defaultRunLoopMode)
@@ -66,8 +72,25 @@ class BoardView: GradientView {
             }
 
             animator.startAnimation()
-            delegate.boardView(self, didPerform: moveOperation)
         }
+    }
+
+    private func canPerform(_ moveOperation: TileMoveOperation) -> (result: Bool, requiredOperations: [TileMoveOperation]) {
+        guard let operationIsPossible = delegate.boardView(self, canPerform: moveOperation) else {
+            return (false, [moveOperation])
+        }
+
+        if operationIsPossible {
+            return (true, [moveOperation])
+        }
+
+        let nextOperationIsPossible = canPerform(moveOperation.nextOperation)
+
+        if nextOperationIsPossible.result {
+            return (true, nextOperationIsPossible.requiredOperations + [moveOperation])
+        }
+
+        return (false, [moveOperation])
     }
 
     func reloadTiles() {

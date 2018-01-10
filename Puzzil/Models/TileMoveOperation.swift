@@ -15,4 +15,8 @@ struct TileMoveOperation {
     var targetPosition: TilePosition {
         return position.moved(direction)
     }
+
+    var nextOperation: TileMoveOperation {
+        return TileMoveOperation(position: targetPosition, direction: direction)
+    }
 }

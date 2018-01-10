@@ -16,10 +16,19 @@ class ViewController: UIViewController, BoardViewDelegate {
         [7, 8, nil],
     ]
 
-    static let difficulty = 0.4
+    static let telephoneBoard = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [nil, 0, nil],
+    ]
+
+    static let difficulty = 0.5
 
     var board: Board!
     let boardView = BoardView()
+    var startTime: Date!
+    var moves = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,10 +37,10 @@ class ViewController: UIViewController, BoardViewDelegate {
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
-        scrambleBoard()
+        resetBoard()
 
         let restartButton = RoundedButton() { [unowned self] _ in
-            self.scrambleBoard()
+            self.resetBoard()
         }
         restartButton.text = "Restart"
 
@@ -74,10 +83,14 @@ class ViewController: UIViewController, BoardViewDelegate {
         ])
     }
 
-    func scrambleBoard() {
-        board = Board(from: ViewController.regularBoard)
+    func resetBoard() {
+        board = Board(from: ViewController.telephoneBoard)
         BoardScrambler.scramble(&board!, untilProgressIsBelow: 1 - ViewController.difficulty)
+
         boardView.reloadTiles()
+
+        moves = 0
+        startTime = Date()
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {
@@ -98,11 +111,17 @@ class ViewController: UIViewController, BoardViewDelegate {
 
     func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
         board.perform(moveOperation)
+        moves += 1
 
         if board.isSolved {
-            let alert = UIAlertController(title: "You solved it!", message: nil, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Restart", style: .cancel, handler: { [unowned self] _ in
-                self.scrambleBoard()
+            let endTime = Date()
+            let elapsedTime = endTime.timeIntervalSince(startTime)
+            let roundedTime = (elapsedTime * 1e2).rounded() / 1e2
+
+            let title = "Solved in \(moves) moves and \(roundedTime) seconds!"
+            let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { [unowned self] _ in
+                self.resetBoard()
             }))
 
             present(alert, animated: true, completion: nil)
