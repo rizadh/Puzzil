@@ -53,15 +53,18 @@ class BoardView: GradientView {
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
 
         if operationIsPossible {
+            var gradientTimers = [CADisplayLink]()
+
             for operation in requiredOperations {
                 let tileToMove = tilePositions.keys.first { tilePositions[$0] == operation.position }!
 
                 perform(operation, on: tileToMove)
                 delegate.boardView(self, didPerform: operation)
-            }
 
-            let timer = CADisplayLink(target: tile, selector: #selector(tile.updateGradient))
-            timer.add(to: .main, forMode: .defaultRunLoopMode)
+                let timer = CADisplayLink(target: tileToMove, selector: #selector(tileToMove.updateGradient))
+                timer.add(to: .main, forMode: .defaultRunLoopMode)
+                gradientTimers.append(timer)
+            }
 
             if #available(iOS 10.0, *) {
                 let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
@@ -69,7 +72,7 @@ class BoardView: GradientView {
                 }
 
                 animator.addCompletion { _ in
-                    timer.remove(from: .main, forMode: .defaultRunLoopMode)
+                    gradientTimers.forEach { $0.remove(from: .main, forMode: .defaultRunLoopMode) }
                 }
 
                 animator.startAnimation()
@@ -77,7 +80,7 @@ class BoardView: GradientView {
                 UIView.animate(withDuration: 0.25, animations: {
                     self.layoutIfNeeded()
                 }, completion: { _ in
-                    timer.remove(from: .main, forMode: .defaultRunLoopMode)
+                    gradientTimers.forEach { $0.remove(from: .main, forMode: .defaultRunLoopMode) }
                 })
             }
         }
