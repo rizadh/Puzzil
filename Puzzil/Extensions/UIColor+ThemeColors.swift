@@ -11,7 +11,6 @@ import UIKit
 
 private let pinkHue: CGFloat = 330 / 360
 private let orangeHue: CGFloat = 30 / 360
-private let averageHue: CGFloat = 30 / 360
 
 private let backgroundSaturation: CGFloat = 0.2
 private let foregroundSaturation: CGFloat = 0.8
