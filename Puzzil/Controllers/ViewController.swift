@@ -25,6 +25,10 @@ class ViewController: UIViewController, BoardViewDelegate {
 
     static let difficulty = 0.5
 
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+
     var board: Board!
     let boardView = BoardView()
     var startTime: Date!
