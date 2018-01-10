@@ -63,15 +63,23 @@ class BoardView: GradientView {
             let timer = CADisplayLink(target: tile, selector: #selector(tile.updateGradient))
             timer.add(to: .main, forMode: .defaultRunLoopMode)
 
-            let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-                self.layoutIfNeeded()
-            }
+            if #available(iOS 10.0, *) {
+                let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+                    self.layoutIfNeeded()
+                }
 
-            animator.addCompletion { _ in
-                timer.remove(from: .main, forMode: .defaultRunLoopMode)
-            }
+                animator.addCompletion { _ in
+                    timer.remove(from: .main, forMode: .defaultRunLoopMode)
+                }
 
-            animator.startAnimation()
+                animator.startAnimation()
+            } else {
+                UIView.animate(withDuration: 0.25, animations: {
+                    self.layoutIfNeeded()
+                }, completion: { _ in
+                    timer.remove(from: .main, forMode: .defaultRunLoopMode)
+                })
+            }
         }
     }
 

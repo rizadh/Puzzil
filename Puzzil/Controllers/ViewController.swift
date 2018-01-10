@@ -66,7 +66,22 @@ class ViewController: UIViewController, BoardViewDelegate {
         view.addSubview(buttons)
         view.addLayoutGuide(boardLayoutGuide)
 
-        let safeArea = view.safeAreaLayoutGuide
+        let safeArea: UILayoutGuide
+
+        if #available(iOS 11.0, *) {
+            safeArea = view.safeAreaLayoutGuide
+        } else {
+            safeArea = UILayoutGuide()
+
+            view.addLayoutGuide(safeArea)
+
+            NSLayoutConstraint.activate([
+                safeArea.topAnchor.constraint(equalTo: view.topAnchor),
+                safeArea.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                safeArea.leftAnchor.constraint(equalTo: view.leftAnchor),
+                safeArea.rightAnchor.constraint(equalTo: view.rightAnchor),
+            ])
+        }
 
         NSLayoutConstraint.activate(optionalConstraints + [
             boardLayoutGuide.leftAnchor.constraint(equalTo: buttons.leftAnchor),
@@ -80,10 +95,10 @@ class ViewController: UIViewController, BoardViewDelegate {
 
             buttons.heightAnchor.constraint(equalToConstant: 48),
 
-            buttons.leftAnchor.constraintEqualToSystemSpacingAfter(safeArea.leftAnchor, multiplier: 2),
-            safeArea.rightAnchor.constraintEqualToSystemSpacingAfter(buttons.rightAnchor, multiplier: 2),
-            buttons.topAnchor.constraintEqualToSystemSpacingBelow(boardLayoutGuide.bottomAnchor, multiplier: 2),
-            safeArea.bottomAnchor.constraintEqualToSystemSpacingBelow(buttons.bottomAnchor, multiplier: 2),
+            buttons.leftAnchor.constraint(equalTo: safeArea.leftAnchor, constant: 16),
+            safeArea.rightAnchor.constraint(equalTo: buttons.rightAnchor, constant: 16),
+            buttons.topAnchor.constraint(equalTo: boardLayoutGuide.bottomAnchor, constant: 16),
+            safeArea.bottomAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 16),
         ])
     }
 
