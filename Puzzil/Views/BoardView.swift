@@ -206,7 +206,6 @@ class BoardView: GradientView {
         downSwipeRecognizer.direction = .down
         tile.addGestureRecognizer(downSwipeRecognizer)
 
-//        tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
         tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
     }
 
