@@ -41,10 +41,6 @@ class BoardView: GradientView {
         return shape.cgPath
     }
 
-    private func setupGestureRecognizer() {
-        addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
-    }
-
     @objc private func tileWasDragged(_ sender: UISwipeGestureRecognizer) {
         let tile = sender.view as! TileView
         let position = tilePositions[tile]!
@@ -210,8 +206,8 @@ class BoardView: GradientView {
         downSwipeRecognizer.direction = .down
         tile.addGestureRecognizer(downSwipeRecognizer)
 
-        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:)))
-        tile.addGestureRecognizer(tapRecognizer)
+//        tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+        tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
     }
 
     private func remove(_ tile: TileView) {
