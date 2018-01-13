@@ -146,7 +146,7 @@ class ViewController: UIViewController, BoardViewDelegate {
 
     @objc private func updateTimeStat() {
         let time = Int(elapsedTime)
-        let minutes = 1 + (time / 60)
+        let minutes = time / 60
         let seconds = time % 60
 
         if minutes > 0 {
