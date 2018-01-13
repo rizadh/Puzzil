@@ -12,6 +12,15 @@ struct TilePosition {
     var row: Int
     var column: Int
 
+    var possibleOperations: [TileMoveOperation] {
+        return [
+            TileMoveOperation(position: self, direction: .left),
+            TileMoveOperation(position: self, direction: .right),
+            TileMoveOperation(position: self, direction: .up),
+            TileMoveOperation(position: self, direction: .down),
+        ]
+    }
+
     static func distanceBetween(_ a: TilePosition, _ b: TilePosition) -> Int {
         return abs(a.row - b.row) + abs(a.column - b.column)
     }

@@ -9,6 +9,9 @@
 import UIKit
 
 class TileView: GradientView {
+    static let maxTileSize: CGFloat = 128
+    static let maxCornerRadius: CGFloat = 16
+
     var text = "" {
         didSet {
             labelView.text = text
@@ -18,6 +21,12 @@ class TileView: GradientView {
 
     init() {
         super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
+
+        NSLayoutConstraint.activate([
+            widthAnchor.constraint(lessThanOrEqualToConstant: TileView.maxTileSize),
+            heightAnchor.constraint(lessThanOrEqualToConstant: TileView.maxTileSize),
+            widthAnchor.constraint(equalTo: heightAnchor),
+        ])
 
         setupSubviews()
     }
@@ -42,7 +51,7 @@ class TileView: GradientView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        layer.cornerRadius = min(32, frame.width, frame.height) / 2
+        layer.cornerRadius = min(2 * TileView.maxCornerRadius, frame.width, frame.height) / 2
         labelView.font = UIFont.systemFont(ofSize: frame.height / 2, weight: .bold)
     }
 }

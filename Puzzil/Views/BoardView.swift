@@ -9,6 +9,9 @@
 import UIKit
 
 class BoardView: GradientView {
+    static let cornerRadius: CGFloat = 32
+    static let borderWidth: CGFloat = 8
+
     var tilePositions = [TileView: TilePosition]()
     var tileConstraints = [TileView: [NSLayoutConstraint]]()
     var rowGuides = [UILayoutGuide]()
@@ -26,12 +29,9 @@ class BoardView: GradientView {
     }
 
     override func clippingPath(for gradientBounds: CGRect) -> CGPath {
-        let cornerRadius: CGFloat = 32
-        let borderWidth: CGFloat = 8
-
-        let outer = UIBezierPath(roundedRect: gradientBounds, cornerRadius: cornerRadius)
-        let innerBounds = gradientBounds.insetBy(dx: borderWidth, dy: borderWidth)
-        let innerRadius = cornerRadius - borderWidth
+        let outer = UIBezierPath(roundedRect: gradientBounds, cornerRadius: BoardView.cornerRadius)
+        let innerBounds = gradientBounds.insetBy(dx: BoardView.borderWidth, dy: BoardView.borderWidth)
+        let innerRadius = BoardView.cornerRadius - BoardView.borderWidth
         let inner = UIBezierPath(roundedRect: innerBounds, cornerRadius: innerRadius)
 
         let shape = UIBezierPath()
@@ -50,6 +50,22 @@ class BoardView: GradientView {
         let position = tilePositions[tile]!
         let direction = TileMoveDirection(from: sender.direction)!
         let moveOperation = TileMoveOperation(position: position, direction: direction)
+
+        perform(moveOperation)
+    }
+
+    @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
+        let tile = sender.view as! TileView
+        let position = tilePositions[tile]!
+
+        let validOperations = position.possibleOperations.filter { canPerform($0).result }
+
+        if validOperations.count == 1 {
+            perform(validOperations.first!)
+        }
+    }
+
+    private func perform(_ moveOperation: TileMoveOperation) {
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
 
         if operationIsPossible {
@@ -77,11 +93,9 @@ class BoardView: GradientView {
 
                 animator.startAnimation()
             } else {
-                UIView.animate(withDuration: 0.25, animations: {
+                UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
                     self.layoutIfNeeded()
-                }, completion: { _ in
-                    gradientTimers.forEach { $0.remove(from: .main, forMode: .defaultRunLoopMode) }
-                })
+                }, completion: nil)
             }
         }
     }
@@ -146,23 +160,18 @@ class BoardView: GradientView {
     }
 
     private func generateRowLayoutGuides() {
-        let rows = delegate.numberOfRows(in: self)
-
         var lastAnchor = topAnchor
-        var constraints = [NSLayoutConstraint]()
 
-        for rowIndex in 0..<rows {
+        for rowIndex in 0..<delegate.numberOfRows(in: self) {
             let rowGuide = UILayoutGuide()
-            constraints.append(rowGuide.topAnchor.constraint(equalTo: lastAnchor, constant: rowIndex == 0 ? 16 : 8))
             rowGuides.append(rowGuide)
-            rowGuide.heightAnchor.constraint(equalToConstant: 10)
             addLayoutGuide(rowGuide)
+
+            rowGuide.topAnchor.constraint(equalTo: lastAnchor, constant: rowIndex == 0 ? 16 : 8).isActive = true
             lastAnchor = rowGuide.bottomAnchor
         }
 
-        constraints.append(bottomAnchor.constraint(equalTo: lastAnchor, constant: 16))
-
-        NSLayoutConstraint.activate(constraints)
+        bottomAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
     }
 
     private func layoutTiles() {
@@ -200,6 +209,9 @@ class BoardView: GradientView {
         let downSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
         downSwipeRecognizer.direction = .down
         tile.addGestureRecognizer(downSwipeRecognizer)
+
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:)))
+        tile.addGestureRecognizer(tapRecognizer)
     }
 
     private func remove(_ tile: TileView) {
@@ -220,7 +232,6 @@ class BoardView: GradientView {
             tile.rightAnchor.constraint(equalTo: columnGuide.rightAnchor),
             tile.topAnchor.constraint(equalTo: rowGuide.topAnchor),
             tile.bottomAnchor.constraint(equalTo: rowGuide.bottomAnchor),
-            tile.widthAnchor.constraint(equalTo: tile.heightAnchor),
         ]
 
         NSLayoutConstraint.activate(constraints)

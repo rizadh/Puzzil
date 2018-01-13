@@ -57,12 +57,11 @@ class ViewController: UIViewController, BoardViewDelegate {
         timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
         timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
 
-        moveStat.translatesAutoresizingMaskIntoConstraints = false
-        timeStat.translatesAutoresizingMaskIntoConstraints = false
+        let stats = UIStackView(arrangedSubviews: [moveStat, timeStat])
+        stats.translatesAutoresizingMaskIntoConstraints = false
+        stats.distribution = .fillEqually
 
-        let topBarGuide = UILayoutGuide()
-        let boardGuide = UILayoutGuide()
-        let bottomBarGuide = UILayoutGuide()
+        let statsLayoutGuide = UILayoutGuide()
 
         let restartButton = RoundedButton() { [unowned self] _ in
             self.resetBoard()
@@ -74,15 +73,11 @@ class ViewController: UIViewController, BoardViewDelegate {
         buttons.distribution = .fillEqually
         buttons.spacing = 8
 
-        view.addSubview(moveStat)
-        view.addSubview(timeStat)
+        view.addSubview(stats)
         view.addSubview(boardView)
         view.addSubview(buttons)
 
-        view.addLayoutGuide(topBarGuide)
-
-        view.addLayoutGuide(boardGuide)
-        view.addLayoutGuide(bottomBarGuide)
+        view.addLayoutGuide(statsLayoutGuide)
 
         let safeArea: UILayoutGuide
 
@@ -102,56 +97,38 @@ class ViewController: UIViewController, BoardViewDelegate {
         }
 
         let optionalConstraints = [
-            boardView.widthAnchor.constraint(equalTo: boardGuide.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: boardGuide.heightAnchor),
+            boardView.widthAnchor.constraint(equalTo: safeArea.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: safeArea.heightAnchor),
+            buttons.heightAnchor.constraint(equalToConstant: 60),
         ]
 
         optionalConstraints.forEach { $0.priority = .defaultHigh }
 
-        let buttonHeightConstraint = buttons.heightAnchor.constraint(equalToConstant: 48)
-        buttonHeightConstraint.priority = UILayoutPriority(UILayoutPriority.defaultHigh.rawValue + 1)
-        buttonHeightConstraint.isActive = true
-
         NSLayoutConstraint.activate(optionalConstraints + [
-            topBarGuide.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            topBarGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
-            topBarGuide.bottomAnchor.constraint(equalTo: boardView.topAnchor),
+            statsLayoutGuide.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            statsLayoutGuide.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            statsLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            statsLayoutGuide.bottomAnchor.constraint(equalTo: boardView.topAnchor, constant: -16),
 
-            boardGuide.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
-            boardGuide.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            boardGuide.widthAnchor.constraint(equalTo: safeArea.widthAnchor, constant: -32),
+            stats.centerXAnchor.constraint(equalTo: statsLayoutGuide.centerXAnchor),
+            stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
+            stats.widthAnchor.constraint(equalTo: statsLayoutGuide.widthAnchor),
 
-            bottomBarGuide.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            bottomBarGuide.topAnchor.constraint(equalTo: boardView.bottomAnchor),
-            bottomBarGuide.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
-
-            topBarGuide.widthAnchor.constraint(equalTo: boardView.widthAnchor),
-            bottomBarGuide.widthAnchor.constraint(equalTo: boardView.widthAnchor),
-            topBarGuide.heightAnchor.constraint(equalTo: bottomBarGuide.heightAnchor),
-
-            moveStat.leftAnchor.constraint(equalTo: topBarGuide.leftAnchor),
-            moveStat.rightAnchor.constraint(equalTo: topBarGuide.centerXAnchor),
-            moveStat.centerYAnchor.constraint(equalTo: topBarGuide.centerYAnchor),
-
-            timeStat.leftAnchor.constraint(equalTo: topBarGuide.centerXAnchor),
-            timeStat.rightAnchor.constraint(equalTo: topBarGuide.rightAnchor),
-            timeStat.centerYAnchor.constraint(equalTo: topBarGuide.centerYAnchor),
-
-            boardView.widthAnchor.constraint(lessThanOrEqualTo: boardGuide.widthAnchor),
-            boardView.heightAnchor.constraint(lessThanOrEqualTo: boardGuide.heightAnchor),
-            boardView.centerXAnchor.constraint(equalTo: boardGuide.centerXAnchor),
-            boardView.centerYAnchor.constraint(equalTo: boardGuide.centerYAnchor),
+            boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
+            boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
+            boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
 
             buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            buttons.centerYAnchor.constraint(equalTo: bottomBarGuide.centerYAnchor),
             buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
-            buttons.heightAnchor.constraint(lessThanOrEqualTo: boardView.heightAnchor, multiplier: 0.2)
+            buttons.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
+            buttons.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
         ])
     }
 
     private func resetBoard() {
-        board = Board(from: ViewController.regularBoard)
+        board = Board(from: ViewController.telephoneBoard)
         BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - ViewController.difficulty)
         timeStatRefresher?.isPaused = false
 
@@ -168,7 +145,15 @@ class ViewController: UIViewController, BoardViewDelegate {
     }
 
     @objc private func updateTimeStat() {
-        timeStat.value = "\(Int(elapsedTime)) s"
+        let time = Int(elapsedTime)
+        let minutes = 1 + (time / 60)
+        let seconds = time % 60
+
+        if minutes > 0 {
+            timeStat.value = "\(minutes)m \(seconds)s"
+        } else {
+            timeStat.value = "\(seconds)s"
+        }
     }
 
     private func boardWasSolved() {
