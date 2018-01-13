@@ -10,26 +10,13 @@ import SpriteKit
 import CoreMotion
 
 class ViewController: UIViewController, BoardViewDelegate {
-    static let regularBoard = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, nil],
-    ]
-
-    static let telephoneBoard = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [nil, 0, nil],
-    ]
-
     static let difficulty = 0.5
 
     override var prefersStatusBarHidden: Bool {
         return true
     }
 
-    var board = Board(from: [[nil]])
+    var board: Board!
     let boardView = BoardView()
     var startTime = Date()
     let timeStat = StatView("Time")
@@ -128,8 +115,8 @@ class ViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBoard() {
-        board = Board(from: ViewController.telephoneBoard)
-        BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - ViewController.difficulty)
+        board = .regularBoard
+        BoardScrambler.scramble(&board!, untilProgressIsBelow: 1 - ViewController.difficulty)
         timeStatRefresher?.isPaused = false
 
         boardView.reloadTiles()
@@ -137,7 +124,6 @@ class ViewController: UIViewController, BoardViewDelegate {
         moves = 0
         updateMoveStat()
         startTime = Date()
-        updateTimeStat()
     }
 
     private func updateMoveStat() {
