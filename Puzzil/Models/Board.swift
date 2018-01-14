@@ -9,19 +9,6 @@
 import Foundation
 
 struct Board {
-    static let regularBoard = Board(from: [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, nil],
-    ])
-
-    static let telephoneBoard = Board(from: [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [nil, 0, nil],
-    ])
-
     let rows: Int
     let columns: Int
     private var tiles = [[Tile?]]()

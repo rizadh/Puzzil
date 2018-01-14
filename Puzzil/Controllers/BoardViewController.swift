@@ -1,37 +1,56 @@
 //
-//  ViewController.swift
+//  BoardViewController.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2017-12-22.
 //  Copyright © 2017 Rizadh Nizam. All rights reserved.
 //
 
-import SpriteKit
-import CoreMotion
+import UIKit
 
-class ViewController: UIViewController, BoardViewDelegate {
-    static let difficulty = 0.5
-
+class BoardViewController: UIViewController, BoardViewDelegate {
     override var prefersStatusBarHidden: Bool {
         return true
     }
 
-    var board: Board!
-    let boardView = BoardView()
-    var startTime = Date()
-    let timeStat = StatView("Time")
-    var timeStatRefresher: CADisplayLink!
-    var moves = 0
-    let moveStat = StatView("Moves")
+    private var originalBoard: Board
+    private var board: Board
+    private let difficulty: Double
 
-    var elapsedTime: TimeInterval {
+    private let boardView = BoardView()
+    private let timeStat = StatView("Time")
+    private let moveStat = StatView("Moves")
+
+    private var timeStatRefresher: CADisplayLink!
+
+    private var startTime = Date()
+    private var moves = 0
+
+    private var elapsedTime: TimeInterval {
         return Date().timeIntervalSince(startTime)
+    }
+
+    init(board: Board, difficulty: Double) {
+        originalBoard = board
+        self.board = board
+        self.difficulty = difficulty
+
+        super.init(nibName: nil, bundle: nil)
+
+        modalTransitionStyle = .flipHorizontal
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+        let gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+        gradientView.frame = view.bounds
+        gradientView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        view.addSubview(gradientView)
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
@@ -48,14 +67,16 @@ class ViewController: UIViewController, BoardViewDelegate {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        let statsLayoutGuide = UILayoutGuide()
-
+        let backButton = RoundedButton() { [unowned self] _ in
+            self.dismiss(animated: true, completion: nil)
+        }
+        backButton.text = "Back"
         let restartButton = RoundedButton() { [unowned self] _ in
             self.resetBoard()
         }
         restartButton.text = "Restart"
 
-        let buttons = UIStackView(arrangedSubviews: [restartButton])
+        let buttons = UIStackView(arrangedSubviews: [backButton, restartButton])
         buttons.translatesAutoresizingMaskIntoConstraints = false
         buttons.distribution = .fillEqually
         buttons.spacing = 8
@@ -63,8 +84,6 @@ class ViewController: UIViewController, BoardViewDelegate {
         view.addSubview(stats)
         view.addSubview(boardView)
         view.addSubview(buttons)
-
-        view.addLayoutGuide(statsLayoutGuide)
 
         let safeArea: UILayoutGuide
 
@@ -83,23 +102,34 @@ class ViewController: UIViewController, BoardViewDelegate {
             ])
         }
 
-        let optionalConstraints = [
-            boardView.widthAnchor.constraint(equalTo: safeArea.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: safeArea.heightAnchor),
+        [
+            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
             buttons.heightAnchor.constraint(equalToConstant: 60),
-        ]
+        ].forEach {
+            $0.priority = .defaultHigh
+            $0.isActive = true
+        }
 
-        optionalConstraints.forEach { $0.priority = .defaultHigh }
+        if #available(iOS 10.0, *) {
+            let topMargin = safeArea.topAnchor.anchorWithOffset(to: stats.topAnchor)
+            let bottomMargin = stats.bottomAnchor.anchorWithOffset(to: boardView.topAnchor)
 
-        NSLayoutConstraint.activate(optionalConstraints + [
-            statsLayoutGuide.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            statsLayoutGuide.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            statsLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
-            statsLayoutGuide.bottomAnchor.constraint(equalTo: boardView.topAnchor, constant: -16),
+            NSLayoutConstraint.activate([
+                topMargin.constraint(equalTo: bottomMargin),
+                topMargin.constraint(greaterThanOrEqualToConstant: 16),
+                bottomMargin.constraint(greaterThanOrEqualToConstant: 16),
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                stats.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
+                stats.bottomAnchor.constraint(lessThanOrEqualTo: boardView.topAnchor, constant: -16),
+            ])
+        }
 
-            stats.centerXAnchor.constraint(equalTo: statsLayoutGuide.centerXAnchor),
-            stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
-            stats.widthAnchor.constraint(equalTo: statsLayoutGuide.widthAnchor),
+        NSLayoutConstraint.activate([
+            stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
 
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
             boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
@@ -115,8 +145,8 @@ class ViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBoard() {
-        board = .regularBoard
-        BoardScrambler.scramble(&board!, untilProgressIsBelow: 1 - ViewController.difficulty)
+        board = originalBoard
+        BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - difficulty)
         timeStatRefresher?.isPaused = false
 
         boardView.reloadTiles()

@@ -9,14 +9,14 @@
 import UIKit
 
 class BoardView: GradientView {
-    static let cornerRadius: CGFloat = 32
-    static let borderWidth: CGFloat = 8
+    private static let cornerRadius: CGFloat = 32
+    private static let borderWidth: CGFloat = 8
 
-    var tilePositions = [TileView: TilePosition]()
-    var tileConstraints = [TileView: [NSLayoutConstraint]]()
-    var rowGuides = [UILayoutGuide]()
-    var columnGuides = [UILayoutGuide]()
     var delegate: BoardViewDelegate!
+    var isDynamic = true
+    private var tiles = [TileView: TileInfo]()
+    private var rowGuides = [UILayoutGuide]()
+    private var columnGuides = [UILayoutGuide]()
 
     init() {
         super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
@@ -42,8 +42,10 @@ class BoardView: GradientView {
     }
 
     @objc private func tileWasDragged(_ sender: UISwipeGestureRecognizer) {
+        guard isDynamic else { return }
+
         let tile = sender.view as! TileView
-        let position = tilePositions[tile]!
+        let position = tiles[tile]!.position
         let direction = TileMoveDirection(from: sender.direction)!
         let moveOperation = TileMoveOperation(position: position, direction: direction)
 
@@ -51,8 +53,10 @@ class BoardView: GradientView {
     }
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
+        guard isDynamic else { return }
+
         let tile = sender.view as! TileView
-        let position = tilePositions[tile]!
+        let position = tiles[tile]!.position
 
         let validOperations = position.possibleOperations.filter { canPerform($0).result }
 
@@ -68,7 +72,7 @@ class BoardView: GradientView {
             var gradientTimers = [CADisplayLink]()
 
             for operation in requiredOperations {
-                let tileToMove = tilePositions.keys.first { tilePositions[$0] == operation.position }!
+                let tileToMove = tiles.first { $0.value.position == operation.position }!.key
 
                 perform(operation, on: tileToMove)
                 delegate.boardView(self, didPerform: operation)
@@ -78,8 +82,10 @@ class BoardView: GradientView {
                 gradientTimers.append(timer)
             }
 
+            let animationDuration = 0.2
+
             if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+                let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1) {
                     self.layoutIfNeeded()
                 }
 
@@ -89,7 +95,7 @@ class BoardView: GradientView {
 
                 animator.startAnimation()
             } else {
-                UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
                     self.layoutIfNeeded()
                 }, completion: nil)
             }
@@ -122,11 +128,11 @@ class BoardView: GradientView {
     }
 
     private func clearTiles() {
-        tilePositions.keys.forEach { $0.removeFromSuperview() }
-        tilePositions.removeAll()
-
-        NSLayoutConstraint.deactivate(tileConstraints.values.flatMap { $0 })
-        tileConstraints.removeAll()
+        tiles.forEach { (tileView, info) in
+            tileView.removeFromSuperview()
+            NSLayoutConstraint.deactivate(info.constraints)
+        }
+        tiles.removeAll()
 
         rowGuides.forEach(removeLayoutGuide(_:))
         rowGuides.removeAll()
@@ -136,23 +142,18 @@ class BoardView: GradientView {
     }
 
     private func generateColumnLayoutGuides() {
-        let columns = delegate.numberOfColumns(in: self)
-
         var lastAnchor = leftAnchor
-        var constraints = [NSLayoutConstraint]()
 
-        for columnIndex in 0..<columns {
+        for columnIndex in 0..<delegate.numberOfColumns(in: self) {
             let columnGuide = UILayoutGuide()
-            constraints.append(columnGuide.leftAnchor.constraint(equalTo: lastAnchor, constant: columnIndex == 0 ? 16 : 8))
             columnGuides.append(columnGuide)
-            columnGuide.widthAnchor.constraint(equalToConstant: 10)
             addLayoutGuide(columnGuide)
+
+            columnGuide.leftAnchor.constraint(equalTo: lastAnchor, constant: columnIndex == 0 ? 16 : 8).isActive = true
             lastAnchor = columnGuide.rightAnchor
         }
 
-        constraints.append(rightAnchor.constraint(equalTo: lastAnchor, constant: 16))
-
-        NSLayoutConstraint.activate(constraints)
+        rightAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
     }
 
     private func generateRowLayoutGuides() {
@@ -210,12 +211,11 @@ class BoardView: GradientView {
     }
 
     private func remove(_ tile: TileView) {
-        let constraints = tileConstraints[tile]!
+        let constraints = tiles[tile]!.constraints
 
         NSLayoutConstraint.deactivate(constraints)
 
-        tilePositions.removeValue(forKey: tile)
-        tileConstraints.removeValue(forKey: tile)
+        tiles.removeValue(forKey: tile)
     }
 
     private func place(_ tile: TileView, at position: TilePosition) {
@@ -231,12 +231,22 @@ class BoardView: GradientView {
 
         NSLayoutConstraint.activate(constraints)
 
-        tilePositions[tile] = position
-        tileConstraints[tile] = constraints
+        tiles[tile] = TileInfo(position: position, constraints: constraints)
     }
 
     private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
         remove(tile)
         place(tile, at: moveOperation.targetPosition)
     }
+
+    override func updateGradient() {
+        super.updateGradient()
+
+        tiles.keys.forEach { $0.updateGradient() }
+    }
+}
+
+fileprivate struct TileInfo {
+    let position: TilePosition
+    let constraints: [NSLayoutConstraint]
 }

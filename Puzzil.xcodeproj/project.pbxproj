@@ -17,8 +17,9 @@
 		4A6C28D41FF5AAD9007D2F80 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */; };
 		4A7341C21FFD4648003DB6C6 /* RoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7341C11FFD4648003DB6C6 /* RoundedButton.swift */; };
 		4A75ABC71FF0517000B0897F /* Tile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A75ABC61FF0517000B0897F /* Tile.swift */; };
+		4AAA7070200AD9B700123A02 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAA706F200AD9B700123A02 /* MainViewController.swift */; };
 		4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */; };
-		4AB63DCB1FEDA6B2003EBC29 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DCA1FEDA6B2003EBC29 /* ViewController.swift */; };
+		4AB63DCB1FEDA6B2003EBC29 /* BoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DCA1FEDA6B2003EBC29 /* BoardViewController.swift */; };
 		4AB63DD01FEDA6B2003EBC29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */; };
 		4AB63DD31FEDA6B2003EBC29 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DD11FEDA6B2003EBC29 /* LaunchScreen.storyboard */; };
 		4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */; };
@@ -38,9 +39,10 @@
 		4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		4A7341C11FFD4648003DB6C6 /* RoundedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedButton.swift; sourceTree = "<group>"; };
 		4A75ABC61FF0517000B0897F /* Tile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
+		4AAA706F200AD9B700123A02 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		4AB63DC51FEDA6B2003EBC29 /* Puzzil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puzzil.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		4AB63DCA1FEDA6B2003EBC29 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		4AB63DCA1FEDA6B2003EBC29 /* BoardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewController.swift; sourceTree = "<group>"; };
 		4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4AB63DD21FEDA6B2003EBC29 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4AB63DD41FEDA6B3003EBC29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -130,7 +132,8 @@
 		4AB63DDD1FEDCEA1003EBC29 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				4AB63DCA1FEDA6B2003EBC29 /* ViewController.swift */,
+				4AB63DCA1FEDA6B2003EBC29 /* BoardViewController.swift */,
+				4AAA706F200AD9B700123A02 /* MainViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -208,11 +211,12 @@
 			files = (
 				4ABAB82220065BC300D09C93 /* StatView.swift in Sources */,
 				4A1B65EB1FEE409700A98FF7 /* Board.swift in Sources */,
-				4AB63DCB1FEDA6B2003EBC29 /* ViewController.swift in Sources */,
+				4AB63DCB1FEDA6B2003EBC29 /* BoardViewController.swift in Sources */,
 				4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */,
 				4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */,
 				4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */,
 				4A7341C21FFD4648003DB6C6 /* RoundedButton.swift in Sources */,
+				4AAA7070200AD9B700123A02 /* MainViewController.swift in Sources */,
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */,
