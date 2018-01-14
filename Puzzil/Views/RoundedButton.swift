@@ -16,8 +16,8 @@ class RoundedButton: GradientView {
             labelView.text = text
         }
     }
-    let handler: ButtonHandler
-    let labelView = UILabel()
+    private let handler: ButtonHandler
+    private let labelView = UILabel()
 
     init(handler: @escaping ButtonHandler) {
         self.handler = handler

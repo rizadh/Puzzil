@@ -9,15 +9,15 @@
 import UIKit
 
 class TileView: GradientView {
-    static let maxTileSize: CGFloat = 128
-    static let maxCornerRadius: CGFloat = 16
+    private static let maxTileSize: CGFloat = 128
+    private static let maxCornerRadius: CGFloat = 16
 
     var text = "" {
         didSet {
             labelView.text = text
         }
     }
-    let labelView = UILabel()
+    private let labelView = UILabel()
 
     init() {
         super.init(from: .themeForegroundPink, to: .themeForegroundOrange)

@@ -26,7 +26,7 @@ struct BoardScrambler {
         }
     }
 
-    static func moveRandomTile(in board: inout Board) {
+    private static func moveRandomTile(in board: inout Board) {
         let moveOperations = possibleMoveOperations(in: board)
         var maximumProgressReduction = -Double.greatestFiniteMagnitude
         for moveOperation in moveOperations {
@@ -43,7 +43,7 @@ struct BoardScrambler {
         board.perform(moveOperation)
     }
 
-    static func possibleMoveOperations(in board: Board) -> [TileMoveOperation] {
+    private static func possibleMoveOperations(in board: Board) -> [TileMoveOperation] {
         return TilePosition.traversePositions(rows: board.rows, columns: board.columns).flatMap { position in
             [.left, .right, . up, .down]
                 .map { direction in TileMoveOperation(position: position, direction: direction) }
@@ -51,7 +51,7 @@ struct BoardScrambler {
         }
     }
 
-    static func progressReduction(in board: Board, after moveOperation: TileMoveOperation) -> Double {
+    private static func progressReduction(in board: Board, after moveOperation: TileMoveOperation) -> Double {
         var potentialBoard = board
         potentialBoard.perform(moveOperation)
         return board.progress - potentialBoard.progress
