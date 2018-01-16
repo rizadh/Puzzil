@@ -22,17 +22,6 @@ class RoundedButton: GradientView, UIGestureRecognizerDelegate {
     }
     private let handler: ButtonHandler
     private let labelView = UILabel()
-    private var _pressAnimator: Any!
-    @available(iOS 11.0, *)
-    private var pressAnimator: UIViewPropertyAnimator! {
-        get {
-            return _pressAnimator as? UIViewPropertyAnimator
-        }
-
-        set {
-            _pressAnimator = newValue
-        }
-    }
 
     init(handler: @escaping ButtonHandler) {
         self.handler = handler
@@ -56,27 +45,32 @@ class RoundedButton: GradientView, UIGestureRecognizerDelegate {
     }
 
     @objc private func buttonWasPressed(_ sender: UILongPressGestureRecognizer) {
+        let button = sender.view as! RoundedButton
+
         switch sender.state {
         case .began:
             if #available(iOS 11.0, *) {
-                if let pressAnimator = pressAnimator {
-                    pressAnimator.stopAnimation(true)
-                }
-
-                let button = sender.view as! RoundedButton
-                button.transform = .identity
-                pressAnimator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: {
+                let animator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: {
                     button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
                 })
 
-                pressAnimator.pausesOnCompletion = true
-                pressAnimator.startAnimation()
+                animator.startAnimation()
+            } else {
+                UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                    button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+                }, completion: nil)
             }
         case .ended, .cancelled:
             if #available(iOS 11.0, *) {
-                pressAnimator.isReversed = true
-                pressAnimator.pausesOnCompletion = false
-                pressAnimator.startAnimation()
+                let animator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: {
+                    button.transform = .identity
+                })
+
+                animator.startAnimation()
+            } else {
+                UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                    button.transform = .identity
+                }, completion: nil)
             }
         default:
             break

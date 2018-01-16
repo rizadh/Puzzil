@@ -70,7 +70,14 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
 
                 animator.startAnimation()
             } else {
-                self.present(boardViewController, animated: true, completion: nil)
+                UIView.animate(withDuration: 0.1, animations: {
+                    self.scrollView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                    self.scrollView.alpha = 0
+                    self.playButton.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                    self.playButton.alpha = 0
+                }, completion: { _ in
+                    self.present(boardViewController, animated: false, completion: nil)
+                })
             }
 
         }
@@ -161,6 +168,13 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
             }
 
             animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                self.scrollView.transform = .identity
+                self.scrollView.alpha = 1
+                self.playButton.transform = .identity
+                self.playButton.alpha = 1
+            }, completion: nil)
         }
     }
 

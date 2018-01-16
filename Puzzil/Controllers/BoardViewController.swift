@@ -65,9 +65,14 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         setupSubviews()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         for view in viewsToTransition {
             view.alpha = 0
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        for view in viewsToTransition {
             view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
         }
 
@@ -114,7 +119,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
                 animator.startAnimation()
             } else {
-                UIView.animate(withDuration: 0.1, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                UIView.animate(withDuration: 0.1, animations: {
                     for view in self.viewsToTransition {
                         view.alpha = 0
                         view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
@@ -127,27 +132,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         backButton.text = "Back"
         restartButton = RoundedButton() { [unowned self] _ in
-            if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
-                    self.boardView.alpha = 0
-                    self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                }
-
-                animator.addCompletion { _ in
-                    self.resetBoard()
-
-                    let returnAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-                        self.boardView.alpha = 1
-                        self.boardView.transform = .identity
-                    }
-
-                    returnAnimator.startAnimation()
-                }
-
-                animator.startAnimation()
-            } else {
-                self.resetBoard()
-            }
+            self.resetBoardWithAnimation()
         }
         restartButton.text = "Restart"
 
@@ -220,6 +205,40 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         ])
     }
 
+    private func resetBoardWithAnimation() {
+        if #available(iOS 10.0, *) {
+            let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
+                self.boardView.alpha = 0
+                self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            }
+
+            animator.addCompletion { _ in
+                self.resetBoard()
+
+                let returnAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+                    self.boardView.alpha = 1
+                    self.boardView.transform = .identity
+                }
+
+                returnAnimator.startAnimation()
+            }
+
+            animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: 0.1, animations: {
+                self.boardView.alpha = 0
+                self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            }, completion: { _ in
+                self.resetBoard()
+
+                UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                    self.boardView.alpha = 1
+                    self.boardView.transform = .identity
+                }, completion: nil)
+            })
+        }
+    }
+
     private func resetBoard() {
         board = originalBoard
         BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - difficulty)
@@ -254,7 +273,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
         let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { _ in
-            self.resetBoard()
+            self.resetBoardWithAnimation()
         }))
 
         present(alert, animated: true, completion: nil)
