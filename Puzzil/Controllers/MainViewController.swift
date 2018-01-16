@@ -29,6 +29,10 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
         ]),
     ]
 
+    private var playButton: RoundedButton!
+    private var boardStackView: UIStackView!
+    private var scrollView: UIScrollView!
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -39,7 +43,7 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
 
         let boardStackView = UIStackView()
         boardStackView.translatesAutoresizingMaskIntoConstraints = false
-        let scrollView = UIScrollView()
+        scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(boardStackView)
         scrollView.isPagingEnabled = true
@@ -47,11 +51,28 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
         scrollView.showsHorizontalScrollIndicator = false
         view.addSubview(scrollView)
 
-        let playButton = RoundedButton() { [unowned self] _ in
+        playButton = RoundedButton() { [unowned self] _ in
             let selectedConfiguration = self.boardConfigurations[self.boardIndex]
             let board = Board(from: selectedConfiguration.matrix)
             let boardViewController = BoardViewController(board: board, difficulty: 0.5)
-            self.present(boardViewController, animated: true, completion: nil)
+
+            if #available(iOS 10.0, *) {
+                let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
+                    self.scrollView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                    self.scrollView.alpha = 0
+                    self.playButton.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                    self.playButton.alpha = 0
+                }
+
+                animator.addCompletion() { _ in
+                    self.present(boardViewController, animated: false, completion: nil)
+                }
+
+                animator.startAnimation()
+            } else {
+                self.present(boardViewController, animated: true, completion: nil)
+            }
+
         }
         playButton.text = "Play"
         playButton.translatesAutoresizingMaskIntoConstraints = false
@@ -128,6 +149,19 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
             playButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
             playButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
         ])
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        if #available(iOS 10.0, *) {
+            let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+                self.scrollView.transform = .identity
+                self.scrollView.alpha = 1
+                self.playButton.transform = .identity
+                self.playButton.alpha = 1
+            }
+
+            animator.startAnimation()
+        }
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {

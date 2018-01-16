@@ -17,9 +17,17 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     private var board: Board
     private let difficulty: Double
 
-    private let boardView = BoardView()
+    private let stats = UIStackView()
     private let timeStat = StatView("Time")
     private let moveStat = StatView("Moves")
+    private let boardView = BoardView()
+    private let buttons = UIStackView()
+    private var backButton: RoundedButton!
+    private var restartButton: RoundedButton!
+
+    private var viewsToTransition: [UIView] {
+        return [moveStat, timeStat, boardView, backButton, restartButton]
+    }
 
     private var timeStatRefresher: CADisplayLink!
 
@@ -36,8 +44,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         self.difficulty = difficulty
 
         super.init(nibName: nil, bundle: nil)
-
-        modalTransitionStyle = .flipHorizontal
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -59,24 +65,94 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         setupSubviews()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        for view in viewsToTransition {
+            view.alpha = 0
+            view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }
+
+        if #available(iOS 10.0, *) {
+            let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+                for view in self.viewsToTransition {
+                    view.alpha = 1
+                    view.transform = .identity
+                }
+            }
+
+            animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                for view in self.viewsToTransition {
+                    view.alpha = 1
+                    view.transform = .identity
+                }
+            }, completion: nil)
+        }
+    }
+
     private func setupSubviews() {
         timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
         timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
 
-        let stats = UIStackView(arrangedSubviews: [moveStat, timeStat])
+        stats.addArrangedSubview(moveStat)
+        stats.addArrangedSubview(timeStat)
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        let backButton = RoundedButton() { [unowned self] _ in
-            self.dismiss(animated: true, completion: nil)
+        backButton = RoundedButton() { [unowned self] _ in
+            if #available(iOS 10.0, *) {
+                let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
+                    for view in self.viewsToTransition {
+                        view.alpha = 0
+                        view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                    }
+                }
+
+                animator.addCompletion() { _ in
+                    self.dismiss(animated: false, completion: nil)
+                }
+
+                animator.startAnimation()
+            } else {
+                UIView.animate(withDuration: 0.1, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
+                    for view in self.viewsToTransition {
+                        view.alpha = 0
+                        view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                    }
+                }, completion: { _ in
+                    self.dismiss(animated: false, completion: nil)
+                })
+            }
         }
+
         backButton.text = "Back"
-        let restartButton = RoundedButton() { [unowned self] _ in
-            self.resetBoard()
+        restartButton = RoundedButton() { [unowned self] _ in
+            if #available(iOS 10.0, *) {
+                let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
+                    self.boardView.alpha = 0
+                    self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                }
+
+                animator.addCompletion { _ in
+                    self.resetBoard()
+
+                    let returnAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+                        self.boardView.alpha = 1
+                        self.boardView.transform = .identity
+                    }
+
+                    returnAnimator.startAnimation()
+                }
+
+                animator.startAnimation()
+            } else {
+                self.resetBoard()
+            }
         }
         restartButton.text = "Restart"
 
-        let buttons = UIStackView(arrangedSubviews: [backButton, restartButton])
+        buttons.addArrangedSubview(backButton)
+        buttons.addArrangedSubview(restartButton)
         buttons.translatesAutoresizingMaskIntoConstraints = false
         buttons.distribution = .fillEqually
         buttons.spacing = 8
@@ -177,7 +253,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
         let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { [unowned self] _ in
+        alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { _ in
             self.resetBoard()
         }))
 
