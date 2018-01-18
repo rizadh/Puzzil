@@ -176,6 +176,8 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
                 self.playButton.alpha = 1
             }, completion: nil)
         }
+
+        boards.keys.forEach { $0.updateGradient() }
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {
