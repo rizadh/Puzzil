@@ -196,8 +196,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
                 UIViewPropertyAnimator(duration: finalAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
                 UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: 1, animations: finalScaleAnimations).startAnimation()
             }
-        }
-        else {
+        } else {
             triggerFinalAnimation = {
                 UIView.animate(withDuration: finalAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
                 UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
@@ -216,7 +215,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             animator.startAnimation()
         } else {
             UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveLinear, animations: initialAlphaAnimations, completion: nil)
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: nil)
+            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: completion)
         }
     }
 
