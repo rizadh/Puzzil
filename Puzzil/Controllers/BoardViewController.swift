@@ -42,6 +42,10 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         return Date().timeIntervalSince(startTime)
     }
 
+    private var progressWasMade: Bool {
+        return moves > 0
+    }
+
     init(board: Board, difficulty: Double) {
         originalBoard = board
         self.board = board
@@ -98,22 +102,30 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         stats.distribution = .fillEqually
 
         endButton = RoundedButton("End") { [unowned self] _ in
-            let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
-                self.navigateToMainMenu()
-            })
-            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            if self.progressWasMade {
+                let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+                alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
+                    self.navigateToMainMenu()
+                })
+                alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-            self.present(alertController, animated: true, completion: nil)
+                self.present(alertController, animated: true, completion: nil)
+            } else {
+                self.navigateToMainMenu()
+            }
         }
         restartButton = RoundedButton("Restart") { [unowned self] _ in
-            let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
-                self.resetBoardWithAnimation()
-            })
-            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            if self.progressWasMade {
+                let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+                alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
+                    self.resetBoardWithAnimation()
+                })
+                alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-            self.present(alertController, animated: true, completion: nil)
+                self.present(alertController, animated: true, completion: nil)
+            } else {
+                self.resetBoardWithAnimation()
+            }
         }
 
         buttons.addArrangedSubview(endButton)
