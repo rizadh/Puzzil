@@ -198,10 +198,10 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBoardWithAnimation() {
-        let initialAnimationDuration = 0.25
+        let initialAnimationDuration = 0.1
         let initialAlphaAnimations = { self.boardView.alpha = 0 }
         let initialScaleAnimations = { self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
-        let finalAnimationDuration = 0.1
+        let finalAnimationDuration = 0.25
         let finalAlphaAnimations = { self.boardView.alpha = 1 }
         let finalScaleAnimations = { self.boardView.transform = .identity }
 
