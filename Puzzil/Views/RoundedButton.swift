@@ -46,41 +46,48 @@ class RoundedButton: GradientView, UIGestureRecognizerDelegate {
     }
 
     @objc private func buttonWasPressed(_ sender: UILongPressGestureRecognizer) {
-        let button = sender.view as! RoundedButton
-
-
         switch sender.state {
-        case .began:
-            let animations = {
-                button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-            }
-
-            if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: animations)
-                animator.startAnimation()
-            } else {
-                UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: nil)
-            }
-        case .ended, .cancelled:
-            let animations = {
-                button.transform = .identity
-            }
-
-            if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: animations)
-
-                animator.startAnimation()
-            } else {
-                UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: nil)
-            }
-        default:
-            break
+        case .began: animateDepression()
+        case .ended, .cancelled: animateRelease()
+        default: break
         }
     }
 
     @objc private func buttonWasTapped(_ sender: UITapGestureRecognizer) {
         if sender.state == .ended {
             handler(self)
+        }
+    }
+
+    private func animateDepression() {
+        let alphaAnimationDuration = 0.1
+        let scaleAnimationDuration = 0.25
+        let springDamping: CGFloat = 1
+        let scaleAnimations = { self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9) }
+        let alphaAnimations = { self.labelView.alpha = 0.5 }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: springDamping, animations: scaleAnimations).startAnimation()
+        } else {
+            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: springDamping, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+        }
+    }
+
+    private func animateRelease() {
+        let alphaAnimationDuration = 0.1
+        let scaleAnimationDuration = 0.25
+        let springDamping: CGFloat = 0.5
+        let scaleAnimations = { self.transform = .identity }
+        let alphaAnimations = { self.labelView.alpha = 1 }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: springDamping, animations: scaleAnimations).startAnimation()
+        } else {
+            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: springDamping, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
     }
 
