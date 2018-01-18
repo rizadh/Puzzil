@@ -53,7 +53,7 @@ class BoardView: GradientView {
         let direction = TileMoveDirection(from: sender.direction)!
         let moveOperation = TileMoveOperation(position: position, direction: direction)
 
-        perform(moveOperation)
+        perform(moveOperation, animationDuration: 0.25)
     }
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
@@ -65,11 +65,11 @@ class BoardView: GradientView {
         let validOperations = position.possibleOperations.filter { canPerform($0).result }
 
         if validOperations.count == 1 {
-            perform(validOperations.first!)
+            perform(validOperations.first!, animationDuration: 0.1)
         }
     }
 
-    private func perform(_ moveOperation: TileMoveOperation) {
+    private func perform(_ moveOperation: TileMoveOperation, animationDuration: Double) {
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
 
         if operationIsPossible {
@@ -86,8 +86,6 @@ class BoardView: GradientView {
             let animations = {
                 self.layoutIfNeeded()
             }
-
-            let animationDuration = 0.25
 
             if #available(iOS 10.0, *) {
                 let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: animations)
