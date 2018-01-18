@@ -62,32 +62,32 @@ class RoundedButton: GradientView, UIGestureRecognizerDelegate {
     private func animateDepression() {
         let alphaAnimationDuration = 0.1
         let scaleAnimationDuration = 0.25
-        let springDamping: CGFloat = 1
+        let dampingRatio: CGFloat = 1
         let scaleAnimations = { self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9) }
         let alphaAnimations = { self.labelView.alpha = 0.5 }
 
         if #available(iOS 10.0, *) {
             UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: springDamping, animations: scaleAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
         } else {
             UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: springDamping, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
     }
 
     private func animateRelease() {
         let alphaAnimationDuration = 0.1
         let scaleAnimationDuration = 0.25
-        let springDamping: CGFloat = 0.5
+        let dampingRatio: CGFloat = 0.5
         let scaleAnimations = { self.transform = .identity }
         let alphaAnimations = { self.labelView.alpha = 1 }
 
         if #available(iOS 10.0, *) {
             UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: springDamping, animations: scaleAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
         } else {
             UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: springDamping, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
     }
 

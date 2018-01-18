@@ -28,7 +28,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     private var timeStatRefresher: CADisplayLink!
 
     private var viewsWithAlphaTransition: [UIView] {
-        return [moveStat, timeStat, boardView, endButton, restartButton]
+        return [stats, boardView, buttons]
     }
 
     private var viewsWithScaleTransition: [UIView] {
@@ -78,15 +78,16 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
     override func viewDidAppear(_ animated: Bool) {
         let animationDuration = 0.25
+        let dampingRatio: CGFloat = 0.5
         let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 1 } }
         let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = .identity } }
 
         if #available(iOS 10.0, *) {
             UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: scaleAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
         } else {
             UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
 
         boardView.updateGradient(false)
@@ -211,23 +212,40 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
     private func resetBoardWithAnimation() {
         let initialAnimationDuration = 0.1
-        let initialAlphaAnimations = { self.boardView.alpha = 0 }
-        let initialScaleAnimations = { self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
+        let initialAlphaAnimations = {
+            self.boardView.alpha = 0
+            self.stats.alpha = 0
+        }
+        let initialScaleAnimations = {
+            self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            self.moveStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            self.timeStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }
+
         let finalAnimationDuration = 0.25
-        let finalAlphaAnimations = { self.boardView.alpha = 1 }
-        let finalScaleAnimations = { self.boardView.transform = .identity }
+        let finalAlphaAnimations = {
+            self.boardView.alpha = 1
+            self.stats.alpha = 1
+        }
+        let finalScaleAnimations = {
+            self.boardView.transform = .identity
+            self.moveStat.transform = .identity
+            self.timeStat.transform = .identity
+        }
+
+        let dampingRatio: CGFloat = 0.5
 
         let triggerFinalAnimation: () -> Void
 
         if #available(iOS 10.0, *) {
             triggerFinalAnimation = {
                 UIViewPropertyAnimator(duration: finalAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
-                UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: 1, animations: finalScaleAnimations).startAnimation()
+                UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
             }
         } else {
             triggerFinalAnimation = {
                 UIView.animate(withDuration: finalAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
-                UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
+                UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
             }
         }
 

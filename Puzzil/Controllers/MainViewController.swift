@@ -130,6 +130,7 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
 
     override func viewDidAppear(_ animated: Bool) {
         let animationDuration = 0.25
+        let dampingRatio: CGFloat = 0.5
         let alphaAnimations = {
             self.scrollView.alpha = 1
             self.playButton.alpha = 1
@@ -140,10 +141,10 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
 
         if #available(iOS 10.0, *) {
             UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: scaleAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
         } else {
             UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
 
         updateGradients()

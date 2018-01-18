@@ -65,12 +65,13 @@ class BoardView: GradientView {
         let validOperations = position.possibleOperations.filter { canPerform($0).result }
 
         if validOperations.count == 1 {
-            perform(validOperations.first!, animationDuration: 0.1)
+            perform(validOperations.first!, animationDuration: 0.15)
         }
     }
 
     private func perform(_ moveOperation: TileMoveOperation, animationDuration: Double) {
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
+        let dampingRatio: CGFloat = 0.75
 
         if operationIsPossible {
             for operation in requiredOperations {
@@ -83,22 +84,18 @@ class BoardView: GradientView {
             let timer = CADisplayLink(target: self, selector: #selector(updateGradientUsingPresentationLayer))
             timer.add(to: .main, forMode: .defaultRunLoopMode)
 
-            let animations = {
-                self.layoutIfNeeded()
+            let animations = { self.layoutIfNeeded() }
+
+            let completion: (Any) -> Void = { _ in
+                timer.remove(from: .main, forMode: .defaultRunLoopMode)
             }
 
             if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: animations)
-
-                animator.addCompletion { _ in
-                    timer.remove(from: .main, forMode: .defaultRunLoopMode)
-                }
-
+                let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: animations)
+                animator.addCompletion(completion)
                 animator.startAnimation()
             } else {
-                UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: { _ in
-                    timer.remove(from: .main, forMode: .defaultRunLoopMode)
-                })
+                UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: completion)
             }
         }
     }
@@ -108,9 +105,7 @@ class BoardView: GradientView {
             return (false, [moveOperation])
         }
 
-        if operationIsPossible {
-            return (true, [moveOperation])
-        }
+        if operationIsPossible { return (true, [moveOperation]) }
 
         let nextOperationIsPossible = canPerform(moveOperation.nextOperation)
 
