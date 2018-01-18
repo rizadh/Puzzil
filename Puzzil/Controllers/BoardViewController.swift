@@ -22,13 +22,13 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     private let moveStat = StatView("Moves")
     private let boardView = BoardView()
     private let buttons = UIStackView()
-    private var backButton: RoundedButton!
+    private var endButton: RoundedButton!
     private var restartButton: RoundedButton!
 
     private var timeStatRefresher: CADisplayLink!
 
     private var viewsWithAlphaTransition: [UIView] {
-        return [moveStat, timeStat, boardView, backButton, restartButton]
+        return [moveStat, timeStat, boardView, endButton, restartButton]
     }
 
     private var viewsWithScaleTransition: [UIView] {
@@ -97,10 +97,26 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        backButton = RoundedButton("Back") { [unowned self] _ in self.navigateToMainMenu() }
-        restartButton = RoundedButton("Restart") { [unowned self] _ in self.resetBoardWithAnimation() }
+        endButton = RoundedButton("End") { [unowned self] _ in
+            let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
+                self.navigateToMainMenu()
+            })
+            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-        buttons.addArrangedSubview(backButton)
+            self.present(alertController, animated: true, completion: nil)
+        }
+        restartButton = RoundedButton("Restart") { [unowned self] _ in
+            let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
+                self.resetBoardWithAnimation()
+            })
+            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+            self.present(alertController, animated: true, completion: nil)
+        }
+
+        buttons.addArrangedSubview(endButton)
         buttons.addArrangedSubview(restartButton)
         buttons.translatesAutoresizingMaskIntoConstraints = false
         buttons.distribution = .fillEqually
