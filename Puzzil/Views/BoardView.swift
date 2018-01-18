@@ -29,6 +29,10 @@ class BoardView: GradientView {
     }
 
     override func clippingPath(for gradientBounds: CGRect) -> CGPath {
+        if min(gradientBounds.width, gradientBounds.height) < 2 * BoardView.cornerRadius {
+            return UIBezierPath(rect: gradientBounds).cgPath
+        }
+
         let outer = UIBezierPath(roundedRect: gradientBounds, cornerRadius: BoardView.cornerRadius)
         let innerBounds = gradientBounds.insetBy(dx: BoardView.borderWidth, dy: BoardView.borderWidth)
         let innerRadius = BoardView.cornerRadius - BoardView.borderWidth
@@ -76,15 +80,17 @@ class BoardView: GradientView {
                 delegate.boardView(self, didPerform: operation)
             }
 
-            let timer = CADisplayLink(target: self, selector: #selector(updateGradient))
+            let timer = CADisplayLink(target: self, selector: #selector(updateGradientUsingPresentationLayer))
             timer.add(to: .main, forMode: .defaultRunLoopMode)
+
+            let animations = {
+                self.layoutIfNeeded()
+            }
 
             let animationDuration = 0.25
 
             if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1) {
-                    self.layoutIfNeeded()
-                }
+                let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: animations)
 
                 animator.addCompletion { _ in
                     timer.remove(from: .main, forMode: .defaultRunLoopMode)
@@ -92,9 +98,7 @@ class BoardView: GradientView {
 
                 animator.startAnimation()
             } else {
-                UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
-                    self.layoutIfNeeded()
-                }, completion: { _ in
+                UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: { _ in
                     timer.remove(from: .main, forMode: .defaultRunLoopMode)
                 })
             }
@@ -238,10 +242,14 @@ class BoardView: GradientView {
         place(tile, at: moveOperation.targetPosition)
     }
 
-    override func updateGradient() {
-        super.updateGradient()
+    @objc private func updateGradientUsingPresentationLayer() {
+        updateGradient(true)
+    }
 
-        tiles.keys.forEach { $0.updateGradient() }
+    override func updateGradient(_ usePresentationLayer: Bool) {
+        super.updateGradient(usePresentationLayer)
+
+        tiles.keys.forEach { $0.updateGradient(usePresentationLayer) }
     }
 }
 

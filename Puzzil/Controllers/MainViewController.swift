@@ -51,37 +51,7 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
         scrollView.showsHorizontalScrollIndicator = false
         view.addSubview(scrollView)
 
-        playButton = RoundedButton() { [unowned self] _ in
-            let selectedConfiguration = self.boardConfigurations[self.boardIndex]
-            let board = Board(from: selectedConfiguration.matrix)
-            let boardViewController = BoardViewController(board: board, difficulty: 0.5)
-
-            if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
-                    self.scrollView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                    self.scrollView.alpha = 0
-                    self.playButton.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                    self.playButton.alpha = 0
-                }
-
-                animator.addCompletion() { _ in
-                    self.present(boardViewController, animated: false, completion: nil)
-                }
-
-                animator.startAnimation()
-            } else {
-                UIView.animate(withDuration: 0.1, animations: {
-                    self.scrollView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                    self.scrollView.alpha = 0
-                    self.playButton.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                    self.playButton.alpha = 0
-                }, completion: { _ in
-                    self.present(boardViewController, animated: false, completion: nil)
-                })
-            }
-
-        }
-        playButton.text = "Play"
+        playButton = RoundedButton("Play") { [unowned self] _ in self.beginSelectedBoard() }
         playButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(playButton)
 
@@ -159,25 +129,63 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        if #available(iOS 10.0, *) {
-            let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-                self.scrollView.transform = .identity
-                self.scrollView.alpha = 1
-                self.playButton.transform = .identity
-                self.playButton.alpha = 1
-            }
-
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
-                self.scrollView.transform = .identity
-                self.scrollView.alpha = 1
-                self.playButton.transform = .identity
-                self.playButton.alpha = 1
-            }, completion: nil)
+        let animationDuration = 0.25
+        let alphaAnimations = {
+            self.scrollView.alpha = 1
+            self.playButton.alpha = 1
+        }
+        let scaleAnimations = {
+            self.scrollView.transform = .identity
         }
 
-        boards.keys.forEach { $0.updateGradient() }
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: scaleAnimations).startAnimation()
+        } else {
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+        }
+
+        updateGradients()
+    }
+
+    override func viewDidLayoutSubviews() {
+        updateGradients()
+    }
+
+    private func updateGradients() {
+        boards.keys.forEach { $0.updateGradient(false) }
+        playButton.updateGradient(false)
+    }
+
+    private func beginSelectedBoard() {
+        let selectedConfiguration = self.boardConfigurations[self.boardIndex]
+        let board = Board(from: selectedConfiguration.matrix)
+        let boardViewController = BoardViewController(board: board, difficulty: 0.5)
+
+        let animationDuration = 0.1
+        let alphaAnimations = {
+            self.scrollView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }
+
+        let scaleAnimations = {
+            self.scrollView.alpha = 0
+            self.playButton.alpha = 0
+        }
+
+        let completion: (Any) -> Void = { _ in
+            self.present(boardViewController, animated: false, completion: nil)
+        }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: scaleAnimations).startAnimation()
+            let shrinkingAnimator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: alphaAnimations)
+            shrinkingAnimator.addCompletion(completion)
+            shrinkingAnimator.startAnimation()
+        } else {
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: alphaAnimations, completion: completion)
+        }
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {
@@ -201,7 +209,7 @@ class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDeleg
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        boards.keys.forEach { $0.updateGradient() }
+        boards.keys.forEach { $0.updateGradient(false) }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {

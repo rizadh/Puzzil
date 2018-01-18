@@ -25,11 +25,15 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     private var backButton: RoundedButton!
     private var restartButton: RoundedButton!
 
-    private var viewsToTransition: [UIView] {
+    private var timeStatRefresher: CADisplayLink!
+
+    private var viewsWithAlphaTransition: [UIView] {
         return [moveStat, timeStat, boardView, backButton, restartButton]
     }
 
-    private var timeStatRefresher: CADisplayLink!
+    private var viewsWithScaleTransition: [UIView] {
+        return [boardView]
+    }
 
     private var startTime = Date()
     private var moves = 0
@@ -63,36 +67,25 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         resetBoard()
         setupSubviews()
-    }
 
-    override func viewWillAppear(_ animated: Bool) {
-        for view in viewsToTransition {
-            view.alpha = 0
-        }
+        viewsWithAlphaTransition.forEach { $0.alpha = 0 }
+        viewsWithScaleTransition.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        for view in viewsToTransition {
-            view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-        }
+        let animationDuration = 0.25
+        let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 1 } }
+        let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = .identity } }
 
         if #available(iOS 10.0, *) {
-            let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-                for view in self.viewsToTransition {
-                    view.alpha = 1
-                    view.transform = .identity
-                }
-            }
-
-            animator.startAnimation()
+            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: 1, animations: scaleAnimations).startAnimation()
         } else {
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
-                for view in self.viewsToTransition {
-                    view.alpha = 1
-                    view.transform = .identity
-                }
-            }, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
+
+        boardView.updateGradient(false)
     }
 
     private func setupSubviews() {
@@ -104,37 +97,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        backButton = RoundedButton() { [unowned self] _ in
-            if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
-                    for view in self.viewsToTransition {
-                        view.alpha = 0
-                        view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                    }
-                }
-
-                animator.addCompletion() { _ in
-                    self.dismiss(animated: false, completion: nil)
-                }
-
-                animator.startAnimation()
-            } else {
-                UIView.animate(withDuration: 0.1, animations: {
-                    for view in self.viewsToTransition {
-                        view.alpha = 0
-                        view.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                    }
-                }, completion: { _ in
-                    self.dismiss(animated: false, completion: nil)
-                })
-            }
-        }
-
-        backButton.text = "Back"
-        restartButton = RoundedButton() { [unowned self] _ in
-            self.resetBoardWithAnimation()
-        }
-        restartButton.text = "Restart"
+        backButton = RoundedButton("Back") { [unowned self] _ in self.navigateToMainMenu() }
+        restartButton = RoundedButton("Restart") { [unowned self] _ in self.resetBoardWithAnimation() }
 
         buttons.addArrangedSubview(backButton)
         buttons.addArrangedSubview(restartButton)
@@ -205,40 +169,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         ])
     }
 
-    private func resetBoardWithAnimation() {
-        if #available(iOS 10.0, *) {
-            let animator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
-                self.boardView.alpha = 0
-                self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            }
-
-            animator.addCompletion { _ in
-                self.resetBoard()
-
-                let returnAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-                    self.boardView.alpha = 1
-                    self.boardView.transform = .identity
-                }
-
-                returnAnimator.startAnimation()
-            }
-
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: 0.1, animations: {
-                self.boardView.alpha = 0
-                self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            }, completion: { _ in
-                self.resetBoard()
-
-                UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: {
-                    self.boardView.alpha = 1
-                    self.boardView.transform = .identity
-                }, completion: nil)
-            })
-        }
-    }
-
     private func resetBoard() {
         board = originalBoard
         BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - difficulty)
@@ -249,6 +179,65 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         moves = 0
         updateMoveStat()
         startTime = Date()
+    }
+
+    private func resetBoardWithAnimation() {
+        let initialAnimationDuration = 0.25
+        let initialAlphaAnimations = { self.boardView.alpha = 0 }
+        let initialScaleAnimations = { self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
+        let finalAnimationDuration = 0.1
+        let finalAlphaAnimations = { self.boardView.alpha = 1 }
+        let finalScaleAnimations = { self.boardView.transform = .identity }
+
+        let triggerFinalAnimation: () -> Void
+
+        if #available(iOS 10.0, *) {
+            triggerFinalAnimation = {
+                UIViewPropertyAnimator(duration: finalAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
+                UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: 1, animations: finalScaleAnimations).startAnimation()
+            }
+        }
+        else {
+            triggerFinalAnimation = {
+                UIView.animate(withDuration: finalAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
+                UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
+            }
+        }
+
+        let completion: (Any) -> Void = { _ in
+            self.resetBoard()
+            triggerFinalAnimation()
+        }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .linear, animations: initialAlphaAnimations).startAnimation()
+            let animator = UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .easeIn, animations: initialScaleAnimations)
+            animator.addCompletion(completion)
+            animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveLinear, animations: initialAlphaAnimations, completion: nil)
+            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: nil)
+        }
+    }
+
+    private func navigateToMainMenu() {
+        let animationDuration = 0.1
+        let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 0 } }
+        let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) } }
+
+        let completion: (Any) -> Void = { _ in
+            self.dismiss(animated: false, completion: nil)
+        }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            let animator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: scaleAnimations)
+            animator.addCompletion(completion)
+            animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: scaleAnimations, completion: completion)
+        }
     }
 
     private func updateMoveStat() {
@@ -303,3 +292,4 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         if board.isSolved { boardWasSolved() }
     }
 }
+

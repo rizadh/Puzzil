@@ -33,13 +33,17 @@ class GradientView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        updateGradient()
+        updateGradient(false)
     }
 
-    @objc func updateGradient() {
-        guard let position = superview?.convert(frame.origin, to: nil) else {
-            return
+    @objc func updateGradient(_ usePresentationLayer: Bool) {
+        let trueOrigin: CGPoint
+        if usePresentationLayer {
+            trueOrigin = layer.presentation()?.frame.origin ?? frame.origin
+        } else {
+            trueOrigin = frame.origin
         }
+        guard let position = superview?.convert(trueOrigin, to: nil) else { return }
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
