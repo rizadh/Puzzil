@@ -69,6 +69,8 @@ class BoardView: GradientView {
             perform(validOperations.first!, useFastTransition: true)
         } else if simpleOperations.count == 1 {
             perform(simpleOperations.first!, useFastTransition: true)
+        } else {
+            bounce(tile)
         }
     }
 
@@ -243,6 +245,23 @@ class BoardView: GradientView {
         NSLayoutConstraint.activate(constraints)
 
         tiles[tile] = TileInfo(position: position, constraints: constraints)
+    }
+
+    private func bounce(_ tile: TileView) {
+        if #available(iOS 11.0, *) {
+            let animator: UIViewPropertyAnimator
+            animator = UIViewPropertyAnimator(duration: 0.1, dampingRatio: 1, animations: {
+                tile.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            })
+
+            animator.addCompletion() { _ in
+                UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: {
+                    tile.transform = .identity
+                }).startAnimation()
+            }
+
+            animator.startAnimation()
+        }
     }
 
     private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
