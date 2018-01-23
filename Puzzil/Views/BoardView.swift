@@ -248,19 +248,36 @@ class BoardView: GradientView {
     }
 
     private func bounce(_ tile: TileView) {
-        if #available(iOS 11.0, *) {
-            let animator: UIViewPropertyAnimator
-            animator = UIViewPropertyAnimator(duration: 0.1, dampingRatio: 1, animations: {
-                tile.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-            })
+        let initialAnimationDuration = 0.1
+        let finalAnimationDuration = 0.5
+        let initialDampingRatio: CGFloat = 1
+        let finalDampingRatio: CGFloat = 0.5
+        let initialAnimations = {
+            tile.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        }
+        let finalAnimations = {
+            tile.transform = .identity
+        }
 
-            animator.addCompletion() { _ in
-                UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.5, animations: {
-                    tile.transform = .identity
-                }).startAnimation()
+        let completion: (Any) -> Void = {
+            if #available(iOS 10.0, *) {
+                return { _ in
+                    UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: finalDampingRatio, animations: finalAnimations).startAnimation()
+                }
+            } else {
+                return { _ in
+                    UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: finalDampingRatio, initialSpringVelocity: 1, options: .init(rawValue: 0), animations: finalAnimations, completion: nil)
+                }
             }
+        }()
 
+        if #available(iOS 10.0, *) {
+            let animator: UIViewPropertyAnimator
+            animator = UIViewPropertyAnimator(duration: initialAnimationDuration, dampingRatio: initialDampingRatio, animations: initialAnimations)
+            animator.addCompletion(completion)
             animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: initialAnimationDuration, delay: 0, usingSpringWithDamping: initialDampingRatio, initialSpringVelocity: 1, options: .init(rawValue: 0), animations: initialAnimations, completion: completion)
         }
     }
 
