@@ -27,6 +27,8 @@ class StatView: UIView {
     }
 
     override func layoutSubviews() {
+        super.layoutSubviews()
+
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.font = UIFont.preferredFont(forTextStyle: .headline)
 

@@ -2,54 +2,23 @@
 //  BoardViewController.swift
 //  Puzzil
 //
-//  Created by Rizadh Nizam on 2017-12-22.
-//  Copyright © 2017 Rizadh Nizam. All rights reserved.
+//  Created by Rizadh Nizam on 2018-01-20.
+//  Copyright © 2018 Rizadh Nizam. All rights reserved.
 //
 
 import UIKit
 
 class BoardViewController: UIViewController, BoardViewDelegate {
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
 
-    private var originalBoard: Board
-    private var board: Board
-    private let difficulty: Double
-
-    private let stats = UIStackView()
-    private let timeStat = StatView("Time")
-    private let moveStat = StatView("Moves")
+    private let configuration: BoardConfiguration
+    private let board: Board
     private let boardView = BoardView()
-    private let buttons = UIStackView()
-    private var endButton: RoundedButton!
-    private var restartButton: RoundedButton!
+    private let label = UILabel()
+    private lazy var startButton = RoundedButton("Start") { _ in self.startGame() }
 
-    private var timeStatRefresher: CADisplayLink!
-
-    private var viewsWithAlphaTransition: [UIView] {
-        return [stats, boardView, buttons]
-    }
-
-    private var viewsWithScaleTransition: [UIView] {
-        return [boardView]
-    }
-
-    private var startTime = Date()
-    private var moves = 0
-
-    private var elapsedTime: TimeInterval {
-        return Date().timeIntervalSince(startTime)
-    }
-
-    private var progressWasMade: Bool {
-        return moves > 0
-    }
-
-    init(board: Board, difficulty: Double) {
-        originalBoard = board
-        self.board = board
-        self.difficulty = difficulty
+    init(for configuration: BoardConfiguration) {
+        self.configuration = configuration
+        self.board = Board(from: configuration.matrix)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -61,26 +30,91 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
-        gradientView.frame = view.bounds
-        gradientView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-        view.addSubview(gradientView)
-
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
+        boardView.isDynamic = false
+        view.addSubview(boardView)
 
-        resetBoard()
-        setupSubviews()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = configuration.name.capitalized
+        label.font = {
+            if #available(iOS 11.0, *) {
+                return UIFontMetrics(forTextStyle: .headline).scaledFont(for: UIFont.boldSystemFont(ofSize: 24))
+            } else {
+                return UIFont.boldSystemFont(ofSize: 24)
+            }
+        }()
+        view.addSubview(label)
 
-        viewsWithAlphaTransition.forEach { $0.alpha = 0 }
-        viewsWithScaleTransition.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
+        startButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(startButton)
+
+        let safeArea: UILayoutGuide = {
+            if #available(iOS 11.0, *) {
+                return view.safeAreaLayoutGuide
+            } else {
+                let safeAreaLayoutGuide = UILayoutGuide()
+
+                view.addLayoutGuide(safeAreaLayoutGuide)
+
+                NSLayoutConstraint.activate([
+                    safeAreaLayoutGuide.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
+                    safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
+                    safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.leftAnchor),
+                    safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.rightAnchor),
+                ])
+
+                return safeAreaLayoutGuide
+            }
+        }()
+
+        let labelGuide = UILayoutGuide()
+        view.addLayoutGuide(labelGuide)
+
+        NSLayoutConstraint.activate([
+            labelGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            boardView.topAnchor.constraint(equalTo: labelGuide.bottomAnchor, constant: 16),
+            labelGuide.heightAnchor.constraint(greaterThanOrEqualToConstant: label.intrinsicContentSize.height),
+
+            label.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: labelGuide.centerYAnchor),
+
+            boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
+            boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
+            safeArea.rightAnchor.constraint(greaterThanOrEqualTo: boardView.rightAnchor, constant: 16),
+            boardView.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
+
+            startButton.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            startButton.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            startButton.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
+            safeArea.bottomAnchor.constraint(equalTo: startButton.bottomAnchor),
+            startButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
+        ])
+
+        NSLayoutConstraint.activate([
+            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
+            startButton.heightAnchor.constraint(equalToConstant: 60)
+        ].map {
+            $0.priority = .defaultHigh
+            return $0
+        })
+
+        boardView.reloadTiles()
     }
 
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
         let animationDuration = 0.25
         let dampingRatio: CGFloat = 0.5
-        let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 1 } }
-        let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = .identity } }
+        let alphaAnimations = {
+           self.view.alpha = 1
+        }
+        let scaleAnimations = {
+            self.boardView.transform = .identity
+        }
 
         if #available(iOS 10.0, *) {
             UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
@@ -89,228 +123,38 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
             UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
-
-        boardView.updateGradient(false)
     }
 
-    private func setupSubviews() {
-        timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
-        timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
+    @objc private func startGame() {
+        let notification = Notification(name: Notification.Name(rawValue: "com.rizadh.Puzzil.beginGame"), object: self, userInfo: ["configuration": configuration])
 
-        stats.addArrangedSubview(moveStat)
-        stats.addArrangedSubview(timeStat)
-        stats.translatesAutoresizingMaskIntoConstraints = false
-        stats.distribution = .fillEqually
-
-        endButton = RoundedButton("End") { [unowned self] _ in
-            if self.progressWasMade {
-                let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
-                    self.navigateToMainMenu()
-                })
-                alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-
-                self.present(alertController, animated: true, completion: nil)
-            } else {
-                self.navigateToMainMenu()
-            }
-        }
-        restartButton = RoundedButton("Restart") { [unowned self] _ in
-            if self.progressWasMade {
-                let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
-                    self.resetBoardWithAnimation()
-                })
-                alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-
-                self.present(alertController, animated: true, completion: nil)
-            } else {
-                self.resetBoardWithAnimation()
-            }
-        }
-
-        buttons.addArrangedSubview(endButton)
-        buttons.addArrangedSubview(restartButton)
-        buttons.translatesAutoresizingMaskIntoConstraints = false
-        buttons.distribution = .fillEqually
-        buttons.spacing = 8
-
-        view.addSubview(stats)
-        view.addSubview(boardView)
-        view.addSubview(buttons)
-
-        let safeArea: UILayoutGuide
-
-        if #available(iOS 11.0, *) {
-            safeArea = view.safeAreaLayoutGuide
-        } else {
-            safeArea = UILayoutGuide()
-
-            view.addLayoutGuide(safeArea)
-
-            NSLayoutConstraint.activate([
-                safeArea.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
-                safeArea.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
-                safeArea.leftAnchor.constraint(equalTo: view.leftAnchor),
-                safeArea.rightAnchor.constraint(equalTo: view.rightAnchor),
-            ])
-        }
-
-        [
-            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
-            buttons.heightAnchor.constraint(equalToConstant: 60),
-        ].forEach {
-            $0.priority = .defaultHigh
-            $0.isActive = true
-        }
-
-        if #available(iOS 10.0, *) {
-            let topMargin = safeArea.topAnchor.anchorWithOffset(to: stats.topAnchor)
-            let bottomMargin = stats.bottomAnchor.anchorWithOffset(to: boardView.topAnchor)
-
-            NSLayoutConstraint.activate([
-                topMargin.constraint(equalTo: bottomMargin),
-                topMargin.constraint(greaterThanOrEqualToConstant: 16),
-                bottomMargin.constraint(greaterThanOrEqualToConstant: 16),
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                stats.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
-                stats.bottomAnchor.constraint(lessThanOrEqualTo: boardView.topAnchor, constant: -16),
-            ])
-        }
-
-        NSLayoutConstraint.activate([
-            stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-
-            boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
-            boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
-            boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
-
-            buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
-            buttons.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
-            buttons.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
-        ])
-    }
-
-    private func resetBoard() {
-        board = originalBoard
-        BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - difficulty)
-        timeStatRefresher?.isPaused = false
-
-        boardView.reloadTiles()
-
-        moves = 0
-        updateMoveStat()
-        startTime = Date()
-    }
-
-    private func resetBoardWithAnimation() {
-        let initialAnimationDuration = 0.1
-        let initialAlphaAnimations = {
-            self.boardView.alpha = 0
-            self.stats.alpha = 0
-        }
-        let initialScaleAnimations = {
-            self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            self.moveStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            self.timeStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-        }
-
-        let finalAnimationDuration = 0.25
-        let finalAlphaAnimations = {
-            self.boardView.alpha = 1
-            self.stats.alpha = 1
-        }
-        let finalScaleAnimations = {
-            self.boardView.transform = .identity
-            self.moveStat.transform = .identity
-            self.timeStat.transform = .identity
-        }
-
-        let dampingRatio: CGFloat = 0.5
-
-        let triggerFinalAnimation: () -> Void
-
-        if #available(iOS 10.0, *) {
-            triggerFinalAnimation = {
-                UIViewPropertyAnimator(duration: finalAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
-                UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
-            }
-        } else {
-            triggerFinalAnimation = {
-                UIView.animate(withDuration: finalAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
-                UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
-            }
-        }
-
-        let completion: (Any) -> Void = { _ in
-            self.resetBoard()
-            triggerFinalAnimation()
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .linear, animations: initialAlphaAnimations).startAnimation()
-            let animator = UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .easeIn, animations: initialScaleAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveLinear, animations: initialAlphaAnimations, completion: nil)
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: completion)
-        }
-    }
-
-    private func navigateToMainMenu() {
         let animationDuration = 0.1
-        let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 0 } }
-        let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) } }
+        let alphaAnimations = {
+            self.view.alpha = 0
+        }
+
+        let scaleAnimations = {
+            self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }
 
         let completion: (Any) -> Void = { _ in
-            self.dismiss(animated: false, completion: nil)
+            NotificationCenter.default.post(notification)
         }
 
         if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            let animator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: scaleAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
+            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: scaleAnimations).startAnimation()
+            let shrinkingAnimator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: alphaAnimations)
+            shrinkingAnimator.addCompletion(completion)
+            shrinkingAnimator.startAnimation()
         } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: scaleAnimations, completion: completion)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: alphaAnimations, completion: completion)
         }
     }
 
-    private func updateMoveStat() {
-        moveStat.value = moves.description
-    }
-
-    @objc private func updateTimeStat() {
-        let time = Int(elapsedTime)
-        let minutes = time / 60
-        let seconds = time % 60
-
-        if minutes > 0 {
-            timeStat.value = "\(minutes)m \(seconds)s"
-        } else {
-            timeStat.value = "\(seconds)s"
-        }
-    }
-
-    private func boardWasSolved() {
-        timeStatRefresher.isPaused = true
-
-        let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
-        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { _ in
-            self.resetBoardWithAnimation()
-        }))
-
-        present(alert, animated: true, completion: nil)
+    func updateGradient() {
+        boardView.updateGradient(usingPresentationLayer: false)
+        startButton.updateGradient(usingPresentationLayer: false)
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {
@@ -330,11 +174,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     }
 
     func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
-        board.perform(moveOperation)
-        moves += 1
-        updateMoveStat()
-
-        if board.isSolved { boardWasSolved() }
+        return
     }
 }
-

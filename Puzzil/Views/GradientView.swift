@@ -33,10 +33,10 @@ class GradientView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        updateGradient(false)
+        updateGradient(usingPresentationLayer: false)
     }
 
-    @objc func updateGradient(_ usePresentationLayer: Bool) {
+    @objc func updateGradient(usingPresentationLayer usePresentationLayer: Bool) {
         let trueOrigin: CGPoint
         if usePresentationLayer {
             trueOrigin = layer.presentation()?.frame.origin ?? frame.origin

@@ -236,13 +236,13 @@ class BoardView: GradientView {
     }
 
     @objc private func updateGradientUsingPresentationLayer() {
-        updateGradient(true)
+        updateGradient(usingPresentationLayer: true)
     }
 
-    override func updateGradient(_ usePresentationLayer: Bool) {
-        super.updateGradient(usePresentationLayer)
+    override func updateGradient(usingPresentationLayer usePresentationLayer: Bool) {
+        super.updateGradient(usingPresentationLayer: usePresentationLayer)
 
-        tiles.keys.forEach { $0.updateGradient(usePresentationLayer) }
+        tiles.keys.forEach { $0.updateGradient(usingPresentationLayer: usePresentationLayer) }
     }
 }
 

@@ -8,217 +8,139 @@
 
 import UIKit
 
-class MainViewController: UIViewController, BoardViewDelegate, UIScrollViewDelegate {
-    override var prefersStatusBarHidden: Bool {
-        return true
+class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+
+    override var prefersStatusBarHidden: Bool { return true }
+
+    private let pageControl = UIPageControl()
+    private let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
+        return BoardViewController(for: configuration)
     }
 
-    private var boards = [BoardView: Board]()
-    private var boardIndex = 0
-    private let boardConfigurations = [
-        BoardConfiguration(name: "regular", matrix: [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, nil],
-        ]),
-        BoardConfiguration(name: "telephone", matrix: [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9],
-            [nil, 0, nil],
-        ]),
-    ]
-
-    private var playButton: RoundedButton!
-    private var boardStackView: UIStackView!
-    private var scrollView: UIScrollView!
+    private var gradientUpdater: CADisplayLink!
+    private var gradientView: GradientView!
+    private var pageViewController: UIPageViewController!
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
-        gradientView.frame = view.bounds
-        gradientView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        gradientUpdater = CADisplayLink(target: self, selector: #selector(updateAllGradients))
+        gradientUpdater.add(to: .main, forMode: .commonModes)
+
+        gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+        gradientView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(gradientView)
 
-        let boardStackView = UIStackView()
-        boardStackView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView = UIScrollView()
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(boardStackView)
-        scrollView.isPagingEnabled = true
-        scrollView.delegate = self
-        scrollView.showsHorizontalScrollIndicator = false
-        view.addSubview(scrollView)
+        pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+        pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        pageViewController.dataSource = self
+        pageViewController.delegate = self
+        pageViewController.setViewControllers([boardViewControllers.first!], direction: .forward, animated: false, completion: nil)
+        addChildViewController(pageViewController)
+        pageViewController.didMove(toParentViewController: self)
+        view.addSubview(pageViewController.view)
 
-        playButton = RoundedButton("Play") { [unowned self] _ in self.beginSelectedBoard() }
-        playButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(playButton)
+        pageControl.numberOfPages = boardViewControllers.count
+        pageControl.translatesAutoresizingMaskIntoConstraints = false
+        pageControl.pageIndicatorTintColor = UIColor.white.withAlphaComponent(0.5)
+        pageControl.currentPageIndicatorTintColor = .themeForegroundOrange
+        pageControl.addTarget(self, action: #selector(navigateToCurrentPage), for: .valueChanged)
+        pageControl.defersCurrentPageDisplay = true
+        view.addSubview(pageControl)
 
-        let safeArea: UILayoutGuide
+        let safeArea: UILayoutGuide = {
+            if #available(iOS 11.0, *) {
+                return view.safeAreaLayoutGuide
+            } else {
+                let safeAreaLayoutGuide = UILayoutGuide()
 
-        if #available(iOS 11.0, *) {
-            safeArea = view.safeAreaLayoutGuide
-        } else {
-            safeArea = UILayoutGuide()
+                view.addLayoutGuide(safeAreaLayoutGuide)
 
-            view.addLayoutGuide(safeArea)
+                NSLayoutConstraint.activate([
+                    safeAreaLayoutGuide.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
+                    safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
+                    safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.leftAnchor),
+                    safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.rightAnchor),
+                ])
 
-            NSLayoutConstraint.activate([
-                safeArea.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
-                safeArea.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
-                safeArea.leftAnchor.constraint(equalTo: view.leftAnchor),
-                safeArea.rightAnchor.constraint(equalTo: view.rightAnchor),
-            ])
-        }
-
-        for configuration in boardConfigurations {
-            let containerView = UIView()
-            let board = Board(from: configuration.matrix)
-            let boardView = BoardView()
-            boards[boardView] = board
-            boardView.translatesAutoresizingMaskIntoConstraints = false
-            boardView.isDynamic = false
-            boardView.delegate = self
-            boardView.reloadTiles()
-
-            boardStackView.addArrangedSubview(containerView)
-            containerView.addSubview(boardView)
-
-            NSLayoutConstraint.activate([
-                containerView.widthAnchor.constraint(equalTo: safeArea.widthAnchor),
-                containerView.heightAnchor.constraint(equalTo: safeArea.heightAnchor),
-
-                boardView.leftAnchor.constraint(greaterThanOrEqualTo: containerView.leftAnchor, constant: 16),
-                boardView.rightAnchor.constraint(lessThanOrEqualTo: containerView.rightAnchor, constant: -16),
-                boardView.topAnchor.constraint(greaterThanOrEqualTo: containerView.topAnchor, constant: 16),
-                boardView.bottomAnchor.constraint(lessThanOrEqualTo: playButton.topAnchor, constant: -16),
-                boardView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-                boardView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            ])
-
-            [
-                boardView.widthAnchor.constraint(equalTo: containerView.widthAnchor),
-                boardView.heightAnchor.constraint(equalTo: containerView.heightAnchor),
-            ].forEach {
-                $0.priority = .defaultHigh
-                $0.isActive = true
+                return safeAreaLayoutGuide
             }
-        }
-
-        let buttonHeightConstraint = playButton.heightAnchor.constraint(equalToConstant: 60)
-        buttonHeightConstraint.priority = .defaultHigh
-        buttonHeightConstraint.isActive = true
+        }()
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            scrollView.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
-            scrollView.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
+            gradientView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            gradientView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            gradientView.topAnchor.constraint(equalTo: view.topAnchor),
+            gradientView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            boardStackView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            boardStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            boardStackView.leftAnchor.constraint(equalTo: scrollView.leftAnchor),
-            boardStackView.rightAnchor.constraint(equalTo: scrollView.rightAnchor),
+            pageViewController.view.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
+            pageViewController.view.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
+            pageViewController.view.topAnchor.constraint(equalTo: safeArea.topAnchor),
 
-            playButton.leftAnchor.constraint(equalTo: safeArea.leftAnchor, constant: 16),
-            playButton.rightAnchor.constraint(equalTo: safeArea.rightAnchor, constant: -16),
-            playButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
-            playButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
+            pageControl.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
+            pageControl.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
+            pageControl.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor),
+            pageControl.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
         ])
+
+        NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "com.rizadh.Puzzil.beginGame"), object: nil, queue: nil) { [unowned self] notification in
+            let configuration = notification.userInfo!["configuration"] as! BoardConfiguration
+            self.beginGame(with: configuration)
+        }
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        let animationDuration = 0.25
-        let dampingRatio: CGFloat = 0.5
-        let alphaAnimations = {
-            self.scrollView.alpha = 1
-            self.playButton.alpha = 1
-        }
-        let scaleAnimations = {
-            self.scrollView.transform = .identity
-        }
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
+        let previousIndex = index - 1
 
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
+        if previousIndex >= 0 {
+            return boardViewControllers[previousIndex]
         } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+            return nil
         }
-
-        updateGradients()
     }
 
-    override func viewDidLayoutSubviews() {
-        updateGradients()
-    }
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
+        let nextIndex = index + 1
 
-    private func updateGradients() {
-        boards.keys.forEach { $0.updateGradient(false) }
-        playButton.updateGradient(false)
-    }
-
-    private func beginSelectedBoard() {
-        let selectedConfiguration = self.boardConfigurations[self.boardIndex]
-        let board = Board(from: selectedConfiguration.matrix)
-        let boardViewController = BoardViewController(board: board, difficulty: 0.5)
-
-        let animationDuration = 0.1
-        let alphaAnimations = {
-            self.scrollView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-        }
-
-        let scaleAnimations = {
-            self.scrollView.alpha = 0
-            self.playButton.alpha = 0
-        }
-
-        let completion: (Any) -> Void = { _ in
-            self.present(boardViewController, animated: false, completion: nil)
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: scaleAnimations).startAnimation()
-            let shrinkingAnimator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: alphaAnimations)
-            shrinkingAnimator.addCompletion(completion)
-            shrinkingAnimator.startAnimation()
+        if nextIndex < boardViewControllers.count {
+            return boardViewControllers[nextIndex]
         } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: scaleAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: alphaAnimations, completion: completion)
+            return nil
         }
     }
 
-    func numberOfRows(in boardView: BoardView) -> Int {
-        return boards[boardView]!.rows
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        if completed {
+            let index = boardViewControllers.index(of: pageViewController.viewControllers!.first as! BoardViewController)!
+            pageControl.currentPage = index
+        }
     }
 
-    func numberOfColumns(in boardView: BoardView) -> Int {
-        return boards[boardView]!.columns
+    @objc private func updateAllGradients() {
+        boardViewControllers.forEach { $0.updateGradient() }
     }
 
-    func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String? {
-        return boards[boardView]!.tileText(at: position)
+    private func beginGame(with configuration: BoardConfiguration) {
+        let board = Board(from: configuration.matrix)
+        let gameViewController = GameViewController(board: board, difficulty: 0.5)
+        present(gameViewController, animated: false, completion: nil)
     }
 
-    func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool? {
-        return boards[boardView]!.canPerform(moveOperation)
-    }
+    @objc private func navigateToCurrentPage() {
+        let currentPage = pageControl.currentPage
+        let previousPage = boardViewControllers.index(of: pageViewController.viewControllers!.first as! BoardViewController)!
+        let viewController = boardViewControllers[currentPage]
+        let completion: (Bool) -> Void = { _ in
+            self.pageControl.updateCurrentPageDisplay()
+        }
 
-    func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
-        boards[boardView]!.perform(moveOperation)
-    }
+        let direction: UIPageViewControllerNavigationDirection = {
+            if previousPage < currentPage { return .forward }
+            return .reverse
+        }()
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        boards.keys.forEach { $0.updateGradient(false) }
+        pageViewController.setViewControllers([viewController], direction: direction, animated: true, completion: completion)
     }
-
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        boardIndex = Int(scrollView.contentOffset.x / scrollView.frame.width)
-    }
-}
-
-private struct BoardConfiguration {
-    let name: String
-    let matrix: [[CustomStringConvertible?]]
 }
