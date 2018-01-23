@@ -63,9 +63,12 @@ class BoardView: GradientView {
         let position = tiles[tile]!.position
 
         let validOperations = position.possibleOperations.filter { canPerform($0).result }
+        let simpleOperations = validOperations.filter { canPerform($0).requiredOperations.count == 1 }
 
         if validOperations.count == 1 {
             perform(validOperations.first!, useFastTransition: true)
+        } else if simpleOperations.count == 1 {
+            perform(simpleOperations.first!, useFastTransition: true)
         }
     }
 
