@@ -53,7 +53,7 @@ class BoardView: GradientView {
         let direction = TileMoveDirection(from: sender.direction)!
         let moveOperation = TileMoveOperation(position: position, direction: direction)
 
-        perform(moveOperation, animationDuration: 0.25)
+        perform(moveOperation, useFastTransition: false)
     }
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
@@ -65,11 +65,11 @@ class BoardView: GradientView {
         let validOperations = position.possibleOperations.filter { canPerform($0).result }
 
         if validOperations.count == 1 {
-            perform(validOperations.first!, animationDuration: 0.15)
+            perform(validOperations.first!, useFastTransition: true)
         }
     }
 
-    private func perform(_ moveOperation: TileMoveOperation, animationDuration: Double) {
+    private func perform(_ moveOperation: TileMoveOperation, useFastTransition: Bool) {
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
         let dampingRatio: CGFloat = 0.75
 
@@ -90,12 +90,24 @@ class BoardView: GradientView {
                 timer.remove(from: .main, forMode: .defaultRunLoopMode)
             }
 
+            let animationDuration = useFastTransition ? 0.1 : 0.25
+
             if #available(iOS 10.0, *) {
-                let animator = UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: animations)
+                let animator: UIViewPropertyAnimator = {
+                    if useFastTransition {
+                        return UIViewPropertyAnimator(duration: animationDuration, curve: .easeOut, animations: animations)
+                    } else {
+                        return UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: animations)
+                    }
+                }()
                 animator.addCompletion(completion)
                 animator.startAnimation()
             } else {
-                UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: completion)
+                if useFastTransition {
+                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: completion)
+                } else {
+                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: completion)
+                }
             }
         }
     }
