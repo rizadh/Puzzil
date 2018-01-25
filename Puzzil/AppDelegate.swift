@@ -12,7 +12,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     let boardConfigurations = [
-        BoardConfiguration(name: "regular", matrix: [
+        BoardConfiguration(name: "original", matrix: [
             [1, 2, 3],
             [4, 5, 6],
             [7, 8, nil],
@@ -32,7 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         window = UIWindow(frame: UIScreen.main.bounds)
-        window!.rootViewController = MainViewController()
+        window!.rootViewController = BoardSelectorViewController()
         window!.makeKeyAndVisible()
 
         return true

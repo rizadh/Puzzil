@@ -19,7 +19,7 @@
 		4A6C28D41FF5AAD9007D2F80 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */; };
 		4A7341C21FFD4648003DB6C6 /* RoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7341C11FFD4648003DB6C6 /* RoundedButton.swift */; };
 		4A75ABC71FF0517000B0897F /* Tile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A75ABC61FF0517000B0897F /* Tile.swift */; };
-		4AAA7070200AD9B700123A02 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAA706F200AD9B700123A02 /* MainViewController.swift */; };
+		4AAA7070200AD9B700123A02 /* BoardSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAA706F200AD9B700123A02 /* BoardSelectorViewController.swift */; };
 		4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */; };
 		4AB63DCB1FEDA6B2003EBC29 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DCA1FEDA6B2003EBC29 /* GameViewController.swift */; };
 		4AB63DD01FEDA6B2003EBC29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */; };
@@ -43,7 +43,7 @@
 		4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		4A7341C11FFD4648003DB6C6 /* RoundedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedButton.swift; sourceTree = "<group>"; };
 		4A75ABC61FF0517000B0897F /* Tile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
-		4AAA706F200AD9B700123A02 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		4AAA706F200AD9B700123A02 /* BoardSelectorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardSelectorViewController.swift; sourceTree = "<group>"; };
 		4AB63DC51FEDA6B2003EBC29 /* Puzzil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puzzil.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4AB63DCA1FEDA6B2003EBC29 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -147,7 +147,7 @@
 			children = (
 				4AB63DCA1FEDA6B2003EBC29 /* GameViewController.swift */,
 				4A2940C52013D4B40077EE36 /* BoardViewController.swift */,
-				4AAA706F200AD9B700123A02 /* MainViewController.swift */,
+				4AAA706F200AD9B700123A02 /* BoardSelectorViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -230,7 +230,7 @@
 				4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */,
 				4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */,
 				4A7341C21FFD4648003DB6C6 /* RoundedButton.swift in Sources */,
-				4AAA7070200AD9B700123A02 /* MainViewController.swift in Sources */,
+				4AAA7070200AD9B700123A02 /* BoardSelectorViewController.swift in Sources */,
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */,

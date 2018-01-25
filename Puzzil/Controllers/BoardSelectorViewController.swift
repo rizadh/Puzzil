@@ -1,5 +1,5 @@
 //
-//  MainViewController.swift
+//  BoardSelectorViewController.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-01-13.
@@ -8,9 +8,8 @@
 
 import UIKit
 
-class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
-
-    override var prefersStatusBarHidden: Bool { return true }
+class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+    override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
 
     private let pageControl = UIPageControl()
     private let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
@@ -18,8 +17,12 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
     }
 
     private var gradientUpdater: CADisplayLink!
-    private var gradientView: GradientView!
-    private var pageViewController: UIPageViewController!
+    private let gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+    private let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    let headerView = GradientView(from: .themeForegroundPink, to: .themeForegroundOrange)
+    let titleLabel = UILabel()
+
+    var foregroundViews: [UIView] { return view.subviews.filter { $0 != gradientView } }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,11 +30,25 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
         gradientUpdater = CADisplayLink(target: self, selector: #selector(updateAllGradients))
         gradientUpdater.add(to: .main, forMode: .commonModes)
 
-        gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
         gradientView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(gradientView)
 
-        pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(headerView)
+
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.attributedText = NSAttributedString.init(string: "PUZZIL", attributes: [.kern: 1.5])
+        titleLabel.font = {
+            let baseFont = UIFont.systemFont(ofSize: 40, weight: .heavy)
+            if #available(iOS 11.0, *) {
+                return UIFontMetrics(forTextStyle: .headline).scaledFont(for: baseFont)
+            } else {
+                return baseFont
+            }
+        }()
+        titleLabel.textColor = .white
+        headerView.addSubview(titleLabel)
+
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         pageViewController.dataSource = self
         pageViewController.delegate = self
@@ -73,9 +90,17 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
             gradientView.topAnchor.constraint(equalTo: view.topAnchor),
             gradientView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
+            titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 8),
+            titleLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+
+            headerView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            headerView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            headerView.topAnchor.constraint(equalTo: view.topAnchor),
+            headerView.bottomAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+
             pageViewController.view.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
             pageViewController.view.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
-            pageViewController.view.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            pageViewController.view.topAnchor.constraint(equalTo: headerView.bottomAnchor),
 
             pageControl.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
             pageControl.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
@@ -89,6 +114,28 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        let alphaAnimationDuration = 0.1
+        let translationAnimationDuration = 0.25
+        let dampingRatio: CGFloat = 1
+        let alphaAnimations = {
+            self.foregroundViews.forEach { $0.alpha = 1 }
+        }
+        let scaleAnimations = {
+            self.headerView.transform = .identity
+        }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: translationAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
+        } else {
+            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: translationAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+        }
+    }
+
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         let index = boardViewControllers.index(of: viewController as! BoardViewController)!
         let previousIndex = index - 1
@@ -96,7 +143,7 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
         if previousIndex >= 0 {
             return boardViewControllers[previousIndex]
         } else {
-            return nil
+            return boardViewControllers.last!
         }
     }
 
@@ -107,7 +154,7 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
         if nextIndex < boardViewControllers.count {
             return boardViewControllers[nextIndex]
         } else {
-            return nil
+            return boardViewControllers.first!
         }
     }
 
@@ -125,6 +172,7 @@ class MainViewController: UIViewController, UIPageViewControllerDataSource, UIPa
     private func beginGame(with configuration: BoardConfiguration) {
         let board = Board(from: configuration.matrix)
         let gameViewController = GameViewController(board: board, difficulty: 0.5)
+
         present(gameViewController, animated: false, completion: nil)
     }
 

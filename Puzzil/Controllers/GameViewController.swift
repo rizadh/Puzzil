@@ -10,8 +10,6 @@ import UIKit
 
 class GameViewController: UIViewController, BoardViewDelegate {
 
-    override var prefersStatusBarHidden: Bool { return true }
-
     private var originalBoard: Board
     private var board: Board
     private let difficulty: Double
@@ -23,16 +21,9 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private let buttons = UIStackView()
     private var endButton: RoundedButton!
     private var restartButton: RoundedButton!
+    private var gradientView: GradientView!
 
     private var timeStatRefresher: CADisplayLink!
-
-    private var viewsWithAlphaTransition: [UIView] {
-        return [stats, boardView, buttons]
-    }
-
-    private var viewsWithScaleTransition: [UIView] {
-        return [boardView]
-    }
 
     private var startTime = Date()
     private var moves = 0
@@ -44,6 +35,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private var progressWasMade: Bool {
         return moves > 0
     }
+
+    var foregroundViews: [UIView] { return view.subviews.filter { $0 != gradientView } }
 
     init(board: Board, difficulty: Double) {
         originalBoard = board
@@ -60,7 +53,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
+        gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
         gradientView.frame = view.bounds
         gradientView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(gradientView)
@@ -71,24 +64,25 @@ class GameViewController: UIViewController, BoardViewDelegate {
         resetBoard()
         setupSubviews()
 
-        viewsWithAlphaTransition.forEach { $0.alpha = 0 }
-        viewsWithScaleTransition.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
+        foregroundViews.forEach { $0.alpha = 0 }
+        self.boardView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        let animationDuration = 0.25
-        let dampingRatio: CGFloat = 0.5
-        let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 1 } }
-        let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = .identity } }
+        let alphaAnimationDuration = 0.1
+        let scaleAnimationDuration = 0.25
+        let dampingRatio: CGFloat = 1
+        let alphaAnimations = { self.foregroundViews.forEach { $0.alpha = 1 } }
+        let scaleAnimations = { self.boardView.transform = .identity }
 
         if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
+            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
         } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
+            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
         }
 
         boardView.updateGradient(usingPresentationLayer: false)
@@ -153,7 +147,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
                     safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
                     safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.leftAnchor),
                     safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.rightAnchor),
-                    ])
+                ])
 
                 return safeAreaLayoutGuide
             }
@@ -225,7 +219,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
             self.timeStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
         }
 
-        let finalAnimationDuration = 0.25
+        let finalAlphaAnimationDuration = 0.1
+        let finalScaleAnimationDuration = 0.25
         let finalAlphaAnimations = {
             self.boardView.alpha = 1
             self.stats.alpha = 1
@@ -242,13 +237,13 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
         if #available(iOS 10.0, *) {
             triggerFinalAnimation = {
-                UIViewPropertyAnimator(duration: finalAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
-                UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
+                UIViewPropertyAnimator(duration: finalAlphaAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
+                UIViewPropertyAnimator(duration: finalScaleAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
             }
         } else {
             triggerFinalAnimation = {
-                UIView.animate(withDuration: finalAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
-                UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
+                UIView.animate(withDuration: finalAlphaAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
+                UIView.animate(withDuration: finalScaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
             }
         }
 
@@ -270,8 +265,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func navigateToMainMenu() {
         let animationDuration = 0.1
-        let alphaAnimations = { self.viewsWithAlphaTransition.forEach { $0.alpha = 0 } }
-        let scaleAnimations = { self.viewsWithScaleTransition.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) } }
+        let alphaAnimations = { self.foregroundViews.forEach { $0.alpha = 0 }}
+        let scaleAnimations = { self.boardView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8) }
 
         let completion: (Any) -> Void = { _ in
             self.dismiss(animated: false, completion: nil)
