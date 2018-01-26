@@ -6,44 +6,18 @@
 //  Copyright © 2017 Rizadh Nizam. All rights reserved.
 //
 
-import Foundation
+
 import UIKit
 
-private let pinkHue: CGFloat = 330 / 360
-private let orangeHue: CGFloat = 30 / 360
-
-private let backgroundSaturation: CGFloat = 0.2
-private let foregroundSaturation: CGFloat = 0.8
-
-private let backgroundBrightness: CGFloat = 1
-private let foregroundBrightness: CGFloat = 1
+private let pinkHue: CGFloat = 345 / 360
+private let themeForeground = UIColor(hue: pinkHue, saturation: 6 / 8, brightness: 1, alpha: 1)
+private let themeBackground = UIColor(hue: pinkHue, saturation: 1 / 8, brightness: 1, alpha: 1)
 
 extension UIColor {
-    // Foreground colors
-    static let themeForegroundPink = UIColor(
-        hue: pinkHue,
-        saturation: foregroundSaturation,
-        brightness: foregroundBrightness,
-        alpha: 1
-    )
-    static let themeForegroundOrange = UIColor(
-        hue: orangeHue,
-        saturation: foregroundSaturation,
-        brightness: foregroundBrightness,
-        alpha: 1
-    )
-
-    // Background colors
-    static let themeBackgroundPink = UIColor(
-        hue: pinkHue,
-        saturation: backgroundSaturation,
-        brightness: backgroundBrightness,
-        alpha: 1
-    )
-    static let themeBackgroundOrange = UIColor(
-        hue: orangeHue,
-        saturation: backgroundSaturation,
-        brightness: backgroundBrightness,
-        alpha: 1
-    )
+    static let tile = themeForeground
+    static let header = themeForeground
+    static let board = themeBackground
+    static let button = themeForeground
+    static let pageControlActive = themeForeground
+    static let pageControlInactive = themeBackground
 }

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4A03F6741FEEC66000A625D8 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A03F6731FEEC66000A625D8 /* GradientView.swift */; };
 		4A0A81352015B93D00661E2C /* BoardConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0A81342015B93D00661E2C /* BoardConfiguration.swift */; };
 		4A1B65EB1FEE409700A98FF7 /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1B65EA1FEE409700A98FF7 /* Board.swift */; };
 		4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */; };
@@ -28,10 +27,10 @@
 		4ABAB82220065BC300D09C93 /* StatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABAB82120065BC300D09C93 /* StatView.swift */; };
 		4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2362200340A30042592B /* BoardScrambler.swift */; };
 		4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2364200341D70042592B /* TileMoveOperation.swift */; };
+		4ADD71A7201A6D0C00A4B0FA /* UIColor+Random.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADD71A6201A6D0C00A4B0FA /* UIColor+Random.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		4A03F6731FEEC66000A625D8 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		4A0A81342015B93D00661E2C /* BoardConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardConfiguration.swift; sourceTree = "<group>"; };
 		4A1B65EA1FEE409700A98FF7 /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewDelegate.swift; sourceTree = "<group>"; };
@@ -54,6 +53,7 @@
 		4ABAB82120065BC300D09C93 /* StatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatView.swift; sourceTree = "<group>"; };
 		4ABC2362200340A30042592B /* BoardScrambler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardScrambler.swift; sourceTree = "<group>"; };
 		4ABC2364200341D70042592B /* TileMoveOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileMoveOperation.swift; sourceTree = "<group>"; };
+		4ADD71A6201A6D0C00A4B0FA /* UIColor+Random.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Random.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,7 +70,6 @@
 		4A03F6721FEEC61900A625D8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				4A03F6731FEEC66000A625D8 /* GradientView.swift */,
 				4ABAB82120065BC300D09C93 /* StatView.swift */,
 				4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */,
 				4A4573C31FF77FE600F13884 /* TileView.swift */,
@@ -137,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */,
+				4ADD71A6201A6D0C00A4B0FA /* UIColor+Random.swift */,
 				4A59F7D81FFAD8BA0069ACB9 /* CGRect+Centered.swift */,
 			);
 			path = Extensions;
@@ -232,6 +232,7 @@
 				4A7341C21FFD4648003DB6C6 /* RoundedButton.swift in Sources */,
 				4AAA7070200AD9B700123A02 /* BoardSelectorViewController.swift in Sources */,
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,
+				4ADD71A7201A6D0C00A4B0FA /* UIColor+Random.swift in Sources */,
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A59F7D91FFAD8BA0069ACB9 /* CGRect+Centered.swift in Sources */,
 				4A0A81352015B93D00661E2C /* BoardConfiguration.swift in Sources */,
@@ -240,7 +241,6 @@
 				4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */,
 				4A2940C62013D4B40077EE36 /* BoardViewController.swift in Sources */,
 				4A6C28D41FF5AAD9007D2F80 /* BoardView.swift in Sources */,
-				4A03F6741FEEC66000A625D8 /* GradientView.swift in Sources */,
 				4A75ABC71FF0517000B0897F /* Tile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

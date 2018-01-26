@@ -8,42 +8,58 @@
 
 import UIKit
 
-class BoardView: GradientView {
+class BoardView: UIView {
+
+    override var isOpaque: Bool { get { return false } set { } }
     private static let cornerRadius: CGFloat = 32
     private static let borderWidth: CGFloat = 8
 
     var delegate: BoardViewDelegate!
-    var isDynamic = true
+    var isDynamic = true {
+        didSet {
+            if isDynamic {
+                tiles.keys.forEach { $0.text = "" }
+            } else {
+                for (tileView, tileInfo) in tiles {
+                    let position = tileInfo.position
+                    tileView.text = delegate.boardView(self, tileTextAt: position)!
+                }
+            }
+        }
+    }
     private var tiles = [TileView: TileInfo]()
     private var rowGuides = [UILayoutGuide]()
     private var columnGuides = [UILayoutGuide]()
 
     init() {
-        super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
+        super.init(frame: .zero)
 
-        isOpaque = false
+        backgroundColor = .board
+        layer.cornerRadius = BoardView.cornerRadius
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func clippingPath(for gradientBounds: CGRect) -> CGPath {
-        if min(gradientBounds.width, gradientBounds.height) < 2 * BoardView.cornerRadius {
-            return UIBezierPath(rect: gradientBounds).cgPath
-        }
-
-        let outer = UIBezierPath(roundedRect: gradientBounds, cornerRadius: BoardView.cornerRadius)
-        let innerBounds = gradientBounds.insetBy(dx: BoardView.borderWidth, dy: BoardView.borderWidth)
-        let innerRadius = BoardView.cornerRadius - BoardView.borderWidth
-        let inner = UIBezierPath(roundedRect: innerBounds, cornerRadius: innerRadius)
-
-        let shape = UIBezierPath()
-        shape.append(inner)
-        shape.append(outer)
-
-        return shape.cgPath
-    }
+//    override func draw(_ rect: CGRect) {
+//        if min(rect.width, rect.height) < 2 * BoardView.cornerRadius {
+//            return
+//        }
+//
+//        let outer = UIBezierPath(roundedRect: rect, cornerRadius: BoardView.cornerRadius)
+//        let innerBounds = rect.insetBy(dx: BoardView.borderWidth, dy: BoardView.borderWidth)
+//        let innerRadius = BoardView.cornerRadius - BoardView.borderWidth
+//        let inner = UIBezierPath(roundedRect: innerBounds, cornerRadius: innerRadius)
+//
+//        let shape = UIBezierPath()
+//        shape.append(inner)
+//        shape.append(outer)
+//        shape.usesEvenOddFillRule = true
+//
+//        UIColor.themeForeground.setFill()
+//        shape.fill()
+//    }
 
     @objc private func tileWasDragged(_ sender: UISwipeGestureRecognizer) {
         guard isDynamic else { return }
@@ -86,14 +102,7 @@ class BoardView: GradientView {
                 delegate.boardView(self, didPerform: operation)
             }
 
-            let timer = CADisplayLink(target: self, selector: #selector(updateGradientUsingPresentationLayer))
-            timer.add(to: .main, forMode: .defaultRunLoopMode)
-
             let animations = { self.layoutIfNeeded() }
-
-            let completion: (Any) -> Void = { _ in
-                timer.remove(from: .main, forMode: .defaultRunLoopMode)
-            }
 
             let animationDuration = useFastTransition ? 0.1 : 0.25
 
@@ -105,13 +114,12 @@ class BoardView: GradientView {
                         return UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: animations)
                     }
                 }()
-                animator.addCompletion(completion)
                 animator.startAnimation()
             } else {
                 if useFastTransition {
-                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: completion)
+                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: nil)
                 } else {
-                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: completion)
+                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: nil)
                 }
             }
         }
@@ -193,7 +201,9 @@ class BoardView: GradientView {
 
             let tile = TileView()
             tile.translatesAutoresizingMaskIntoConstraints = false
-            tile.text = text
+            if isDynamic {
+                tile.text = text
+            }
 
             addTileSwipeRecognizers(to: tile)
 
@@ -284,16 +294,6 @@ class BoardView: GradientView {
     private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
         remove(tile)
         place(tile, at: moveOperation.targetPosition)
-    }
-
-    @objc private func updateGradientUsingPresentationLayer() {
-        updateGradient(usingPresentationLayer: true)
-    }
-
-    override func updateGradient(usingPresentationLayer usePresentationLayer: Bool) {
-        super.updateGradient(usingPresentationLayer: usePresentationLayer)
-
-        tiles.keys.forEach { $0.updateGradient(usingPresentationLayer: usePresentationLayer) }
     }
 }
 

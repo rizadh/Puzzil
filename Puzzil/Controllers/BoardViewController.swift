@@ -12,9 +12,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
     private let configuration: BoardConfiguration
     private let board: Board
-    private let headerView = UIView()
+    private let titleLabel = UILabel()
     private let boardView = BoardView()
-    private let label = UILabel()
     private lazy var startButton = RoundedButton("Start") { _ in self.startGame() }
 
     init(for configuration: BoardConfiguration) {
@@ -31,22 +30,18 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = UIColor.white.withAlphaComponent(0.5)
-        headerView.layer.cornerRadius = 16
-        view.addSubview(headerView)
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = configuration.name.capitalized
-        label.font = {
-            let baseFont = UIFont.systemFont(ofSize: 24, weight: .medium)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = configuration.name.capitalized
+        titleLabel.textColor = UIColor(white: 0.25, alpha: 1)
+        titleLabel.font = {
+            let baseFont = UIFont.systemFont(ofSize: 20, weight: .regular)
             if #available(iOS 11.0, *) {
                 return UIFontMetrics(forTextStyle: .headline).scaledFont(for: baseFont)
             } else {
                 return baseFont
             }
         }()
-        headerView.addSubview(label)
+        view.addSubview(titleLabel)
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
@@ -76,20 +71,14 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         }()
 
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
-
-            label.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-
-            label.leftAnchor.constraint(equalTo: headerView.leftAnchor, constant: 16),
-            headerView.rightAnchor.constraint(equalTo: label.rightAnchor, constant: 16),
-            label.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
-            headerView.bottomAnchor.constraint(equalTo: label.bottomAnchor, constant: 8),
+            titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            titleLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
 
             boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
             safeArea.rightAnchor.constraint(greaterThanOrEqualTo: boardView.rightAnchor, constant: 16),
-            boardView.topAnchor.constraint(greaterThanOrEqualTo: headerView.bottomAnchor, constant: 16),
+            boardView.topAnchor.constraint(greaterThanOrEqualTo: titleLabel.bottomAnchor, constant: 16),
 
             startButton.leftAnchor.constraint(equalTo: safeArea.leftAnchor, constant: 16),
             safeArea.rightAnchor.constraint(equalTo: startButton.rightAnchor, constant: 16),
@@ -120,7 +109,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         }
         let scaleAnimations = {
             self.boardView.transform = .identity
-            self.headerView.transform = .identity
+            self.titleLabel.transform = .identity
+            self.startButton.transform = .identity
         }
 
         if #available(iOS 10.0, *) {
@@ -140,13 +130,14 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         let animationDuration = 0.1
         let alphaAnimations = {
             self.view.alpha = 0
-            boardSelectorViewController.foregroundViews.forEach { $0.alpha = 0 }
+            boardSelectorViewController.view.subviews.forEach { $0.alpha = 0 }
         }
-
         let scaleAnimations = {
             self.boardView.transform = CGAffineTransform(scaleX: 1.25, y: 1.25)
-            self.headerView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            boardSelectorViewController.headerView.transform = CGAffineTransform(translationX: 0, y: -64)
+            self.titleLabel.transform = CGAffineTransform(translationX: 0, y: -32)
+            self.startButton.transform = CGAffineTransform(translationX: 0, y: 32)
+            boardSelectorViewController.headerView.transform = CGAffineTransform(translationX: 0, y: -32)
+            boardSelectorViewController.pageControl.transform = CGAffineTransform(translationX: 0, y: 32)
         }
 
         let completion: (Any) -> Void = { _ in NotificationCenter.default.post(notification) }
@@ -160,11 +151,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: scaleAnimations, completion: nil)
             UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: alphaAnimations, completion: completion)
         }
-    }
-
-    func updateGradient() {
-        boardView.updateGradient(usingPresentationLayer: false)
-        startButton.updateGradient(usingPresentationLayer: false)
     }
 
     func numberOfRows(in boardView: BoardView) -> Int {

@@ -9,7 +9,7 @@
 import UIKit
 
 
-class RoundedButton: GradientView, UIGestureRecognizerDelegate {
+class RoundedButton: UIView, UIGestureRecognizerDelegate {
     typealias ButtonHandler = (RoundedButton) -> Void
 
     var text: String? {
@@ -27,7 +27,9 @@ class RoundedButton: GradientView, UIGestureRecognizerDelegate {
         labelView.text = text
         self.handler = handler
 
-        super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
+        super.init(frame: .zero)
+
+        backgroundColor = .button
 
         setupGestureRecognizer()
         setupSubviews()

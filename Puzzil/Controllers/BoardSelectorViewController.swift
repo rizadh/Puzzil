@@ -11,35 +11,28 @@ import UIKit
 class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
     override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
 
-    private let pageControl = UIPageControl()
-    private let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
+    let pageControl = UIPageControl()
+    let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
         return BoardViewController(for: configuration)
     }
 
-    private var gradientUpdater: CADisplayLink!
-    private let gradientView = GradientView(from: .themeBackgroundPink, to: .themeBackgroundOrange)
-    private let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
-    let headerView = GradientView(from: .themeForegroundPink, to: .themeForegroundOrange)
+    let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    let headerView = UIView()
     let titleLabel = UILabel()
-
-    var foregroundViews: [UIView] { return view.subviews.filter { $0 != gradientView } }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        gradientUpdater = CADisplayLink(target: self, selector: #selector(updateAllGradients))
-        gradientUpdater.add(to: .main, forMode: .commonModes)
-
-        gradientView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(gradientView)
+        view.backgroundColor = .white
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
+        headerView.backgroundColor = .header
         view.addSubview(headerView)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.attributedText = NSAttributedString.init(string: "PUZZIL", attributes: [.kern: 1.5])
         titleLabel.font = {
-            let baseFont = UIFont.systemFont(ofSize: 40, weight: .heavy)
+            let baseFont = UIFont.systemFont(ofSize: 32, weight: .heavy)
             if #available(iOS 11.0, *) {
                 return UIFontMetrics(forTextStyle: .headline).scaledFont(for: baseFont)
             } else {
@@ -59,8 +52,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
         pageControl.numberOfPages = boardViewControllers.count
         pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageControl.pageIndicatorTintColor = UIColor.white.withAlphaComponent(0.5)
-        pageControl.currentPageIndicatorTintColor = .themeForegroundOrange
+        pageControl.pageIndicatorTintColor = .pageControlInactive
+        pageControl.currentPageIndicatorTintColor = .pageControlActive
         pageControl.addTarget(self, action: #selector(navigateToCurrentPage), for: .valueChanged)
         pageControl.defersCurrentPageDisplay = true
         view.addSubview(pageControl)
@@ -85,11 +78,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }()
 
         NSLayoutConstraint.activate([
-            gradientView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            gradientView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            gradientView.topAnchor.constraint(equalTo: view.topAnchor),
-            gradientView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
             titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 8),
             titleLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
 
@@ -120,11 +108,10 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         let alphaAnimationDuration = 0.1
         let translationAnimationDuration = 0.25
         let dampingRatio: CGFloat = 1
-        let alphaAnimations = {
-            self.foregroundViews.forEach { $0.alpha = 1 }
-        }
+        let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 1 } }
         let scaleAnimations = {
             self.headerView.transform = .identity
+            self.pageControl.transform = .identity
         }
 
         if #available(iOS 10.0, *) {
@@ -163,10 +150,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             let index = boardViewControllers.index(of: pageViewController.viewControllers!.first as! BoardViewController)!
             pageControl.currentPage = index
         }
-    }
-
-    @objc private func updateAllGradients() {
-        boardViewControllers.forEach { $0.updateGradient() }
     }
 
     private func beginGame(with configuration: BoardConfiguration) {

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TileView: GradientView {
+class TileView: UIView {
     private static let maxTileSize: CGFloat = 128
     private static let maxCornerRadius: CGFloat = 16
 
@@ -20,13 +20,15 @@ class TileView: GradientView {
     private let labelView = UILabel()
 
     init() {
-        super.init(from: .themeForegroundPink, to: .themeForegroundOrange)
+        super.init(frame: .zero)
 
         NSLayoutConstraint.activate([
             widthAnchor.constraint(lessThanOrEqualToConstant: TileView.maxTileSize),
             heightAnchor.constraint(lessThanOrEqualToConstant: TileView.maxTileSize),
             widthAnchor.constraint(equalTo: heightAnchor),
         ])
+
+        backgroundColor = .tile
 
         setupSubviews()
     }
