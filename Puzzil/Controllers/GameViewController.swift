@@ -265,7 +265,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func navigateToMainMenu() {
         let animationDuration = 0.1
-        let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 0 }}
+        let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 0 } }
         let scaleAnimations = {
             self.boardView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
             self.stats.transform = CGAffineTransform(translationX: 0, y: 32)

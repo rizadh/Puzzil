@@ -9,19 +9,32 @@
 import UIKit
 
 class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+
     override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
 
-    let pageControl = UIPageControl()
-    let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
+    private let headerView = UIView()
+    private let titleLabel = UILabel()
+    private let boardNameLabel = UILabel()
+    private let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    private let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
         return BoardViewController(for: configuration)
     }
-
-    let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
-    let headerView = UIView()
-    let titleLabel = UILabel()
+    private var visibleBoardViewController: BoardViewController! {
+        didSet {
+            boardNameLabel.text = visibleBoardViewController.configuration.name.capitalized
+        }
+    }
+    private let helpText = UILabel()
+    private let pageControl = UIPageControl()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        visibleBoardViewController = boardViewControllers.first!
+        for boardViewController in boardViewControllers {
+            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(beginGame))
+            boardViewController.boardView.addGestureRecognizer(tapGestureRecognizer)
+        }
 
         view.backgroundColor = .themeBackground
 
@@ -30,6 +43,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         view.addSubview(headerView)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.textColor = .themeHeaderText
         titleLabel.attributedText = NSAttributedString.init(string: "PUZZIL", attributes: [.kern: 1.5])
         titleLabel.font = {
             let baseFont = UIFont.systemFont(ofSize: 32, weight: .heavy)
@@ -39,8 +53,10 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
                 return baseFont
             }
         }()
-        titleLabel.textColor = .themeHeaderText
         headerView.addSubview(titleLabel)
+
+        boardNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(boardNameLabel)
 
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         pageViewController.dataSource = self
@@ -49,6 +65,12 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         addChildViewController(pageViewController)
         pageViewController.didMove(toParentViewController: self)
         view.addSubview(pageViewController.view)
+
+        helpText.text = "Tap a board to start"
+        helpText.translatesAutoresizingMaskIntoConstraints = false
+        helpText.numberOfLines = 2
+        helpText.textAlignment = .center
+        view.addSubview(helpText)
 
         pageControl.numberOfPages = boardViewControllers.count
         pageControl.translatesAutoresizingMaskIntoConstraints = false
@@ -86,20 +108,23 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             headerView.topAnchor.constraint(equalTo: view.topAnchor),
             headerView.bottomAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
 
-            pageViewController.view.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
-            pageViewController.view.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
-            pageViewController.view.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            boardNameLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            boardNameLabel.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 16),
 
             pageControl.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
             pageControl.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
-            pageControl.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor),
-            pageControl.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-        ])
+            pageControl.topAnchor.constraint(equalTo: boardNameLabel.bottomAnchor),
 
-        NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "com.rizadh.Puzzil.beginGame"), object: nil, queue: nil) { [unowned self] notification in
-            let configuration = notification.userInfo!["configuration"] as! BoardConfiguration
-            self.beginGame(with: configuration)
-        }
+            pageViewController.view.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
+            pageViewController.view.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
+            pageViewController.view.topAnchor.constraint(equalTo: pageControl.bottomAnchor, constant: 16),
+
+            helpText.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            helpText.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
+            safeArea.rightAnchor.constraint(greaterThanOrEqualTo: helpText.rightAnchor, constant: 16),
+            helpText.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 16),
+            safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor, constant: 16),
+        ])
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -111,7 +136,9 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 1 } }
         let scaleAnimations = {
             self.headerView.transform = .identity
+            self.boardNameLabel.transform = .identity
             self.pageControl.transform = .identity
+            self.helpText.transform = .identity
         }
 
         if #available(iOS 10.0, *) {
@@ -147,25 +174,46 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if completed {
-            let index = boardViewControllers.index(of: pageViewController.viewControllers!.first as! BoardViewController)!
+            let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
+            let index = boardViewControllers.index(of: boardViewController)!
             pageControl.currentPage = index
+            visibleBoardViewController = boardViewController
         }
     }
 
-    private func beginGame(with configuration: BoardConfiguration) {
-        let board = Board(from: configuration.matrix)
+    @objc private func beginGame() {
+        let board = Board(from: visibleBoardViewController.configuration.matrix)
         let gameViewController = GameViewController(board: board, difficulty: 0.5)
 
-        present(gameViewController, animated: false, completion: nil)
+        let animationDuration = 0.1
+        let alphaAnimations = {
+            self.view.subviews.forEach { $0.alpha = 0 }
+        }
+        let scaleAnimations = {
+            self.headerView.transform = CGAffineTransform(translationX: 0, y: -32)
+            self.boardNameLabel.transform = CGAffineTransform(translationX: 0, y: -32)
+            self.pageControl.transform = CGAffineTransform(translationX: 0, y: -32)
+            self.helpText.transform = CGAffineTransform(translationX: 0, y: 32)
+            self.visibleBoardViewController.boardView.transform = CGAffineTransform(scaleX: 1.25, y: 1.25)
+        }
+        let completion: (Any) -> Void = { _ in self.present(gameViewController, animated: false, completion: nil) }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: scaleAnimations).startAnimation()
+            let animator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: alphaAnimations)
+            animator.addCompletion(completion)
+            animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: scaleAnimations, completion: nil)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: alphaAnimations, completion: completion)
+        }
     }
 
     @objc private func navigateToCurrentPage() {
         let currentPage = pageControl.currentPage
         let previousPage = boardViewControllers.index(of: pageViewController.viewControllers!.first as! BoardViewController)!
         let viewController = boardViewControllers[currentPage]
-        let completion: (Bool) -> Void = { _ in
-            self.pageControl.updateCurrentPageDisplay()
-        }
+        let completion: (Bool) -> Void = { _ in self.pageControl.updateCurrentPageDisplay() }
 
         let direction: UIPageViewControllerNavigationDirection = {
             if previousPage < currentPage { return .forward }

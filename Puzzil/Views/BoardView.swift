@@ -17,14 +17,7 @@ class BoardView: UIView {
     var delegate: BoardViewDelegate!
     var isDynamic = true {
         didSet {
-            if isDynamic {
-                tiles.keys.forEach { $0.text = "" }
-            } else {
-                for (tileView, tileInfo) in tiles {
-                    let position = tileInfo.position
-                    tileView.text = delegate.boardView(self, tileTextAt: position)!
-                }
-            }
+            updateTileDynamics()
         }
     }
     private var tiles = [TileView: TileInfo]()
@@ -42,28 +35,22 @@ class BoardView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-//    override func draw(_ rect: CGRect) {
-//        if min(rect.width, rect.height) < 2 * BoardView.cornerRadius {
-//            return
-//        }
-//
-//        let outer = UIBezierPath(roundedRect: rect, cornerRadius: BoardView.cornerRadius)
-//        let innerBounds = rect.insetBy(dx: BoardView.borderWidth, dy: BoardView.borderWidth)
-//        let innerRadius = BoardView.cornerRadius - BoardView.borderWidth
-//        let inner = UIBezierPath(roundedRect: innerBounds, cornerRadius: innerRadius)
-//
-//        let shape = UIBezierPath()
-//        shape.append(inner)
-//        shape.append(outer)
-//        shape.usesEvenOddFillRule = true
-//
-//        UIColor.themeForeground.setFill()
-//        shape.fill()
-//    }
+    func updateTileDynamics() {
+        if isDynamic {
+            for (tileView, tileInfo) in tiles {
+                let position = tileInfo.position
+                tileView.text = delegate.boardView(self, tileTextAt: position)!
+                tileView.isUserInteractionEnabled = true
+            }
+        } else {
+            for tileView in tiles.keys {
+                tileView.text = ""
+                tileView.isUserInteractionEnabled = false
+            }
+        }
+    }
 
     @objc private func tileWasDragged(_ sender: UISwipeGestureRecognizer) {
-        guard isDynamic else { return }
-
         let tile = sender.view as! TileView
         let position = tiles[tile]!.position
         let direction = TileMoveDirection(from: sender.direction)!
@@ -73,8 +60,6 @@ class BoardView: UIView {
     }
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
-        guard isDynamic else { return }
-
         let tile = sender.view as! TileView
         let position = tiles[tile]!.position
 
@@ -146,6 +131,7 @@ class BoardView: UIView {
         generateColumnLayoutGuides()
         generateRowLayoutGuides()
         layoutTiles()
+        updateTileDynamics()
     }
 
     private func clearTiles() {
@@ -201,9 +187,7 @@ class BoardView: UIView {
 
             let tile = TileView()
             tile.translatesAutoresizingMaskIntoConstraints = false
-            if isDynamic {
-                tile.text = text
-            }
+            tile.text = text
 
             addTileSwipeRecognizers(to: tile)
 
