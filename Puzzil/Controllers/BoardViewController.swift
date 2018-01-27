@@ -78,6 +78,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
             safeArea.rightAnchor.constraint(greaterThanOrEqualTo: boardView.rightAnchor, constant: 16),
+            boardView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.7),
             boardView.topAnchor.constraint(greaterThanOrEqualTo: titleLabel.bottomAnchor, constant: 16),
 
             startButton.leftAnchor.constraint(equalTo: safeArea.leftAnchor, constant: 16),
@@ -88,8 +89,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         ])
 
         NSLayoutConstraint.activate([
-            boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.5),
-            boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5),
+            boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.7),
+            boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
         ].map {
             $0.priority = .defaultHigh
             return $0
