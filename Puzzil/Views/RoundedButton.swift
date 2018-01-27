@@ -29,7 +29,7 @@ class RoundedButton: UIView, UIGestureRecognizerDelegate {
 
         super.init(frame: .zero)
 
-        backgroundColor = .button
+        backgroundColor = .themeButton
 
         setupGestureRecognizer()
         setupSubviews()
@@ -102,7 +102,7 @@ class RoundedButton: UIView, UIGestureRecognizerDelegate {
 
         labelView.translatesAutoresizingMaskIntoConstraints = false
         labelView.textAlignment = .center
-        labelView.textColor = .white
+        labelView.textColor = .themeButtonText
 
         addSubview(labelView)
 

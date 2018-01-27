@@ -34,7 +34,7 @@ class BoardView: UIView {
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = .board
+        backgroundColor = .themeBoard
         layer.cornerRadius = BoardView.cornerRadius
     }
 

@@ -32,7 +32,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = configuration.name.capitalized
-        titleLabel.textColor = UIColor(white: 0.25, alpha: 1)
+        titleLabel.textColor = .themeText
         titleLabel.font = {
             let baseFont = UIFont.systemFont(ofSize: 20, weight: .regular)
             if #available(iOS 11.0, *) {

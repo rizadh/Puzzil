@@ -23,10 +23,10 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        view.backgroundColor = .themeBackground
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = .header
+        headerView.backgroundColor = .themeHeader
         view.addSubview(headerView)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -39,7 +39,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
                 return baseFont
             }
         }()
-        titleLabel.textColor = .white
+        titleLabel.textColor = .themeHeaderText
         headerView.addSubview(titleLabel)
 
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -52,8 +52,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
         pageControl.numberOfPages = boardViewControllers.count
         pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageControl.pageIndicatorTintColor = .pageControlInactive
-        pageControl.currentPageIndicatorTintColor = .pageControlActive
+        pageControl.pageIndicatorTintColor = .themePageControlInactive
+        pageControl.currentPageIndicatorTintColor = .themePageControlActive
         pageControl.addTarget(self, action: #selector(navigateToCurrentPage), for: .valueChanged)
         pageControl.defersCurrentPageDisplay = true
         view.addSubview(pageControl)

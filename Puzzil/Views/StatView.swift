@@ -31,8 +31,10 @@ class StatView: UIView {
 
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.font = UIFont.preferredFont(forTextStyle: .headline)
+        titleView.textColor = .themeText
 
         valueView.translatesAutoresizingMaskIntoConstraints = false
+        valueView.textColor = .themeText
 
         addSubview(titleView)
         addSubview(valueView)

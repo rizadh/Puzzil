@@ -10,6 +10,8 @@ import UIKit
 
 class GameViewController: UIViewController, BoardViewDelegate {
 
+    override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
+
     private var originalBoard: Board
     private var board: Board
     private let difficulty: Double
@@ -50,7 +52,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        view.backgroundColor = .themeBackground
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self

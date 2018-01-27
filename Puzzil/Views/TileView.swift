@@ -28,7 +28,7 @@ class TileView: UIView {
             widthAnchor.constraint(equalTo: heightAnchor),
         ])
 
-        backgroundColor = .tile
+        backgroundColor = .themeTile
 
         setupSubviews()
     }
@@ -40,7 +40,7 @@ class TileView: UIView {
     private func setupSubviews() {
         labelView.translatesAutoresizingMaskIntoConstraints = false
         labelView.textAlignment = .center
-        labelView.textColor = .white
+        labelView.textColor = .themeTileText
 
         addSubview(labelView)
 
