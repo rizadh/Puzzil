@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4A0A81352015B93D00661E2C /* BoardConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0A81342015B93D00661E2C /* BoardConfiguration.swift */; };
+		4A12B22F201DCC9D006B039F /* UIView+CustomAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */; };
 		4A1B65EB1FEE409700A98FF7 /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1B65EA1FEE409700A98FF7 /* Board.swift */; };
 		4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */; };
 		4A2940C62013D4B40077EE36 /* BoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2940C52013D4B40077EE36 /* BoardViewController.swift */; };
@@ -30,6 +31,7 @@
 
 /* Begin PBXFileReference section */
 		4A0A81342015B93D00661E2C /* BoardConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardConfiguration.swift; sourceTree = "<group>"; };
+		4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+CustomAnimations.swift"; sourceTree = "<group>"; };
 		4A1B65EA1FEE409700A98FF7 /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewDelegate.swift; sourceTree = "<group>"; };
 		4A2940C52013D4B40077EE36 /* BoardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewController.swift; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */,
+				4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -223,6 +226,7 @@
 				4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */,
 				4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */,
 				4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */,
+				4A12B22F201DCC9D006B039F /* UIView+CustomAnimations.swift in Sources */,
 				4A7341C21FFD4648003DB6C6 /* RoundedButton.swift in Sources */,
 				4AAA7070200AD9B700123A02 /* BoardSelectorViewController.swift in Sources */,
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,

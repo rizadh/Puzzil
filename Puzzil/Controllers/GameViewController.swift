@@ -40,8 +40,6 @@ class GameViewController: UIViewController, BoardViewDelegate {
         return moves > 0
     }
 
-    private var statViews: [StatView] { return [bestTimeStat, timeStat, movesStat] }
-
     private var bestTimeOrNil: Double? {
         get { return (UIApplication.shared.delegate as! AppDelegate).bestTimes[boardConfiguration.name] }
         set { (UIApplication.shared.delegate as! AppDelegate).bestTimes[boardConfiguration.name] = newValue }
@@ -253,57 +251,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBoardWithAnimation() {
-        let initialAnimationDuration = 0.1
-        let initialAlphaAnimations = {
-            self.boardView.alpha = 0
-            self.stats.alpha = 0
-        }
-        let initialScaleAnimations = {
-            self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            self.statViews.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
-        }
-
-        let finalAlphaAnimationDuration = 0.1
-        let finalScaleAnimationDuration = 0.25
-        let finalAlphaAnimations = {
-            self.boardView.alpha = 1
-            self.stats.alpha = 1
-        }
-        let finalScaleAnimations = {
-            self.boardView.transform = .identity
-            self.statViews.forEach { $0.transform = .identity }
-        }
-
-        let dampingRatio: CGFloat = 0.5
-
-        let triggerFinalAnimation: () -> Void
-
-        if #available(iOS 10.0, *) {
-            triggerFinalAnimation = {
-                UIViewPropertyAnimator(duration: finalAlphaAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
-                UIViewPropertyAnimator(duration: finalScaleAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
-            }
-        } else {
-            triggerFinalAnimation = {
-                UIView.animate(withDuration: finalAlphaAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
-                UIView.animate(withDuration: finalScaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
-            }
-        }
-
-        let completion: (Any) -> Void = { _ in
-            self.resetBoard()
-            triggerFinalAnimation()
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .linear, animations: initialAlphaAnimations).startAnimation()
-            let animator = UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .easeIn, animations: initialScaleAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveLinear, animations: initialAlphaAnimations, completion: nil)
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: completion)
-        }
+        UIView.springReload(views: [boardView, bestTimeStat, timeStat, movesStat], reloadBlock: resetBoard)
     }
 
     private func navigateToMainMenu() {
@@ -346,54 +294,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func resetBestTime() {
         bestTimeOrNil = nil
-
-        let initialAnimationDuration = 0.1
-        let initialAlphaAnimations = {
-            self.bestTimeStat.alpha = 0
-        }
-        let initialScaleAnimations = {
-            self.bestTimeStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-        }
-
-        let finalAlphaAnimationDuration = 0.1
-        let finalScaleAnimationDuration = 0.25
-        let finalAlphaAnimations = {
-            self.bestTimeStat.alpha = 1
-        }
-        let finalScaleAnimations = {
-            self.bestTimeStat.transform = .identity
-        }
-
-        let dampingRatio: CGFloat = 0.5
-
-        let triggerFinalAnimation: () -> Void
-
-        if #available(iOS 10.0, *) {
-            triggerFinalAnimation = {
-                UIViewPropertyAnimator(duration: finalAlphaAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
-                UIViewPropertyAnimator(duration: finalScaleAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
-            }
-        } else {
-            triggerFinalAnimation = {
-                UIView.animate(withDuration: finalAlphaAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
-                UIView.animate(withDuration: finalScaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
-            }
-        }
-
-        let completion: (Any) -> Void = { _ in
-            self.updateBestTimeStat()
-            triggerFinalAnimation()
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .linear, animations: initialAlphaAnimations).startAnimation()
-            let animator = UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .easeIn, animations: initialScaleAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveLinear, animations: initialAlphaAnimations, completion: nil)
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: completion)
-        }
+        UIView.springReload(views: [bestTimeStat], reloadBlock: updateTimeStat)
     }
 
     @objc private func updateTimeStat() {
