@@ -294,7 +294,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func resetBestTime() {
         bestTimeOrNil = nil
-        UIView.springReload(views: [bestTimeStat], reloadBlock: updateTimeStat)
+        UIView.springReload(views: [bestTimeStat], reloadBlock: updateBestTimeStat)
     }
 
     @objc private func updateTimeStat() {
