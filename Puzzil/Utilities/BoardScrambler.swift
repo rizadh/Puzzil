@@ -11,17 +11,13 @@ import Foundation
 struct BoardScrambler {
     static func scramble(_ board: inout Board, untilProgressIsBelow targetProgress: Double) {
         var minimumProgress = 1.0
-        var stagnantRounds = 0
 
-        while board.progress > targetProgress && stagnantRounds < 1000 {
+        while board.progress > targetProgress {
             moveRandomTile(in: &board)
 
             let progress = board.progress
             if progress < minimumProgress {
-                stagnantRounds = 0
                 minimumProgress = progress
-            } else {
-                stagnantRounds += 1
             }
         }
     }

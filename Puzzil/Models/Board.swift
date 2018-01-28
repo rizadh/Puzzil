@@ -11,6 +11,7 @@ import Foundation
 struct Board {
     let rows: Int
     let columns: Int
+    private let originalTiles: [[Tile?]]
     private var tiles = [[Tile?]]()
 
     var isSolved: Bool {
@@ -36,7 +37,25 @@ struct Board {
     }
 
     private var maxDistanceLeft: Int {
-        return (rows + columns - 2) * rows * columns
+        var maxDistance = 0
+
+        let topLeftCorner = TilePosition(row: 0, column: 0)
+        let topRightCorner = TilePosition(row: 0, column: columns - 1)
+        let bottomRightCorner = TilePosition(row: rows - 1, column: columns - 1)
+        let bottomLeftCorner = TilePosition(row: rows - 1, column: 0)
+
+        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
+            if originalTiles[position] != nil {
+                maxDistance += max(
+                    position.distance(to: topLeftCorner),
+                    position.distance(to: topRightCorner),
+                    position.distance(to: bottomRightCorner),
+                    position.distance(to: bottomLeftCorner)
+                )
+            }
+        }
+
+        return maxDistance
     }
 
     var progress: Double {
@@ -44,8 +63,8 @@ struct Board {
     }
 
     init(from matrix: [[CustomStringConvertible?]]) {
-        precondition(matrix.count > 0, "Matrix must have at least one row")
-        precondition(matrix.first!.count > 0, "Matrix must have at least one column")
+        guard matrix.count > 0 else { fatalError("Matrix must have at least one row")}
+        guard matrix.first!.count > 0 else { fatalError("Matrix must have at least one column")}
 
         rows = matrix.count
         columns = matrix.first!.count
@@ -53,7 +72,7 @@ struct Board {
         tiles.reserveCapacity(rows)
 
         for (rowIndex, row) in matrix.enumerated() {
-            precondition(columns == row.count, "Provided matrix does not have a consistent row length")
+            guard columns == row.count else { fatalError("Provided matrix does not have a consistent row length")}
 
             var tileRow = [Tile?]()
             tileRow.reserveCapacity(columns)
@@ -72,6 +91,8 @@ struct Board {
 
             tiles.append(tileRow)
         }
+
+        originalTiles = tiles
     }
 
     func boardContains(_ position: TilePosition) -> Bool {
