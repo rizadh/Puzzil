@@ -16,7 +16,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     private let titleLabel = UILabel()
     private let boardNameLabel = UILabel()
     private let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
-    private let boardViewControllers = (UIApplication.shared.delegate as! AppDelegate).boardConfigurations.map { configuration in
+    private let boardViewControllers = BoardConfiguration.builtins.map { configuration in
         return BoardViewController(for: configuration)
     }
     private var visibleBoardViewController: BoardViewController! {
