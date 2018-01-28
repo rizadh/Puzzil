@@ -10,8 +10,6 @@ import UIKit
 
 class GameViewController: UIViewController, BoardViewDelegate {
 
-    override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
-
     private var boardConfiguration: BoardConfiguration
     private var board: Board!
     private let difficulty: Double
