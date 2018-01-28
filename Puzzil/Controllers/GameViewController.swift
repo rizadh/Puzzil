@@ -197,25 +197,16 @@ class GameViewController: UIViewController, BoardViewDelegate {
             return $0
         })
 
-        if #available(iOS 10.0, *) {
-            let topMargin = safeArea.topAnchor.anchorWithOffset(to: stats.topAnchor)
-            let bottomMargin = stats.bottomAnchor.anchorWithOffset(to: boardView.topAnchor)
-
-            NSLayoutConstraint.activate([
-                topMargin.constraint(equalTo: bottomMargin),
-                topMargin.constraint(greaterThanOrEqualToConstant: 16),
-                bottomMargin.constraint(greaterThanOrEqualToConstant: 16),
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                stats.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
-                stats.bottomAnchor.constraint(lessThanOrEqualTo: boardView.topAnchor, constant: -16),
-            ])
-        }
+        let statsLayoutGuide = UILayoutGuide()
+        view.addLayoutGuide(statsLayoutGuide)
 
         NSLayoutConstraint.activate([
+            statsLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
+
             stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
 
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
             boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
