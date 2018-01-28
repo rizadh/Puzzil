@@ -182,8 +182,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     }
 
     @objc private func beginGame() {
-        let board = Board(from: visibleBoardViewController.configuration.matrix)
-        let gameViewController = GameViewController(board: board, difficulty: 0.5)
+        let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration, difficulty: 0.5)
 
         let animationDuration = 0.1
         let alphaAnimations = {

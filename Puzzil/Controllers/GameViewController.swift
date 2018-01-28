@@ -12,13 +12,14 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
 
-    private var originalBoard: Board
-    private var board: Board
+    private var boardConfiguration: BoardConfiguration
+    private var board: Board!
     private let difficulty: Double
 
     private let stats = UIStackView()
+    private let bestTimeStat = StatView("Best")
     private let timeStat = StatView("Time")
-    private let moveStat = StatView("Moves")
+    private let movesStat = StatView("Moves")
     private let boardView = BoardView()
     private let buttons = UIStackView()
     private var endButton: RoundedButton!
@@ -27,7 +28,11 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private var timeStatRefresher: CADisplayLink!
 
     private var startTime = Date()
-    private var moves = 0
+    private var moves = 0 {
+        didSet {
+            movesStat.value = moves.description
+        }
+    }
 
     private var elapsedTime: TimeInterval {
         return Date().timeIntervalSince(startTime)
@@ -37,9 +42,27 @@ class GameViewController: UIViewController, BoardViewDelegate {
         return moves > 0
     }
 
-    init(board: Board, difficulty: Double) {
-        originalBoard = board
-        self.board = board
+    private var statViews: [StatView] { return [bestTimeStat, timeStat, movesStat] }
+
+    private var bestTimeOrNil: Double? {
+        get { return (UIApplication.shared.delegate as! AppDelegate).bestTimes[boardConfiguration.name] }
+        set { (UIApplication.shared.delegate as! AppDelegate).bestTimes[boardConfiguration.name] = newValue }
+    }
+
+    static private func secondsToTimeString(_ rawSeconds: Double) -> String {
+        let integerSeconds = Int(rawSeconds)
+        let minutes = integerSeconds / 60
+        let seconds = integerSeconds % 60
+
+        if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
+        } else {
+            return "\(seconds)s"
+        }
+    }
+
+    init(boardConfiguration: BoardConfiguration, difficulty: Double) {
+        self.boardConfiguration = boardConfiguration
         self.difficulty = difficulty
 
         super.init(nibName: nil, bundle: nil)
@@ -53,6 +76,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
         super.viewDidLoad()
 
         view.backgroundColor = .themeBackground
+
+        board = boardFromConfiguration()
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
@@ -88,12 +113,20 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
+    private func boardFromConfiguration() -> Board {
+        return Board(from: boardConfiguration.matrix)
+    }
+
     private func setupSubviews() {
         timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
         timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
 
-        stats.addArrangedSubview(moveStat)
+        let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
+        bestTimeStat.addGestureRecognizer(resetRecognizer)
+
+        stats.addArrangedSubview(bestTimeStat)
         stats.addArrangedSubview(timeStat)
+        stats.addArrangedSubview(movesStat)
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
@@ -196,15 +229,23 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBoard() {
-        board = originalBoard
-        BoardScrambler.scramble(&board, untilProgressIsBelow: 1 - difficulty)
+        board = boardFromConfiguration()
+        BoardScrambler.scramble(&board!, untilProgressIsBelow: 1 - difficulty)
         timeStatRefresher?.isPaused = false
 
         boardView.reloadTiles()
 
+        updateBestTimeStat()
         moves = 0
-        updateMoveStat()
         startTime = Date()
+    }
+
+    private func updateBestTimeStat() {
+        if let bestTime = bestTimeOrNil {
+            bestTimeStat.value = GameViewController.secondsToTimeString(bestTime)
+        } else {
+            bestTimeStat.value = "N/A"
+        }
     }
 
     private func resetBoardWithAnimation() {
@@ -215,8 +256,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
         let initialScaleAnimations = {
             self.boardView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            self.moveStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            self.timeStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            self.statViews.forEach { $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5) }
         }
 
         let finalAlphaAnimationDuration = 0.1
@@ -227,8 +267,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
         let finalScaleAnimations = {
             self.boardView.transform = .identity
-            self.moveStat.transform = .identity
-            self.timeStat.transform = .identity
+            self.statViews.forEach { $0.transform = .identity }
         }
 
         let dampingRatio: CGFloat = 0.5
@@ -287,24 +326,82 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
-    private func updateMoveStat() {
-        moveStat.value = moves.description
+    @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began else { return }
+        guard bestTimeOrNil != nil else { return }
+
+        let boardName = boardConfiguration.name.capitalized
+        let alertController = UIAlertController(title: "Reset your best time?", message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.", preferredStyle: .actionSheet)
+        alertController.addAction(UIAlertAction(title: "Reset Best Time", style: .destructive) { _ in
+            self.resetBestTime()
+        })
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+        present(alertController, animated: true, completion: nil)
+    }
+
+    private func resetBestTime() {
+        bestTimeOrNil = nil
+
+        let initialAnimationDuration = 0.1
+        let initialAlphaAnimations = {
+            self.bestTimeStat.alpha = 0
+        }
+        let initialScaleAnimations = {
+            self.bestTimeStat.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }
+
+        let finalAlphaAnimationDuration = 0.1
+        let finalScaleAnimationDuration = 0.25
+        let finalAlphaAnimations = {
+            self.bestTimeStat.alpha = 1
+        }
+        let finalScaleAnimations = {
+            self.bestTimeStat.transform = .identity
+        }
+
+        let dampingRatio: CGFloat = 0.5
+
+        let triggerFinalAnimation: () -> Void
+
+        if #available(iOS 10.0, *) {
+            triggerFinalAnimation = {
+                UIViewPropertyAnimator(duration: finalAlphaAnimationDuration, curve: .linear, animations: finalAlphaAnimations).startAnimation()
+                UIViewPropertyAnimator(duration: finalScaleAnimationDuration, dampingRatio: dampingRatio, animations: finalScaleAnimations).startAnimation()
+            }
+        } else {
+            triggerFinalAnimation = {
+                UIView.animate(withDuration: finalAlphaAnimationDuration, delay: 0, options: .curveLinear, animations: finalAlphaAnimations, completion: nil)
+                UIView.animate(withDuration: finalScaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: finalScaleAnimations, completion: nil)
+            }
+        }
+
+        let completion: (Any) -> Void = { _ in
+            self.updateBestTimeStat()
+            triggerFinalAnimation()
+        }
+
+        if #available(iOS 10.0, *) {
+            UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .linear, animations: initialAlphaAnimations).startAnimation()
+            let animator = UIViewPropertyAnimator(duration: initialAnimationDuration, curve: .easeIn, animations: initialScaleAnimations)
+            animator.addCompletion(completion)
+            animator.startAnimation()
+        } else {
+            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveLinear, animations: initialAlphaAnimations, completion: nil)
+            UIView.animate(withDuration: initialAnimationDuration, delay: 0, options: .curveEaseIn, animations: initialScaleAnimations, completion: completion)
+        }
     }
 
     @objc private func updateTimeStat() {
-        let time = Int(elapsedTime)
-        let minutes = time / 60
-        let seconds = time % 60
-
-        if minutes > 0 {
-            timeStat.value = "\(minutes)m \(seconds)s"
-        } else {
-            timeStat.value = "\(seconds)s"
-        }
+        timeStat.value = GameViewController.secondsToTimeString(elapsedTime)
     }
 
     private func boardWasSolved() {
         timeStatRefresher.isPaused = true
+
+        if elapsedTime < bestTimeOrNil ?? Double.greatestFiniteMagnitude {
+            bestTimeOrNil = elapsedTime
+        }
 
         let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
         let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
@@ -334,9 +431,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
         board.perform(moveOperation)
         moves += 1
-        updateMoveStat()
 
         if board.isSolved { boardWasSolved() }
     }
 }
-
