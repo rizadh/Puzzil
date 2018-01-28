@@ -23,8 +23,7 @@ class RoundedButton: UIView, UIGestureRecognizerDelegate {
     private let handler: ButtonHandler
     private let labelView = UILabel()
 
-    init(_ text: String, handler: @escaping ButtonHandler) {
-        labelView.text = text
+    init(handler: @escaping ButtonHandler) {
         self.handler = handler
 
         super.init(frame: .zero)

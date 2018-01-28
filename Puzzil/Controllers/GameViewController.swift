@@ -17,9 +17,9 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private let difficulty: Double
 
     private let stats = UIStackView()
-    private let bestTimeStat = StatView("Best")
-    private let timeStat = StatView("Time")
-    private let movesStat = StatView("Moves")
+    private let bestTimeStat = StatView()
+    private let timeStat = StatView()
+    private let movesStat = StatView()
     private let boardView = BoardView()
     private let buttons = UIStackView()
     private var endButton: RoundedButton!
@@ -124,13 +124,17 @@ class GameViewController: UIViewController, BoardViewDelegate {
         let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
         bestTimeStat.addGestureRecognizer(resetRecognizer)
 
+        bestTimeStat.title = "Best"
+        timeStat.title = "Time"
+        movesStat.title = "Moves"
+
         stats.addArrangedSubview(bestTimeStat)
         stats.addArrangedSubview(timeStat)
         stats.addArrangedSubview(movesStat)
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        endButton = RoundedButton("End") { [unowned self] _ in
+        endButton = RoundedButton() { [unowned self] _ in
             if self.progressWasMade {
                 let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
@@ -143,7 +147,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
                 self.navigateToMainMenu()
             }
         }
-        restartButton = RoundedButton("Restart") { [unowned self] _ in
+        endButton.text = "End"
+        restartButton = RoundedButton() { [unowned self] _ in
             if self.progressWasMade {
                 let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
@@ -156,6 +161,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
                 self.resetBoardWithAnimation()
             }
         }
+        restartButton.text = "Restart"
 
         buttons.addArrangedSubview(endButton)
         buttons.addArrangedSubview(restartButton)

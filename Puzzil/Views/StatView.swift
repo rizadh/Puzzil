@@ -9,14 +9,17 @@
 import UIKit
 
 class StatView: UIView {
+    var title = "" { didSet { titleView.text = title } }
     var value = "" { didSet { valueView.text = value } }
     let titleView = UILabel()
     let valueView = UILabel()
 
-    convenience init(_ title: String) {
-        self.init()
-
-        titleView.text = title
+    init() {
+        super.init(frame: .zero)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override var intrinsicContentSize: CGSize {
