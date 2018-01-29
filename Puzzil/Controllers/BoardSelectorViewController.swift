@@ -62,6 +62,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         headerView.addSubview(titleLabel)
 
         boardNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        boardNameLabel.font = UIFont.systemFont(ofSize: UIFont.labelFontSize, weight: .medium)
         boardNameLabel.textColor = .themePrimaryText
         view.addSubview(boardNameLabel)
 
@@ -78,6 +79,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         helpText.numberOfLines = 2
         helpText.textAlignment = .center
         helpText.textColor = .themeSecondaryText
+        helpText.font = UIFont.systemFont(ofSize: UIFont.labelFontSize, weight: .medium)
         view.addSubview(helpText)
 
         pageControl.numberOfPages = boardViewControllers.count
@@ -121,7 +123,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
             pageControl.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
             pageControl.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
-            pageControl.topAnchor.constraint(equalTo: boardNameLabel.bottomAnchor),
+            pageControl.topAnchor.constraint(equalTo: boardNameLabel.lastBaselineAnchor),
 
             pageViewController.view.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
             pageViewController.view.rightAnchor.constraint(equalTo: safeArea.rightAnchor),

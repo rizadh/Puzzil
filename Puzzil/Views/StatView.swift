@@ -33,10 +33,11 @@ class StatView: UIView {
         super.layoutSubviews()
 
         titleView.translatesAutoresizingMaskIntoConstraints = false
-        titleView.font = UIFont.preferredFont(forTextStyle: .headline)
+        titleView.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
         titleView.textColor = .themePrimaryText
 
         valueView.translatesAutoresizingMaskIntoConstraints = false
+        valueView.font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
         valueView.textColor = .themeSecondaryText
 
         addSubview(titleView)
@@ -44,7 +45,7 @@ class StatView: UIView {
 
         NSLayoutConstraint.activate([
             titleView.topAnchor.constraint(equalTo: topAnchor),
-            valueView.topAnchor.constraint(equalTo: titleView.bottomAnchor),
+            valueView.topAnchor.constraint(equalTo: titleView.lastBaselineAnchor, constant: 8),
             valueView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             titleView.centerXAnchor.constraint(equalTo: centerXAnchor),
