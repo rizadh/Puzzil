@@ -74,7 +74,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         pageViewController.didMove(toParentViewController: self)
         view.addSubview(pageViewController.view)
 
-        helpText.text = "Tap a board to start"
+        helpText.text = "Select a board to begin"
         helpText.translatesAutoresizingMaskIntoConstraints = false
         helpText.numberOfLines = 2
         helpText.textAlignment = .center
