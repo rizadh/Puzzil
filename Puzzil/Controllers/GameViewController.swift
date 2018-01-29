@@ -193,15 +193,6 @@ class GameViewController: UIViewController, BoardViewDelegate {
             }
         }()
 
-        NSLayoutConstraint.activate([
-            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
-            buttons.heightAnchor.constraint(equalToConstant: 60),
-        ].map {
-            $0.priority = .defaultHigh
-            return $0
-        })
-
         let statsLayoutGuide = UILayoutGuide()
         view.addLayoutGuide(statsLayoutGuide)
 
@@ -223,7 +214,14 @@ class GameViewController: UIViewController, BoardViewDelegate {
             buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
             buttons.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
             buttons.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
-        ])
+        ] + [
+            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
+            buttons.heightAnchor.constraint(equalToConstant: 60),
+        ].map {
+            $0.priority = .defaultLow
+            return $0
+        })
     }
 
     private func resetBoard() {

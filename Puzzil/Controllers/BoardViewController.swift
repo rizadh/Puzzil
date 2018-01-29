@@ -62,13 +62,11 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             boardView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.7),
             boardView.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
             safeArea.bottomAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
-        ])
-
-        NSLayoutConstraint.activate([
+        ] + [
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.7),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
         ].map {
-            $0.priority = .defaultHigh
+            $0.priority = .defaultLow
             return $0
         })
 
