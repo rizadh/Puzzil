@@ -10,7 +10,13 @@ import UIKit
 
 class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
 
-    override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        if UIColor.themeHeaderText.isLight {
+            return .lightContent
+        } else {
+            return .default
+        }
+    }
 
     private let headerView = UIView()
     private let titleLabel = UILabel()
@@ -56,6 +62,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         headerView.addSubview(titleLabel)
 
         boardNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        boardNameLabel.textColor = .themePrimaryText
         view.addSubview(boardNameLabel)
 
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -70,6 +77,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         helpText.translatesAutoresizingMaskIntoConstraints = false
         helpText.numberOfLines = 2
         helpText.textAlignment = .center
+        helpText.textColor = .themeSecondaryText
         view.addSubview(helpText)
 
         pageControl.numberOfPages = boardViewControllers.count
