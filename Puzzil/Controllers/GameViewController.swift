@@ -226,7 +226,9 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func resetBoard() {
         board = boardFromConfiguration()
-        BoardScrambler.scramble(&board!, untilProgressIsBelow: 1 - difficulty)
+        do { board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - difficulty) }
+        catch BoardScramblerError.scrambleStagnated { navigateToMainMenu() }
+        catch { fatalError(error.localizedDescription) }
         timeStatRefresher?.isPaused = false
 
         boardView.reloadTiles()
