@@ -54,15 +54,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     static private func secondsToTimeString(_ rawSeconds: Double) -> String {
-        let integerSeconds = Int(rawSeconds)
-        let minutes = integerSeconds / 60
-        let seconds = integerSeconds % 60
-
-        if minutes > 0 {
-            return "\(minutes)m \(seconds)s"
-        } else {
-            return "\(seconds)s"
-        }
+        return String(format: "%.1f s", rawSeconds)
     }
 
     init(boardConfiguration: BoardConfiguration, difficulty: Double) {
@@ -123,6 +115,11 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func setupSubviews() {
         timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
+        if #available(iOS 10.0, *) {
+            timeStatRefresher.preferredFramesPerSecond = 10
+        } else {
+            timeStatRefresher.frameInterval = 60 / 10
+        }
         timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
 
         let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
@@ -306,6 +303,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
         if elapsedTime < bestTimeOrNil ?? Double.greatestFiniteMagnitude {
             bestTimeOrNil = elapsedTime
         }
+
+        updateTimeStat()
 
         let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
         let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
