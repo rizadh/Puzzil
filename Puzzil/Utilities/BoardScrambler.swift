@@ -42,7 +42,7 @@ struct BoardScrambler {
     private static func possibleMoveOperations(in board: Board) -> [TileMoveOperation] {
         return TilePosition.traversePositions(rows: board.rows, columns: board.columns).flatMap { position in
             [.left, .right, . up, .down]
-                .map { direction in TileMoveOperation(position: position, direction: direction) }
+                .map { direction in TileMoveOperation(moving: direction, from: position) }
                 .filter { moveOperation in board.canPerform(moveOperation) ?? false }
         }
     }

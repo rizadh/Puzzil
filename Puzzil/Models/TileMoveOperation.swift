@@ -12,11 +12,16 @@ struct TileMoveOperation {
     let position: TilePosition
     let direction: TileMoveDirection
 
+    init(moving direction: TileMoveDirection, from position: TilePosition) {
+        self.position = position
+        self.direction = direction
+    }
+
     var targetPosition: TilePosition {
         return position.moved(direction)
     }
 
     var nextOperation: TileMoveOperation {
-        return TileMoveOperation(position: targetPosition, direction: direction)
+        return TileMoveOperation(moving: direction, from: targetPosition)
     }
 }

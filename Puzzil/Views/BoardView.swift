@@ -54,7 +54,7 @@ class BoardView: UIView {
         let tile = sender.view as! TileView
         let position = tiles[tile]!.position
         let direction = TileMoveDirection(from: sender.direction)!
-        let moveOperation = TileMoveOperation(position: position, direction: direction)
+        let moveOperation = TileMoveOperation(moving: direction, from: position)
 
         perform(moveOperation, useFastTransition: false)
     }
