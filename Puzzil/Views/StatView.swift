@@ -16,8 +16,10 @@ class StatView: UIView {
 
     init() {
         super.init(frame: .zero)
+
+        setupSubviews()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -29,9 +31,7 @@ class StatView: UIView {
         return CGSize(width: width, height: height)
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
+    func setupSubviews() {
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
         titleView.textColor = .themePrimaryText
