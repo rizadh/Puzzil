@@ -125,7 +125,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
         let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
         bestTimeStat.addGestureRecognizer(resetRecognizer)
 
-        bestTimeStat.title = "Best"
+        bestTimeStat.title = "Best Time"
         timeStat.title = "Time"
         movesStat.title = "Moves"
 
