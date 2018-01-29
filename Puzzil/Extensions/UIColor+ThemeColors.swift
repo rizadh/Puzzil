@@ -27,7 +27,10 @@ extension UIColor {
     static let themeSecondaryText = selectedColorTheme.secondaryText
 
     var isLight: Bool {
-        return self == .white
+        var white: CGFloat = 0
+        self.getWhite(&white, alpha: nil)
+
+        return white > 0.75
     }
 }
 

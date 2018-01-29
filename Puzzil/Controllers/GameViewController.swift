@@ -11,10 +11,10 @@ import UIKit
 class GameViewController: UIViewController, BoardViewDelegate {
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if UIColor.themePrimaryText.isLight {
-            return .lightContent
-        } else {
+        if UIColor.themeBackground.isLight {
             return .default
+        } else {
+            return .lightContent
         }
     }
 

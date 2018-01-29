@@ -11,10 +11,10 @@ import UIKit
 class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if UIColor.themeHeaderText.isLight {
-            return .lightContent
-        } else {
+        if UIColor.themeHeader.isLight {
             return .default
+        } else {
+            return .lightContent
         }
     }
 
