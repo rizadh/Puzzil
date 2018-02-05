@@ -136,11 +136,11 @@ class GameViewController: UIViewController, BoardViewDelegate {
         stats.distribution = .fillEqually
 
         endButton = UIButton.themedButton()
-        endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .touchUpInside)
+        endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
         endButton.setTitle("End", for: .normal)
 
         restartButton = UIButton.themedButton()
-        restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .touchUpInside)
+        restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
         restartButton.setTitle("Restart", for: .normal)
 
         buttons.addArrangedSubview(endButton)
