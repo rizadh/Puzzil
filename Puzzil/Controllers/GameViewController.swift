@@ -28,8 +28,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private let movesStat = StatView()
     private let boardView = BoardView()
     private let buttons = UIStackView()
-    private var endButton: RoundedButton!
-    private var restartButton: RoundedButton!
+    private var endButton: UIButton!
+    private var restartButton: UIButton!
 
     private var timeStatRefresher: CADisplayLink!
 
@@ -135,34 +135,13 @@ class GameViewController: UIViewController, BoardViewDelegate {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        endButton = RoundedButton() { [unowned self] _ in
-            if self.progressWasMade {
-                let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
-                    self.navigateToMainMenu()
-                })
-                alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        endButton = UIButton.themedButton()
+        endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .touchUpInside)
+        endButton.setTitle("End", for: .normal)
 
-                self.present(alertController, animated: true, completion: nil)
-            } else {
-                self.navigateToMainMenu()
-            }
-        }
-        endButton.text = "End"
-        restartButton = RoundedButton() { [unowned self] _ in
-            if self.progressWasMade {
-                let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
-                    self.resetBoardWithAnimation()
-                })
-                alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-
-                self.present(alertController, animated: true, completion: nil)
-            } else {
-                self.resetBoardWithAnimation()
-            }
-        }
-        restartButton.text = "Restart"
+        restartButton = UIButton.themedButton()
+        restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .touchUpInside)
+        restartButton.setTitle("Restart", for: .normal)
 
         buttons.addArrangedSubview(endButton)
         buttons.addArrangedSubview(restartButton)
@@ -213,13 +192,12 @@ class GameViewController: UIViewController, BoardViewDelegate {
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
             buttons.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
-            buttons.heightAnchor.constraint(greaterThanOrEqualToConstant: 32),
+            buttons.heightAnchor.constraint(equalToConstant: 48),
         ] + [
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
-            buttons.heightAnchor.constraint(equalToConstant: 60),
         ].map {
-            $0.priority = .defaultLow
+            $0.priority = .defaultHigh
             return $0
         })
     }
@@ -243,6 +221,34 @@ class GameViewController: UIViewController, BoardViewDelegate {
             bestTimeStat.value = GameViewController.secondsToTimeString(bestTime)
         } else {
             bestTimeStat.value = "N/A"
+        }
+    }
+
+    @objc private func endButtonWasTapped() {
+        if self.progressWasMade {
+            let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
+                self.navigateToMainMenu()
+            })
+            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+            self.present(alertController, animated: true, completion: nil)
+        } else {
+            self.navigateToMainMenu()
+        }
+    }
+
+    @objc private func restartButtonWasTapped() {
+        if self.progressWasMade {
+            let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
+                self.resetBoardWithAnimation()
+            })
+            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+            self.present(alertController, animated: true, completion: nil)
+        } else {
+            self.resetBoardWithAnimation()
         }
     }
 
