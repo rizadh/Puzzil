@@ -18,7 +18,7 @@ extension UIButton {
         button.titleLabel!.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         button.titleLabel!.allowsDefaultTighteningForTruncation = true
 
-        button.addTarget(button, action: #selector(animateDepression), for: .touchDown)
+        button.addTarget(button, action: #selector(animateDepression), for: [.touchDown, .touchDragEnter])
         button.addTarget(button, action: #selector(animateRelease), for: [.touchUpInside, .touchCancel, .touchDragExit])
 
         return button
