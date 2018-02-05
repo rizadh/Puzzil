@@ -9,7 +9,7 @@
 import UIKit
 
 class TileView: UIView {
-    private static let maxTileSize: CGFloat = 128
+    private static let maxTileSize: CGFloat = 96
     private static let maxCornerRadius: CGFloat = 16
 
     var text = "" {
