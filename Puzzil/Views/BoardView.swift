@@ -11,6 +11,8 @@ import UIKit
 class BoardView: UIView {
 
     override var isOpaque: Bool { get { return false } set { } }
+
+    private static let maxTileSize: CGFloat = 96
     private static let cornerRadius: CGFloat = 32
     private static let borderWidth: CGFloat = 8
 
@@ -135,10 +137,7 @@ class BoardView: UIView {
     }
 
     private func clearTiles() {
-        tiles.forEach { (tileView, info) in
-            tileView.removeFromSuperview()
-            NSLayoutConstraint.deactivate(info.constraints)
-        }
+        tiles.keys.forEach { $0.removeFromSuperview() }
         tiles.removeAll()
 
         rowGuides.forEach(removeLayoutGuide(_:))
@@ -190,8 +189,13 @@ class BoardView: UIView {
             tile.text = text
 
             addTileSwipeRecognizers(to: tile)
-
             addSubview(tile)
+
+            NSLayoutConstraint.activate([
+                tile.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
+                tile.heightAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
+                tile.widthAnchor.constraint(equalTo: tile.heightAnchor),
+            ])
 
             place(tile, at: position)
         }

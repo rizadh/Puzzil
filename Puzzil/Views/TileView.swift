@@ -9,7 +9,7 @@
 import UIKit
 
 class TileView: UIView {
-    private static let maxTileSize: CGFloat = 96
+
     private static let maxCornerRadius: CGFloat = 16
 
     var text = "" {
@@ -21,12 +21,6 @@ class TileView: UIView {
 
     init() {
         super.init(frame: .zero)
-
-        NSLayoutConstraint.activate([
-            widthAnchor.constraint(lessThanOrEqualToConstant: TileView.maxTileSize),
-            heightAnchor.constraint(lessThanOrEqualToConstant: TileView.maxTileSize),
-            widthAnchor.constraint(equalTo: heightAnchor),
-        ])
 
         backgroundColor = .themeTile
 
