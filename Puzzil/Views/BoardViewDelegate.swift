@@ -13,5 +13,14 @@ protocol BoardViewDelegate {
     func numberOfColumns(in boardView: BoardView) -> Int
     func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String?
     func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool?
-    func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation)
+    func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation)
+    func boardView(_ boardView: BoardView, didCancel moveOperation: TileMoveOperation)
+    func boardView(_ boardView: BoardView, didComplete moveOperation: TileMoveOperation)
+}
+
+extension BoardViewDelegate {
+    func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
+        self.boardView(boardView, didStart: moveOperation)
+        self.boardView(boardView, didComplete: moveOperation)
+    }
 }

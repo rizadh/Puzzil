@@ -21,6 +21,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private var boardConfiguration: BoardConfiguration
     private var board: Board!
     private let difficulty: Double
+    private var operationsInProgress = Set<TileMoveOperation>()
 
     private let stats = UIStackView()
     private let bestTimeStat = StatView()
@@ -334,10 +335,36 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool? {
-        return board.canPerform(moveOperation)
+        guard let canPerformMoveOperation = board.canPerform(moveOperation) else {
+            return nil
+        }
+
+        if let _ = operationsInProgress.first(where: { $0.targetPosition == moveOperation.targetPosition }) {
+            return false
+        }
+
+        return canPerformMoveOperation
     }
 
-    func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
+    func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation) {
+        if self.boardView(boardView, canPerform: moveOperation) ?? false {
+            operationsInProgress.insert(moveOperation)
+        } else {
+            fatalError("Move operation not allowed")
+        }
+    }
+
+    func boardView(_ boardView: BoardView, didCancel moveOperation: TileMoveOperation) {
+        guard let _ = operationsInProgress.remove(moveOperation) else {
+            fatalError("Move operation was cancelled before it started")
+        }
+    }
+
+    func boardView(_ boardView: BoardView, didComplete moveOperation: TileMoveOperation) {
+        guard let _ = operationsInProgress.remove(moveOperation) else {
+            fatalError("Move operation was completed before it started")
+        }
+
         board.perform(moveOperation)
         moves += 1
 

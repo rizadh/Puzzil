@@ -51,6 +51,12 @@ struct TilePosition {
     }
 }
 
+extension TilePosition: Hashable {
+    var hashValue: Int {
+        return row.hashValue + column.hashValue
+    }
+}
+
 extension TilePosition: Equatable {
     static func == (lhs: TilePosition, rhs: TilePosition) -> Bool {
         return lhs.row == rhs.row && lhs.column == rhs.column

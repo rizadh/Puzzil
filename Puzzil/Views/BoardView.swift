@@ -52,7 +52,7 @@ class BoardView: UIView {
         }
     }
 
-    @objc private func tileWasDragged(_ sender: UISwipeGestureRecognizer) {
+    @objc private func tileWasSwiped(_ sender: UISwipeGestureRecognizer) {
         let tile = sender.view as! TileView
         let position = tiles[tile]!.position
         let direction = TileMoveDirection(from: sender.direction)!
@@ -82,16 +82,23 @@ class BoardView: UIView {
         let dampingRatio: CGFloat = 0.75
 
         if operationIsPossible {
-            for operation in requiredOperations {
-                let tileToMove = tiles.first { $0.value.position == operation.position }!.key
+            for currentOperation in requiredOperations {
+                let tileToMove = tiles.first { $0.value.position == currentOperation.position }!.key
 
-                perform(operation, on: tileToMove)
-                delegate.boardView(self, didPerform: operation)
+                perform(currentOperation, on: tileToMove)
             }
 
-            let animations = { self.layoutIfNeeded() }
+            delegate.boardView(self, didStart: requiredOperations.first!)
 
+            let animations = { self.layoutIfNeeded() }
             let animationDuration = useFastTransition ? 0.1 : 0.25
+            let completion: (Any) -> Void = { [unowned self] _ in
+                self.delegate.boardView(self, didComplete: requiredOperations.first!)
+
+                for currentOperation in requiredOperations.dropFirst() {
+                    self.delegate.boardView(self, didPerform: currentOperation)
+                }
+            }
 
             if #available(iOS 10.0, *) {
                 let animator: UIViewPropertyAnimator = {
@@ -101,12 +108,14 @@ class BoardView: UIView {
                         return UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: animations)
                     }
                 }()
+
+                animator.addCompletion(completion)
                 animator.startAnimation()
             } else {
                 if useFastTransition {
-                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: nil)
+                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: completion)
                 } else {
-                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: nil)
+                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: completion)
                 }
             }
         }
@@ -202,19 +211,19 @@ class BoardView: UIView {
     }
 
     private func addTileSwipeRecognizers(to tile: TileView) {
-        let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
+        let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
         leftSwipeRecognizer.direction = .left
         tile.addGestureRecognizer(leftSwipeRecognizer)
 
-        let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
+        let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
         rightSwipeRecognizer.direction = .right
         tile.addGestureRecognizer(rightSwipeRecognizer)
 
-        let upSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
+        let upSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
         upSwipeRecognizer.direction = .up
         tile.addGestureRecognizer(upSwipeRecognizer)
 
-        let downSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
+        let downSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
         downSwipeRecognizer.direction = .down
         tile.addGestureRecognizer(downSwipeRecognizer)
 

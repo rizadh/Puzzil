@@ -111,7 +111,15 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         return board.canPerform(moveOperation)
     }
 
-    func boardView(_ boardView: BoardView, didPerform moveOperation: TileMoveOperation) {
+    func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation) {
+        return
+    }
+
+    func boardView(_ boardView: BoardView, didCancel moveOperation: TileMoveOperation) {
+        return
+    }
+
+    func boardView(_ boardView: BoardView, didComplete moveOperation: TileMoveOperation) {
         return
     }
 }

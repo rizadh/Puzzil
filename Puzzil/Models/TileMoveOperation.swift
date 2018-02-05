@@ -11,17 +11,25 @@ import Foundation
 struct TileMoveOperation {
     let position: TilePosition
     let direction: TileMoveDirection
+    let targetPosition: TilePosition
+
+    var nextOperation: TileMoveOperation { return TileMoveOperation(moving: direction, from: targetPosition) }
 
     init(moving direction: TileMoveDirection, from position: TilePosition) {
         self.position = position
         self.direction = direction
+        self.targetPosition = position.moved(direction)
     }
+}
 
-    var targetPosition: TilePosition {
-        return position.moved(direction)
+extension TileMoveOperation: Equatable {
+    static func == (lhs: TileMoveOperation, rhs: TileMoveOperation) -> Bool {
+        return lhs.position == rhs.position && lhs.direction == rhs.direction
     }
+}
 
-    var nextOperation: TileMoveOperation {
-        return TileMoveOperation(moving: direction, from: targetPosition)
+extension TileMoveOperation: Hashable {
+    var hashValue: Int {
+        return position.hashValue + direction.hashValue
     }
 }
