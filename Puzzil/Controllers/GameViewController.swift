@@ -110,6 +110,10 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
+    override func viewDidDisappear(_ animated: Bool) {
+        timeStatRefresher.invalidate()
+    }
+
     private func boardFromConfiguration() -> Board {
         return Board(from: boardConfiguration.matrix)
     }

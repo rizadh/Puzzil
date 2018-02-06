@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol BoardViewDelegate {
+protocol BoardViewDelegate: NSObjectProtocol {
     func numberOfRows(in boardView: BoardView) -> Int
     func numberOfColumns(in boardView: BoardView) -> Int
     func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String?

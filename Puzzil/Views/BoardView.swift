@@ -16,7 +16,7 @@ class BoardView: UIView {
     private static let cornerRadius: CGFloat = 32
     private static let borderWidth: CGFloat = 8
 
-    var delegate: BoardViewDelegate!
+    weak var delegate: BoardViewDelegate!
     var isDynamic = true {
         didSet {
             updateTileDynamics()
