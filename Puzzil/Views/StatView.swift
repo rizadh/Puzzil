@@ -9,10 +9,8 @@
 import UIKit
 
 class StatView: UIView {
-    var title = "" { didSet { titleView.text = title } }
-    var value = "" { didSet { valueView.text = value } }
-    let titleView = UILabel()
-    let valueView = UILabel()
+    let titleLabel = UILabel()
+    let valueLabel = UILabel()
 
     init() {
         super.init(frame: .zero)
@@ -25,31 +23,31 @@ class StatView: UIView {
     }
 
     override var intrinsicContentSize: CGSize {
-        let width = max(titleView.intrinsicContentSize.width, valueView.intrinsicContentSize.width)
-        let height = titleView.intrinsicContentSize.height + valueView.intrinsicContentSize.height
+        let width = max(titleLabel.intrinsicContentSize.width, valueLabel.intrinsicContentSize.width)
+        let height = titleLabel.intrinsicContentSize.height + valueLabel.intrinsicContentSize.height
 
         return CGSize(width: width, height: height)
     }
 
     func setupSubviews() {
-        titleView.translatesAutoresizingMaskIntoConstraints = false
-        titleView.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
-        titleView.textColor = .themePrimaryText
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
+        titleLabel.textColor = .themePrimaryText
 
-        valueView.translatesAutoresizingMaskIntoConstraints = false
-        valueView.font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
-        valueView.textColor = .themeSecondaryText
+        valueLabel.translatesAutoresizingMaskIntoConstraints = false
+        valueLabel.font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
+        valueLabel.textColor = .themeSecondaryText
 
-        addSubview(titleView)
-        addSubview(valueView)
+        addSubview(titleLabel)
+        addSubview(valueLabel)
 
         NSLayoutConstraint.activate([
-            titleView.topAnchor.constraint(equalTo: topAnchor),
-            valueView.topAnchor.constraint(equalTo: titleView.lastBaselineAnchor, constant: 8),
-            valueView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            titleLabel.topAnchor.constraint(equalTo: topAnchor),
+            valueLabel.topAnchor.constraint(equalTo: titleLabel.lastBaselineAnchor, constant: 8),
+            valueLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            titleView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            valueView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            valueLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
         ])
     }
 }

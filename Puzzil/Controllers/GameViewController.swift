@@ -37,7 +37,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private var startTime = Date()
     private var moves = 0 {
         didSet {
-            movesStat.value = moves.description
+            movesStat.valueLabel.text = moves.description
         }
     }
 
@@ -130,9 +130,9 @@ class GameViewController: UIViewController, BoardViewDelegate {
         let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
         bestTimeStat.addGestureRecognizer(resetRecognizer)
 
-        bestTimeStat.title = "Best Time"
-        timeStat.title = "Time"
-        movesStat.title = "Moves"
+        bestTimeStat.titleLabel.text = "Best Time"
+        timeStat.titleLabel.text = "Time"
+        movesStat.titleLabel.text = "Moves"
 
         stats.addArrangedSubview(bestTimeStat)
         stats.addArrangedSubview(timeStat)
@@ -223,9 +223,9 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private func updateBestTimeStat() {
         if let bestTime = bestTimeOrNil {
-            bestTimeStat.value = GameViewController.secondsToTimeString(bestTime)
+            bestTimeStat.valueLabel.text = GameViewController.secondsToTimeString(bestTime)
         } else {
-            bestTimeStat.value = "N/A"
+            bestTimeStat.valueLabel.text = "N/A"
         }
     }
 
@@ -305,7 +305,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     @objc private func updateTimeStat() {
-        timeStat.value = GameViewController.secondsToTimeString(elapsedTime)
+        timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedTime)
     }
 
     private func boardWasSolved() {
