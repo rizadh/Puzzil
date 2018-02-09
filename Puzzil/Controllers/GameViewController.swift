@@ -258,7 +258,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBoardWithAnimation() {
-        UIView.springReload(views: [boardView, bestTimeStat, timeStat, movesStat], reloadBlock: resetBoard)
+        UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel], reloadBlock: resetBoard)
     }
 
     private func navigateToMainMenu() {
