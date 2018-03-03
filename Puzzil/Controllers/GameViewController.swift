@@ -9,7 +9,6 @@
 import UIKit
 
 class GameViewController: UIViewController, BoardViewDelegate {
-
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if UIColor.themeBackground.isLight {
             return .default
@@ -51,7 +50,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     private let bestTimesController = (UIApplication.shared.delegate as! AppDelegate).bestTimesController
 
-    static private func secondsToTimeString(_ rawSeconds: Double) -> String {
+    private static func secondsToTimeString(_ rawSeconds: Double) -> String {
         return String(format: "%.1f s", rawSeconds)
     }
 
@@ -227,30 +226,30 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     @objc private func endButtonWasTapped() {
-        if self.progressWasMade {
+        if progressWasMade {
             let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
                 self.navigateToMainMenu()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-            self.present(alertController, animated: true, completion: nil)
+            present(alertController, animated: true, completion: nil)
         } else {
-            self.navigateToMainMenu()
+            navigateToMainMenu()
         }
     }
 
     @objc private func restartButtonWasTapped() {
-        if self.progressWasMade {
+        if progressWasMade {
             let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
                 self.resetBoardWithAnimation()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-            self.present(alertController, animated: true, completion: nil)
+            present(alertController, animated: true, completion: nil)
         } else {
-            self.resetBoardWithAnimation()
+            resetBoardWithAnimation()
         }
     }
 
@@ -297,7 +296,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBestTime() {
-        let _ = bestTimesController.resetBestTime(for: boardConfiguration.name)
+        _ = bestTimesController.resetBestTime(for: boardConfiguration.name)
         UIView.springReload(views: [bestTimeStat.valueLabel], reloadBlock: updateBestTimeStat)
     }
 
@@ -309,7 +308,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
         timeStatRefresher.isPaused = true
 
         // TODO: Change behaviour depending on return values
-        let _ = bestTimesController.boardWasSolved(board: boardConfiguration.name, time: elapsedTime)
+        _ = bestTimesController.boardWasSolved(board: boardConfiguration.name, time: elapsedTime)
 
         updateTimeStat()
 

@@ -9,7 +9,6 @@
 import UIKit
 
 class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
-
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if UIColor.themeHeader.isLight {
             return .default
@@ -25,11 +24,13 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     private let boardViewControllers = BoardConfiguration.builtins.map { configuration in
         return BoardViewController(for: configuration)
     }
+
     private var visibleBoardViewController: BoardViewController! {
         didSet {
             boardNameLabel.text = visibleBoardViewController.configuration.name.capitalized
         }
     }
+
     private let helpText = UILabel()
     private let pageControl = UIPageControl()
 
@@ -50,7 +51,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = .themeHeaderText
-        titleLabel.attributedText = NSAttributedString.init(string: "PUZZIL", attributes: [.kern: 1.5])
+        titleLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
         titleLabel.font = {
             let baseFont = UIFont.systemFont(ofSize: 32, weight: .heavy)
             if #available(iOS 11.0, *) {

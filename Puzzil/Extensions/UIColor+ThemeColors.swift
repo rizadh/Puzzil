@@ -6,12 +6,10 @@
 //  Copyright © 2017 Rizadh Nizam. All rights reserved.
 //
 
-
 import UIKit
 
 extension UIColor {
-
-    static private let selectedColorTheme = ColorTheme.original
+    private static let selectedColorTheme = ColorTheme.original
 
     static let themeBackground = selectedColorTheme.background
     static let themeTile = selectedColorTheme.tile
@@ -28,14 +26,13 @@ extension UIColor {
 
     var isLight: Bool {
         var white: CGFloat = 0
-        self.getWhite(&white, alpha: nil)
+        getWhite(&white, alpha: nil)
 
         return white > 0.75
     }
 }
 
 private struct ColorTheme {
-
     let background: UIColor
     let tile: UIColor
     let tileText: UIColor
@@ -51,7 +48,6 @@ private struct ColorTheme {
 }
 
 extension ColorTheme {
-
     static let original = ColorTheme(
         background: UIColor(white: 0.95, alpha: 1),
         tile: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1),
@@ -82,4 +78,3 @@ extension ColorTheme {
         secondaryText: UIColor(white: 0.5, alpha: 1)
     )
 }
-

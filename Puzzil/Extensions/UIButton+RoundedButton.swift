@@ -25,7 +25,7 @@ extension UIButton {
     }
 
     @objc private func buttonWasPressed() {
-        self.titleLabel!.alpha = 0.5
+        titleLabel!.alpha = 0.5
     }
 
     @objc private func buttonWasReleased() {

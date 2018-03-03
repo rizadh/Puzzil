@@ -18,7 +18,7 @@ struct TileMoveOperation {
     init(moving direction: TileMoveDirection, from position: TilePosition) {
         self.position = position
         self.direction = direction
-        self.targetPosition = position.moved(direction)
+        targetPosition = position.moved(direction)
     }
 }
 

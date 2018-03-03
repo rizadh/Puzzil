@@ -9,7 +9,6 @@
 import UIKit
 
 class TileView: UIView {
-
     private static let maxCornerRadius: CGFloat = 16
 
     var text = "" {
@@ -17,6 +16,7 @@ class TileView: UIView {
             labelView.text = text
         }
     }
+
     private let labelView = UILabel()
 
     init() {

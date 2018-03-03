@@ -9,14 +9,13 @@
 import UIKit
 
 class BoardViewController: UIViewController, BoardViewDelegate {
-
     let configuration: BoardConfiguration
     let boardView = BoardView()
     private let board: Board
 
     init(for configuration: BoardConfiguration) {
         self.configuration = configuration
-        self.board = Board(from: configuration.matrix)
+        board = Board(from: configuration.matrix)
 
         super.init(nibName: nil, bundle: nil)
     }

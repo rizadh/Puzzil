@@ -9,8 +9,7 @@
 import UIKit
 
 class BoardView: UIView {
-
-    override var isOpaque: Bool { get { return false } set { } }
+    override var isOpaque: Bool { get { return false } set {} }
 
     private static let maxTileSize: CGFloat = 96
     private static let cornerRadius: CGFloat = 32

@@ -63,8 +63,8 @@ struct Board {
     }
 
     init(from matrix: [[CustomStringConvertible?]]) {
-        guard matrix.count > 0 else { fatalError("Matrix must have at least one row")}
-        guard matrix.first!.count > 0 else { fatalError("Matrix must have at least one column")}
+        guard matrix.count > 0 else { fatalError("Matrix must have at least one row") }
+        guard matrix.first!.count > 0 else { fatalError("Matrix must have at least one column") }
 
         rows = matrix.count
         columns = matrix.first!.count
@@ -72,7 +72,7 @@ struct Board {
         tiles.reserveCapacity(rows)
 
         for (rowIndex, row) in matrix.enumerated() {
-            guard columns == row.count else { fatalError("Provided matrix does not have a consistent row length")}
+            guard columns == row.count else { fatalError("Provided matrix does not have a consistent row length") }
 
             var tileRow = [Tile?]()
             tileRow.reserveCapacity(columns)
@@ -117,7 +117,7 @@ struct Board {
 
         var currentPosition = target
 
-        while (currentPosition != moveOperation.position) {
+        while currentPosition != moveOperation.position {
             if tileIsPresent(at: currentPosition)! { return false }
 
             currentPosition = target.moved(moveOperation.direction.opposite)
@@ -157,4 +157,3 @@ extension Array where Element == Array<Tile?> {
         }
     }
 }
-
