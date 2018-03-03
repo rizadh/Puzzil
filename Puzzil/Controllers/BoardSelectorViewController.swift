@@ -230,6 +230,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             return .reverse
         }()
 
+        visibleBoardViewController = viewController
         pageViewController.setViewControllers([viewController], direction: direction, animated: true, completion: completion)
     }
 }
