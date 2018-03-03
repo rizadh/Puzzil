@@ -49,10 +49,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
         return moves > 0
     }
 
-    private var bestTimeOrNil: Double? {
-        get { return (UIApplication.shared.delegate as! AppDelegate).bestTimes[boardConfiguration.name] }
-        set { (UIApplication.shared.delegate as! AppDelegate).bestTimes[boardConfiguration.name] = newValue }
-    }
+    private let bestTimesController = (UIApplication.shared.delegate as! AppDelegate).bestTimesController
 
     static private func secondsToTimeString(_ rawSeconds: Double) -> String {
         return String(format: "%.1f s", rawSeconds)
@@ -222,7 +219,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func updateBestTimeStat() {
-        if let bestTime = bestTimeOrNil {
+        if let bestTime = bestTimesController.getBestTime(for: boardConfiguration.name) {
             bestTimeStat.valueLabel.text = GameViewController.secondsToTimeString(bestTime)
         } else {
             bestTimeStat.valueLabel.text = "N/A"
@@ -287,7 +284,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
     @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began else { return }
-        guard bestTimeOrNil != nil else { return }
+        guard bestTimesController.getBestTime(for: boardConfiguration.name) != nil else { return }
 
         let boardName = boardConfiguration.name.capitalized
         let alertController = UIAlertController(title: "Reset your best time?", message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.", preferredStyle: .actionSheet)
@@ -300,8 +297,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func resetBestTime() {
-        bestTimeOrNil = nil
-        UIView.springReload(views: [bestTimeStat], reloadBlock: updateBestTimeStat)
+        let _ = bestTimesController.resetBestTime(for: boardConfiguration.name)
+        UIView.springReload(views: [bestTimeStat.valueLabel], reloadBlock: updateBestTimeStat)
     }
 
     @objc private func updateTimeStat() {
@@ -311,9 +308,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
     private func boardWasSolved() {
         timeStatRefresher.isPaused = true
 
-        if elapsedTime < bestTimeOrNil ?? Double.greatestFiniteMagnitude {
-            bestTimeOrNil = elapsedTime
-        }
+        // TODO: Change behaviour depending on return values
+        let _ = bestTimesController.boardWasSolved(board: boardConfiguration.name, time: elapsedTime)
 
         updateTimeStat()
 
