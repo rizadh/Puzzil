@@ -81,7 +81,7 @@ struct Board {
             tileRow.reserveCapacity(columns)
 
             for (columnIndex, element) in row.enumerated() {
-                var text: String? = nil
+                var text: String?
 
                 if let element = element {
                     text = element.description

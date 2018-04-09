@@ -17,9 +17,12 @@ class BestTimesController {
     { didSet { saveBestTimes() } }
 
     init() {
-        NotificationCenter.default.addObserver(forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-                                               object: nil, queue: .main,
-                                               using: bestTimesDidChangeExternally)
+        NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: nil,
+            queue: .main,
+            using: bestTimesDidChangeExternally
+        )
         NSUbiquitousKeyValueStore.default.synchronize()
     }
 

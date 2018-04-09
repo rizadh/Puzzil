@@ -22,7 +22,7 @@ struct BoardConfiguration {
             [nil, 0, nil],
         ]),
         BoardConfiguration(name: "puzzil", matrix: [
-            ["P", "U", "Z",],
+            ["P", "U", "Z"],
             ["Z", "I", "L"],
             [2, nil, 0],
         ]),
