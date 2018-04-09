@@ -72,7 +72,7 @@ class BoardView: UIView {
         } else if simpleOperations.count == 1 {
             perform(simpleOperations.first!, useFastTransition: true)
         } else {
-            bounce(tile)
+            tile.bounce()
         }
     }
 
@@ -253,16 +253,28 @@ class BoardView: UIView {
         tiles[tile] = TileInfo(position: position, constraints: constraints)
     }
 
-    private func bounce(_ tile: TileView) {
+    private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
+        remove(tile)
+        place(tile, at: moveOperation.targetPosition)
+    }
+}
+
+fileprivate struct TileInfo {
+    let position: TilePosition
+    let constraints: [NSLayoutConstraint]
+}
+
+private extension UIView {
+    func bounce() {
         let initialAnimationDuration = 0.1
         let finalAnimationDuration = 0.5
         let initialDampingRatio: CGFloat = 1
         let finalDampingRatio: CGFloat = 0.5
         let initialAnimations = {
-            tile.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         }
         let finalAnimations = {
-            tile.transform = .identity
+            self.transform = .identity
         }
 
         let completion: (Any) -> Void = {
@@ -286,14 +298,4 @@ class BoardView: UIView {
             UIView.animate(withDuration: initialAnimationDuration, delay: 0, usingSpringWithDamping: initialDampingRatio, initialSpringVelocity: 1, options: .init(rawValue: 0), animations: initialAnimations, completion: completion)
         }
     }
-
-    private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
-        remove(tile)
-        place(tile, at: moveOperation.targetPosition)
-    }
-}
-
-fileprivate struct TileInfo {
-    let position: TilePosition
-    let constraints: [NSLayoutConstraint]
 }
