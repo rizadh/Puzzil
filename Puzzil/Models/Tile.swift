@@ -9,6 +9,6 @@
 import Foundation
 
 struct Tile {
-    let target: TilePosition
-    let text: String
+    var targets: [TilePosition]
+    var text: String
 }

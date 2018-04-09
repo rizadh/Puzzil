@@ -16,7 +16,7 @@ struct Board {
 
     var isSolved: Bool {
         for position in TilePosition.traversePositions(rows: rows, columns: columns) {
-            if let tile = tiles[position], tile.target != position {
+            if let tile = tiles[position], !tile.targets.contains(position) {
                 return false
             }
         }
@@ -28,15 +28,15 @@ struct Board {
         var distance = 0
 
         for position in TilePosition.traversePositions(rows: rows, columns: columns) {
-            if let tile = tiles[position], tile.target != position {
-                distance += position.distance(to: tile.target)
+            if let tile = tiles[position], !tile.targets.contains(position) {
+                distance += tile.targets.map(position.distance).min()!
             }
         }
 
         return distance
     }
 
-    private var maxDistanceLeft: Int {
+    private var maxDistanceRemaining: Int {
         var maxDistance = 0
 
         let topLeftCorner = TilePosition(row: 0, column: 0)
@@ -59,7 +59,7 @@ struct Board {
     }
 
     var progress: Double {
-        return 1 - Double(distanceLeft) / Double(maxDistanceLeft)
+        return 1 - Double(distanceLeft) / Double(maxDistanceRemaining)
     }
 
     init(from matrix: [[CustomStringConvertible?]]) {
@@ -71,26 +71,39 @@ struct Board {
 
         tiles.reserveCapacity(rows)
 
+        var tilePositions = [String: [TilePosition]]()
+        var tileTexts = [[String?]]()
+
         for (rowIndex, row) in matrix.enumerated() {
             guard columns == row.count else { fatalError("Provided matrix does not have a consistent row length") }
 
-            var tileRow = [Tile?]()
+            var tileRow = [String?]()
             tileRow.reserveCapacity(columns)
 
             for (columnIndex, element) in row.enumerated() {
-                let tile: Tile?
+                var text: String? = nil
 
                 if let element = element {
-                    tile = Tile(target: TilePosition(row: rowIndex, column: columnIndex), text: element.description)
-                } else {
-                    tile = nil
+                    text = element.description
+                    let position = TilePosition(row: rowIndex, column: columnIndex)
+
+                    let previousPositions = tilePositions[text!] ?? []
+                    let updatedPositions = previousPositions + [position]
+                    tilePositions[text!] = updatedPositions
                 }
 
-                tileRow.append(tile)
+                tileRow.append(text)
             }
 
-            tiles.append(tileRow)
+            tileTexts.append(tileRow)
         }
+
+        tiles = tileTexts.map { $0.map {
+            guard let text = $0 else { return nil }
+
+            let positions = tilePositions[text]!
+            return Tile(targets: positions, text: text)
+        } }
 
         originalTiles = tiles
     }

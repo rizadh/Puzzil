@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct TileMoveOperation {
+struct TileMoveOperation: Equatable, Hashable {
     let position: TilePosition
     let direction: TileMoveDirection
     let targetPosition: TilePosition
@@ -19,17 +19,5 @@ struct TileMoveOperation {
         self.position = position
         self.direction = direction
         targetPosition = position.moved(direction)
-    }
-}
-
-extension TileMoveOperation: Equatable {
-    static func == (lhs: TileMoveOperation, rhs: TileMoveOperation) -> Bool {
-        return lhs.position == rhs.position && lhs.direction == rhs.direction
-    }
-}
-
-extension TileMoveOperation: Hashable {
-    var hashValue: Int {
-        return position.hashValue + direction.hashValue
     }
 }
