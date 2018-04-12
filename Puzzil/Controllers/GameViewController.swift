@@ -40,7 +40,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
-    private var elapsedTime: TimeInterval {
+    private var elapsedSeconds: TimeInterval {
         return Date().timeIntervalSince(startTime)
     }
 
@@ -301,14 +301,13 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     @objc private func updateTimeStat() {
-        timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedTime)
+        timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
     }
 
     private func boardWasSolved() {
         timeStatRefresher.isPaused = true
 
-        // TODO: Change behaviour depending on return values
-        let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, time: elapsedTime)
+        let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, seconds: elapsedSeconds)
         let message: String
 
         switch updateResult {
@@ -322,7 +321,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
         updateTimeStat()
 
-        let title = String(format: "Your time was %.1f s!", elapsedTime)
+        let title = String(format: "Your time was %.1f s!", elapsedSeconds)
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
             self.resetBoardWithAnimation()

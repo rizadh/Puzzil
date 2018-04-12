@@ -87,17 +87,12 @@ class BoardView: UIView {
                 perform(currentOperation, on: tileToMove)
             }
 
-            delegate.boardView(self, didStart: requiredOperations.first!)
+            for operation in requiredOperations {
+                delegate.boardView(self, didPerform: operation)
+            }
 
             let animations = { self.layoutIfNeeded() }
             let animationDuration = useFastTransition ? 0.1 : 0.25
-            let completion: (Any) -> Void = { [unowned self] _ in
-                self.delegate.boardView(self, didComplete: requiredOperations.first!)
-
-                for currentOperation in requiredOperations.dropFirst() {
-                    self.delegate.boardView(self, didPerform: currentOperation)
-                }
-            }
 
             if #available(iOS 10.0, *) {
                 let animator: UIViewPropertyAnimator = {
@@ -108,13 +103,12 @@ class BoardView: UIView {
                     }
                 }()
 
-                animator.addCompletion(completion)
                 animator.startAnimation()
             } else {
                 if useFastTransition {
-                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: completion)
+                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: nil)
                 } else {
-                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: completion)
+                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: nil)
                 }
             }
         }
