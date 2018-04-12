@@ -26,19 +26,15 @@ class BestTimesController {
         NSUbiquitousKeyValueStore.default.synchronize()
     }
 
-    func boardWasSolved(board: String, time: Double) -> (isBestTime: Bool, oldTime: Double?) {
-        guard let oldTime = bestTimes[board] else {
-            bestTimes[board] = time
-
-            return (true, nil)
+    func boardWasSolved(board: String, time: Double) -> BestTimeUpdateResult {
+        guard let existingTime = bestTimes.updateValue(time, forKey: board) else {
+            return .created
         }
 
-        if time < oldTime {
-            bestTimes[board] = time
-
-            return (true, oldTime)
+        if time < existingTime {
+            return .replaced(oldTime: existingTime)
         } else {
-            return (false, oldTime)
+            return .preserved(bestTime: existingTime)
         }
     }
 
@@ -61,4 +57,10 @@ class BestTimesController {
             bestTimes.merge(remoteBestTimes, uniquingKeysWith: min)
         }
     }
+}
+
+enum BestTimeUpdateResult {
+    case created
+    case replaced(oldTime: Double)
+    case preserved(bestTime: Double)
 }

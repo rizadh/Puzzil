@@ -308,12 +308,22 @@ class GameViewController: UIViewController, BoardViewDelegate {
         timeStatRefresher.isPaused = true
 
         // TODO: Change behaviour depending on return values
-        _ = bestTimesController.boardWasSolved(board: boardConfiguration.name, time: elapsedTime)
+        let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, time: elapsedTime)
+        let message: String
+
+        switch updateResult {
+        case .created:
+            message = "Congratulations on your first solve!"
+        case let .replaced(oldTime):
+            message = String(format: "New record! Your previous record was %.1f s.", oldTime)
+        case let .preserved(bestTime):
+            message = String(format: "Play again to beat your %.1f s record!", bestTime)
+        }
 
         updateTimeStat()
 
-        let title = "Solved in \(moves) moves and \((elapsedTime * 100).rounded() / 100) seconds!"
-        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+        let title = String(format: "Your time was %.1f s!", elapsedTime)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { _ in
             self.resetBoardWithAnimation()
         }))
