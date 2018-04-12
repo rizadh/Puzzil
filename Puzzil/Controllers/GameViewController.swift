@@ -324,7 +324,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
         let title = String(format: "Your time was %.1f s!", elapsedTime)
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Try Again", style: .default, handler: { _ in
+        alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
             self.resetBoardWithAnimation()
         }))
 
