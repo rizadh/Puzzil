@@ -72,28 +72,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         boardView.reloadTiles()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        let alphaAnimationDuration = 0.1
-        let scaleAnimationDuration = 0.25
-        let dampingRatio: CGFloat = 1
-        let alphaAnimations = {
-            self.view.alpha = 1
-        }
-        let scaleAnimations = {
-            self.boardView.transform = .identity
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
-        } else {
-            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
-        }
-    }
-
     func numberOfRows(in boardView: BoardView) -> Int {
         return board.rows
     }

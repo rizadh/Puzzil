@@ -77,33 +77,6 @@ class GameViewController: UIViewController, BoardViewDelegate {
 
         resetBoard()
         setupSubviews()
-
-        view.subviews.forEach { $0.alpha = 0 }
-        boardView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        stats.transform = CGAffineTransform(translationX: 0, y: 32)
-        buttons.transform = CGAffineTransform(translationX: 0, y: -32)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        let alphaAnimationDuration = 0.1
-        let scaleAnimationDuration = 0.25
-        let dampingRatio: CGFloat = 1
-        let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 1 } }
-        let scaleAnimations = {
-            self.boardView.transform = .identity
-            self.stats.transform = .identity
-            self.buttons.transform = .identity
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: scaleAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
-        } else {
-            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: scaleAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
-        }
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -258,27 +231,7 @@ class GameViewController: UIViewController, BoardViewDelegate {
     }
 
     private func navigateToMainMenu() {
-        let animationDuration = 0.1
-        let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 0 } }
-        let scaleAnimations = {
-            self.boardView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-            self.stats.transform = CGAffineTransform(translationX: 0, y: 32)
-            self.buttons.transform = CGAffineTransform(translationX: 0, y: -32)
-        }
-
-        let completion: (Any) -> Void = { _ in
-            self.dismiss(animated: false, completion: nil)
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            let animator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: scaleAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: scaleAnimations, completion: completion)
-        }
+        dismiss(animated: false, completion: nil)
     }
 
     @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {

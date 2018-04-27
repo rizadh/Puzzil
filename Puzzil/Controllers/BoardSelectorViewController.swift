@@ -138,29 +138,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         ])
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        let alphaAnimationDuration = 0.1
-        let translationAnimationDuration = 0.25
-        let dampingRatio: CGFloat = 1
-        let alphaAnimations = { self.view.subviews.forEach { $0.alpha = 1 } }
-        let scaleAnimations = {
-            self.headerView.transform = .identity
-            self.boardNameLabel.transform = .identity
-            self.pageControl.transform = .identity
-            self.helpText.transform = .identity
-        }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: alphaAnimationDuration, curve: .linear, animations: alphaAnimations).startAnimation()
-            UIViewPropertyAnimator(duration: translationAnimationDuration, dampingRatio: dampingRatio, animations: scaleAnimations).startAnimation()
-        } else {
-            UIView.animate(withDuration: alphaAnimationDuration, delay: 0, options: .curveLinear, animations: alphaAnimations, completion: nil)
-            UIView.animate(withDuration: translationAnimationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: scaleAnimations, completion: nil)
-        }
-    }
-
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         let index = boardViewControllers.index(of: viewController as! BoardViewController)!
         let previousIndex = index - 1
@@ -194,29 +171,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
     @objc private func beginGame() {
         let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration, difficulty: 0.5)
-
-        let animationDuration = 0.1
-        let alphaAnimations = {
-            self.view.subviews.forEach { $0.alpha = 0 }
-        }
-        let scaleAnimations = {
-            self.headerView.transform = CGAffineTransform(translationX: 0, y: -32)
-            self.boardNameLabel.transform = CGAffineTransform(translationX: 0, y: -32)
-            self.pageControl.transform = CGAffineTransform(translationX: 0, y: -32)
-            self.helpText.transform = CGAffineTransform(translationX: 0, y: 32)
-            self.visibleBoardViewController.boardView.transform = CGAffineTransform(scaleX: 1.25, y: 1.25)
-        }
-        let completion: (Any) -> Void = { _ in self.present(gameViewController, animated: false, completion: nil) }
-
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: scaleAnimations).startAnimation()
-            let animator = UIViewPropertyAnimator(duration: animationDuration, curve: .easeIn, animations: alphaAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: scaleAnimations, completion: nil)
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseIn, animations: alphaAnimations, completion: completion)
-        }
+        present(gameViewController, animated: false, completion: nil)
     }
 
     @objc private func navigateToCurrentPage() {
