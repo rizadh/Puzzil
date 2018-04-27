@@ -28,6 +28,8 @@ class BestTimesController {
 
     func boardWasSolved(board: String, seconds newTime: Double) -> BestTimeUpdateResult {
         guard let existingTime = bestTimes[board] else {
+            bestTimes[board] = newTime
+
             return .created
         }
 
