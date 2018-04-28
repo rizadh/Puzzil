@@ -29,7 +29,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
-        boardView.isDynamic = false
+        boardView.isUserInteractionEnabled = false
         view.addSubview(boardView)
 
         let safeArea: UILayoutGuide = {

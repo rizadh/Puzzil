@@ -16,11 +16,6 @@ class BoardView: UIView {
     private static let borderWidth: CGFloat = 8
 
     weak var delegate: BoardViewDelegate!
-    var isDynamic = true {
-        didSet {
-            updateTileDynamics()
-        }
-    }
     private var tiles = [TileView: TileInfo]()
     private var rowGuides = [UILayoutGuide]()
     private var columnGuides = [UILayoutGuide]()
@@ -36,21 +31,6 @@ class BoardView: UIView {
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    func updateTileDynamics() {
-        if isDynamic {
-            for (tileView, tileInfo) in tiles {
-                let position = tileInfo.position
-                tileView.text = delegate.boardView(self, tileTextAt: position)!
-                tileView.isUserInteractionEnabled = true
-            }
-        } else {
-            for tileView in tiles.keys {
-                tileView.text = ""
-                tileView.isUserInteractionEnabled = false
-            }
-        }
     }
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
@@ -209,7 +189,6 @@ class BoardView: UIView {
         generateColumnLayoutGuides()
         generateRowLayoutGuides()
         layoutTiles()
-        updateTileDynamics()
     }
 
     private func clearTiles() {

@@ -40,7 +40,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         visibleBoardViewController = boardViewControllers.first!
         for boardViewController in boardViewControllers {
             let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(beginGame))
-            boardViewController.boardView.addGestureRecognizer(tapGestureRecognizer)
+            boardViewController.view.addGestureRecognizer(tapGestureRecognizer)
         }
 
         view.backgroundColor = .themeBackground
