@@ -14,6 +14,7 @@ struct TileMoveOperation: Equatable, Hashable {
     let targetPosition: TilePosition
 
     var nextOperation: TileMoveOperation { return TileMoveOperation(moving: direction, from: targetPosition) }
+    var reversed: TileMoveOperation { return TileMoveOperation(moving: direction.opposite, from: targetPosition) }
 
     init(moving direction: TileMoveDirection, from position: TilePosition) {
         self.position = position
