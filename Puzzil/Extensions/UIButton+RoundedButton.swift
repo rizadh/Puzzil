@@ -9,7 +9,7 @@
 import UIKit
 
 extension UIButton {
-    static func themedButton() -> UIButton {
+    static func createThemedButton() -> UIButton {
         let button = UIButton()
 
         button.layer.cornerRadius = 16

@@ -109,11 +109,11 @@ class GameViewController: UIViewController, BoardViewDelegate {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
-        endButton = UIButton.themedButton()
+        endButton = UIButton.createThemedButton()
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
         endButton.setTitle("End", for: .normal)
 
-        restartButton = UIButton.themedButton()
+        restartButton = UIButton.createThemedButton()
         restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
         restartButton.setTitle("Restart", for: .normal)
 
