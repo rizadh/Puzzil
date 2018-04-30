@@ -329,6 +329,6 @@ class GameViewController: UIViewController, BoardViewDelegate {
         board.perform(moveOperation)
         moves += 1
 
-        if board.isSolved { boardWasSolved() }
+        if board.isSolved && operationsInProgress.isEmpty { boardWasSolved() }
     }
 }
