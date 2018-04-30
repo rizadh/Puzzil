@@ -41,11 +41,9 @@ class BoardView: UIView {
         let simpleOperations = validOperations.filter { canPerform($0).requiredOperations.count == 1 }
 
         if validOperations.count == 1 {
-            perform(validOperations.first!, useFastTransition: true)
+            animate(validOperations.first!)
         } else if simpleOperations.count == 1 {
-            perform(simpleOperations.first!, useFastTransition: true)
-        } else {
-            tile.bounce()
+            animate(simpleOperations.first!)
         }
     }
 
@@ -79,12 +77,13 @@ class BoardView: UIView {
             let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
             guard operationIsPossible else { break }
 
-            requiredOperations.forEach { perform($0, on: tile(at: $0.position)) }
+            requiredOperations.forEach(perform)
 
             let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
                 self.layoutIfNeeded()
-                self.delegate.boardView(self, didStart: requiredOperations.first!)
             }
+
+            delegate.boardView(self, didStart: requiredOperations.first!)
 
             animator.addCompletion { _ in
                 self.currentDrags[tileView] = nil
@@ -110,9 +109,7 @@ class BoardView: UIView {
 
             if animator.fractionComplete + velocityAdjustment < 0.5 {
                 animator.isReversed = true
-                dragOperation.requiredMoveOperations.forEach {
-                    self.perform($0.reversed, on: self.tile(at: $0.targetPosition))
-                }
+                dragOperation.requiredMoveOperations.map { $0.reversed }.forEach(perform)
                 delegate.boardView(self, didCancel: dragOperation.requiredMoveOperations.first!)
             } else {
                 delegate.boardView(self, didComplete: dragOperation.requiredMoveOperations.first!)
@@ -130,41 +127,18 @@ class BoardView: UIView {
         return tiles.first { $0.value.position == position }!.key
     }
 
-    private func perform(_ moveOperation: TileMoveOperation, useFastTransition: Bool) {
+    private func animate(_ moveOperation: TileMoveOperation) {
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
-        let dampingRatio: CGFloat = 0.75
 
         if operationIsPossible {
-            for currentOperation in requiredOperations {
-                let tileToMove = tiles.first { $0.value.position == currentOperation.position }!.key
-
-                perform(currentOperation, on: tileToMove)
+            requiredOperations.forEach {
+                perform($0)
+                delegate.boardView(self, didPerform: $0)
             }
 
-            for operation in requiredOperations {
-                delegate.boardView(self, didPerform: operation)
-            }
-
-            let animations = { self.layoutIfNeeded() }
-            let animationDuration = useFastTransition ? 0.1 : 0.25
-
-            if #available(iOS 10.0, *) {
-                let animator: UIViewPropertyAnimator = {
-                    if useFastTransition {
-                        return UIViewPropertyAnimator(duration: animationDuration, curve: .easeOut, animations: animations)
-                    } else {
-                        return UIViewPropertyAnimator(duration: animationDuration, dampingRatio: dampingRatio, animations: animations)
-                    }
-                }()
-
-                animator.startAnimation()
-            } else {
-                if useFastTransition {
-                    UIView.animate(withDuration: animationDuration, delay: 0, options: .curveEaseOut, animations: animations, completion: nil)
-                } else {
-                    UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: dampingRatio, initialSpringVelocity: 1, options: UIViewAnimationOptions(rawValue: 0), animations: animations, completion: nil)
-                }
-            }
+            UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
+                self.layoutIfNeeded()
+            }, completion: nil)
         }
     }
 
@@ -285,51 +259,16 @@ class BoardView: UIView {
         tiles[tile] = TileInfo(position: position, constraints: constraints)
     }
 
-    private func perform(_ moveOperation: TileMoveOperation, on tile: TileView) {
-        remove(tile)
-        place(tile, at: moveOperation.targetPosition)
+    private func perform(_ moveOperation: TileMoveOperation) {
+        let tileView = tile(at: moveOperation.position)
+        remove(tileView)
+        place(tileView, at: moveOperation.targetPosition)
     }
 }
 
 fileprivate struct TileInfo {
     let position: TilePosition
     let constraints: [NSLayoutConstraint]
-}
-
-private extension UIView {
-    func bounce() {
-        let initialAnimationDuration = 0.1
-        let finalAnimationDuration = 0.5
-        let initialDampingRatio: CGFloat = 1
-        let finalDampingRatio: CGFloat = 0.5
-        let initialAnimations = {
-            self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        }
-        let finalAnimations = {
-            self.transform = .identity
-        }
-
-        let completion: (Any) -> Void = {
-            if #available(iOS 10.0, *) {
-                return { _ in
-                    UIViewPropertyAnimator(duration: finalAnimationDuration, dampingRatio: finalDampingRatio, animations: finalAnimations).startAnimation()
-                }
-            } else {
-                return { _ in
-                    UIView.animate(withDuration: finalAnimationDuration, delay: 0, usingSpringWithDamping: finalDampingRatio, initialSpringVelocity: 1, options: .init(rawValue: 0), animations: finalAnimations, completion: nil)
-                }
-            }
-        }()
-
-        if #available(iOS 10.0, *) {
-            let animator: UIViewPropertyAnimator
-            animator = UIViewPropertyAnimator(duration: initialAnimationDuration, dampingRatio: initialDampingRatio, animations: initialAnimations)
-            animator.addCompletion(completion)
-            animator.startAnimation()
-        } else {
-            UIView.animate(withDuration: initialAnimationDuration, delay: 0, usingSpringWithDamping: initialDampingRatio, initialSpringVelocity: 1, options: .init(rawValue: 0), animations: initialAnimations, completion: completion)
-        }
-    }
 }
 
 struct TileDragOperation {

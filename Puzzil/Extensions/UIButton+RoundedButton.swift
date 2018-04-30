@@ -32,10 +32,6 @@ extension UIButton {
         let animationDuration = 0.1
         let animations = { self.titleLabel!.alpha = 1 }
 
-        if #available(iOS 10.0, *) {
-            UIViewPropertyAnimator(duration: animationDuration, curve: .linear, animations: animations).startAnimation()
-        } else {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: animations, completion: nil)
-        }
+        UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: animations, completion: nil)
     }
 }
