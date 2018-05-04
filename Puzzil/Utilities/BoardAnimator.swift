@@ -76,11 +76,11 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
             toContainer.boardView.transform = .identity
             toContainer.view.alpha = 1
             fromContainer.boardView.transform = transform.inverted()
-            fromContainer.view.alpha = 0
+            fromContainer.view.subviews.filter { $0 != fromContainer.boardView }.forEach { $0.alpha = 0 }
         }) { _ in
             transitionContext.completeTransition(true)
             fromContainer.boardView.transform = .identity
-            fromContainer.view.alpha = 0
+            fromContainer.view.subviews.filter { $0 != fromContainer.boardView }.forEach { $0.alpha = 1 }
         }
     }
 }
