@@ -8,7 +8,10 @@
 
 import UIKit
 
-class GameViewController: UIViewController, BoardViewDelegate {
+class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
+
+    // MARK: UIViewController Property Overrides
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if UIColor.themeBackground.isLight {
             return .default
@@ -17,19 +20,25 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
+    // MARK: - Board Management
+
     private var boardConfiguration: BoardConfiguration
     private var board: Board!
     private let difficulty: Double
     private var operationsInProgress = Set<TileMoveOperation>()
 
-    private let stats = UIStackView()
-    private let bestTimeStat = StatView()
-    private let timeStat = StatView()
-    private let movesStat = StatView()
-    private let boardView = BoardView()
-    private let buttons = UIStackView()
+    // MARK: - Subviews
+
+    let stats = UIStackView()
+    let bestTimeStat = StatView()
+    let timeStat = StatView()
+    let movesStat = StatView()
+    let boardView = BoardView()
+    let buttons = UIStackView()
     private var endButton: UIButton!
     private var restartButton: UIButton!
+
+    // MARK: - Stat Management
 
     private var timeStatRefresher: CADisplayLink!
 
@@ -54,6 +63,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
         return String(format: "%.1f s", rawSeconds)
     }
 
+    // MARK: - Constructors
+
     init(boardConfiguration: BoardConfiguration, difficulty: Double) {
         self.boardConfiguration = boardConfiguration
         self.difficulty = difficulty
@@ -65,10 +76,10 @@ class GameViewController: UIViewController, BoardViewDelegate {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - UIViewController Method Overrides
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        view.backgroundColor = .themeBackground
 
         board = boardFromConfiguration()
 
@@ -82,6 +93,8 @@ class GameViewController: UIViewController, BoardViewDelegate {
     override func viewDidDisappear(_ animated: Bool) {
         timeStatRefresher.invalidate()
     }
+
+    // MARK: - Private Methods
 
     private func boardFromConfiguration() -> Board {
         return Board(from: boardConfiguration.matrix)
@@ -198,6 +211,47 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
+    private func resetBoardWithAnimation() {
+        UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel], reloadBlock: resetBoard)
+    }
+
+    private func navigateToMainMenu() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    private func resetBestTime() {
+        _ = bestTimesController.resetBestTime(for: boardConfiguration.name)
+        UIView.springReload(views: [bestTimeStat.valueLabel], reloadBlock: updateBestTimeStat)
+    }
+
+    private func boardWasSolved() {
+        timeStatRefresher.isPaused = true
+
+        let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, seconds: elapsedSeconds)
+        let message: String
+
+        switch updateResult {
+        case .created:
+            message = "Congratulations on your first solve!"
+        case let .replaced(oldTime):
+            message = String(format: "New record! Your previous record was %.1f s.", oldTime)
+        case let .preserved(bestTime):
+            message = String(format: "Play again to beat your %.1f s record!", bestTime)
+        }
+
+        updateTimeStat()
+
+        let title = String(format: "Your time was %.1f s!", elapsedSeconds)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
+            self.resetBoardWithAnimation()
+        }))
+
+        present(alert, animated: true, completion: nil)
+    }
+
+    // MARK: - Event Handlers
+
     @objc private func endButtonWasTapped() {
         if progressWasMade {
             let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
@@ -226,14 +280,6 @@ class GameViewController: UIViewController, BoardViewDelegate {
         }
     }
 
-    private func resetBoardWithAnimation() {
-        UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel], reloadBlock: resetBoard)
-    }
-
-    private func navigateToMainMenu() {
-        dismiss(animated: false, completion: nil)
-    }
-
     @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began else { return }
         guard bestTimesController.getBestTime(for: boardConfiguration.name) != nil else { return }
@@ -248,40 +294,11 @@ class GameViewController: UIViewController, BoardViewDelegate {
         present(alertController, animated: true, completion: nil)
     }
 
-    private func resetBestTime() {
-        _ = bestTimesController.resetBestTime(for: boardConfiguration.name)
-        UIView.springReload(views: [bestTimeStat.valueLabel], reloadBlock: updateBestTimeStat)
-    }
-
     @objc private func updateTimeStat() {
         timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
     }
 
-    private func boardWasSolved() {
-        timeStatRefresher.isPaused = true
-
-        let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, seconds: elapsedSeconds)
-        let message: String
-
-        switch updateResult {
-        case .created:
-            message = "Congratulations on your first solve!"
-        case let .replaced(oldTime):
-            message = String(format: "New record! Your previous record was %.1f s.", oldTime)
-        case let .preserved(bestTime):
-            message = String(format: "Play again to beat your %.1f s record!", bestTime)
-        }
-
-        updateTimeStat()
-
-        let title = String(format: "Your time was %.1f s!", elapsedSeconds)
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
-            self.resetBoardWithAnimation()
-        }))
-
-        present(alert, animated: true, completion: nil)
-    }
+    // MARK: - BoardViewDelegate Methods
 
     func numberOfRows(in boardView: BoardView) -> Int {
         return board.rows

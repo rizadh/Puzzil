@@ -8,7 +8,10 @@
 
 import UIKit
 
-class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIViewControllerTransitioningDelegate, BoardContainer {
+
+    // MARK: UIViewController Property Overrides
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if UIColor.themeHeader.isLight {
             return .default
@@ -17,22 +20,33 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
     }
 
-    private let headerView = UIView()
-    private let titleLabel = UILabel()
-    private let boardNameLabel = UILabel()
-    private let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    // MARK: - Subviews
+
+    let headerView = UIView()
+    let titleLabel = UILabel()
+    let boardNameLabel = UILabel()
+    let pageControl = UIPageControl()
+    let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    let helpText = UILabel()
     private let boardViewControllers = BoardConfiguration.builtins.map { configuration in
         return BoardViewController(for: configuration)
     }
 
-    private var visibleBoardViewController: BoardViewController! {
+    var boardView: BoardView {
+        return visibleBoardViewController.boardView
+    }
+
+    var visibleBoardViewController: BoardViewController! {
         didSet {
             boardNameLabel.text = visibleBoardViewController.configuration.name.capitalized
         }
     }
 
-    private let helpText = UILabel()
-    private let pageControl = UIPageControl()
+    // MARK: - Transition Management
+
+    private let animator = BoardAnimator()
+
+    // MARK: - UIViewController Method Overrides
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,8 +56,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(beginGame))
             boardViewController.view.addGestureRecognizer(tapGestureRecognizer)
         }
-
-        view.backgroundColor = .themeBackground
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.backgroundColor = .themeHeader
@@ -138,6 +150,20 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         ])
     }
 
+    // MARK: - UIViewControllerTransitioningDelegate Methods
+
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        animator.presenting = true
+        return animator
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        animator.presenting = false
+        return animator
+    }
+
+    // MARK: - UIPageViewControllerDataSource Methods
+
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         let index = boardViewControllers.index(of: viewController as! BoardViewController)!
         let previousIndex = index - 1
@@ -160,6 +186,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
     }
 
+    // MARK: - UIPageViewControllerDelegate Methods
+
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if completed {
             let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
@@ -169,9 +197,12 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
     }
 
+    // MARK: - Event Handlers
+
     @objc private func beginGame() {
         let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration, difficulty: 0.5)
-        present(gameViewController, animated: false, completion: nil)
+        gameViewController.transitioningDelegate = self
+        present(gameViewController, animated: true, completion: nil)
     }
 
     @objc private func navigateToCurrentPage() {

@@ -13,6 +13,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     let boardView = BoardView()
     private let board: Board
 
+    // MARK: - Constructors
+
     init(for configuration: BoardConfiguration) {
         self.configuration = configuration
         board = Board(from: configuration.matrix)
@@ -23,6 +25,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    // MARK: - UIViewController Method Overrides
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,6 +75,8 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         boardView.reloadTiles()
     }
+
+    // MARK: - BoardViewDelegate Methods
 
     func numberOfRows(in boardView: BoardView) -> Int {
         return board.rows
