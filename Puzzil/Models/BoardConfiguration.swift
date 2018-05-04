@@ -21,16 +21,18 @@ struct BoardConfiguration {
             [7, 8, 9],
             [nil, 0, nil],
         ]),
-        BoardConfiguration(name: "puzzil", matrix: [
+        /*
+            BoardConfiguration(name: "puzzil", matrix: [
             ["P", "U", "Z"],
             ["Z", "I", "L"],
             [2, nil, 0],
-        ]),
-        BoardConfiguration(name: "number spread", matrix: [
+            ]),
+            BoardConfiguration(name: "number spread", matrix: [
             [4, 3, 2],
             [3, 2, 1],
             [2, 1, nil],
-        ]),
+            ]),
+            */
         BoardConfiguration(name: "arrows", matrix: [
             ["↖", "↑", "↗"],
             ["←", nil, "→"],
