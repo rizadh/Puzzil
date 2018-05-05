@@ -33,7 +33,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
-        boardView.isUserInteractionEnabled = false
         view.addSubview(boardView)
 
         let safeArea: UILayoutGuide = {
@@ -73,6 +72,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             return $0
         })
 
+        boardView.isDynamic = false
         boardView.reloadTiles()
     }
 
@@ -91,18 +91,18 @@ class BoardViewController: UIViewController, BoardViewDelegate {
     }
 
     func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool? {
-        return board.canPerform(moveOperation)
+        fatalError("Cannot perform move operation")
     }
 
     func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation) {
-        return
+        fatalError("Cannot start move operation")
     }
 
     func boardView(_ boardView: BoardView, didCancel moveOperation: TileMoveOperation) {
-        return
+        fatalError("Cannot cancel move operation")
     }
 
     func boardView(_ boardView: BoardView, didComplete moveOperation: TileMoveOperation) {
-        return
+        fatalError("Cannot complete move operation")
     }
 }

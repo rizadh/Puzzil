@@ -32,6 +32,8 @@ class BoardView: UIView {
         }
     }
 
+    var isDynamic = true
+
     init() {
         super.init(frame: .zero)
 
@@ -244,8 +246,10 @@ class BoardView: UIView {
             tile.translatesAutoresizingMaskIntoConstraints = false
             tile.text = text
 
-            addTileSwipeRecognizers(to: tile)
-            addSubview(tile)
+            if isDynamic {
+                tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
+                tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+            }
 
             NSLayoutConstraint.activate([
                 tile.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
@@ -253,13 +257,9 @@ class BoardView: UIView {
                 tile.widthAnchor.constraint(equalTo: tile.heightAnchor),
             ])
 
+            addSubview(tile)
             place(tile, at: position)
         }
-    }
-
-    private func addTileSwipeRecognizers(to tile: TileView) {
-        tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
-        tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
     }
 
     private func remove(_ tile: TileView) {

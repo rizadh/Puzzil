@@ -9,7 +9,7 @@
 import UIKit
 
 class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
-    let duration = 0.25
+    let duration = 0.5
     var presenting = true
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {

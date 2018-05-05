@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIViewControllerTransitioningDelegate, BoardContainer {
+class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIViewControllerTransitioningDelegate, BoardContainer, UIGestureRecognizerDelegate {
 
     // MARK: UIViewController Property Overrides
 
@@ -42,9 +42,10 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
     }
 
-    // MARK: - Transition Management
+    // MARK: - Animation Management
 
     private let animator = BoardAnimator()
+    private var latestPressRecognizer: UIGestureRecognizer?
 
     // MARK: - UIViewController Method Overrides
 
@@ -53,8 +54,14 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
         visibleBoardViewController = boardViewControllers.first!
         for boardViewController in boardViewControllers {
-            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(beginGame))
-            boardViewController.view.addGestureRecognizer(tapGestureRecognizer)
+            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(boardWasTapped))
+            boardViewController.boardView.addGestureRecognizer(tapGestureRecognizer)
+
+            let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(boardWasPressed))
+            pressGestureRecognizer.minimumPressDuration = 0
+            boardViewController.boardView.addGestureRecognizer(pressGestureRecognizer)
+
+            pressGestureRecognizer.delegate = self
         }
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -197,10 +204,43 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
     }
 
+    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+        print(latestPressRecognizer)
+        latestPressRecognizer?.isEnabled = false
+        latestPressRecognizer?.isEnabled = true
+    }
+
+    // MARK: - UIGestureRecognizerDelegate Methods
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+
     // MARK: - Event Handlers
 
-    @objc private func beginGame() {
-        let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration, difficulty: 0.5)
+    @objc private func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
+        latestPressRecognizer = sender
+        let boardView = visibleBoardViewController.boardView
+
+        switch sender.state {
+        case .began:
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                           options: [], animations: {
+                boardView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            })
+        case .ended, .cancelled:
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                           options: [], animations: {
+                boardView.transform = .identity
+            })
+        default:
+            break
+        }
+    }
+
+    @objc private func boardWasTapped(_ sender: UITapGestureRecognizer) {
+        let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration,
+                                                    difficulty: 0.5)
         gameViewController.transitioningDelegate = self
         present(gameViewController, animated: true, completion: nil)
     }
