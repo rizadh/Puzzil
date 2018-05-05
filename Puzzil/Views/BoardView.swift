@@ -22,7 +22,7 @@ class BoardView: UIView {
 
     private var _currentDrags = [TileView: Any]()
     @available(iOS 10, *)
-    private var currentDrags: [TileView: TileDragOperation] {
+    private var dragOperations: [TileView: TileDragOperation] {
         get {
             return _currentDrags as! [TileView: TileDragOperation]
         }
@@ -102,7 +102,7 @@ class BoardView: UIView {
     @available(iOS 10, *)
     private func beginAnimation(for moveOperation: TileMoveOperation) {
         let tileView = tile(at: moveOperation.position)
-        if currentDrags[tileView] != nil { return }
+        if dragOperations[tileView] != nil { return }
         let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
         guard operationIsPossible else { return }
 
@@ -113,8 +113,6 @@ class BoardView: UIView {
             self.layoutIfNeeded()
         }
 
-//        animator.addCompletion { _ in self.currentDrags[tileView] = nil }
-
         let originalFrame = tileView.frame
         animator.pauseAnimation()
         let targetFrame = tileView.frame
@@ -122,12 +120,12 @@ class BoardView: UIView {
                                               targetFrame: targetFrame, animator: animator,
                                               requiredMoveOperations: requiredOperations)
 
-        currentDrags[tileView] = dragOperation
+        dragOperations[tileView] = dragOperation
     }
 
     @available(iOS 10, *)
     private func updateAnimation(for tileView: TileView, with translation: CGPoint) {
-        guard let dragOperation = currentDrags[tileView] else { return }
+        guard let dragOperation = dragOperations[tileView] else { return }
 
         let fractionComplete = dragOperation.fractionComplete(with: translation)
         dragOperation.animator.fractionComplete = fractionComplete
@@ -135,7 +133,7 @@ class BoardView: UIView {
 
     @available(iOS 10, *)
     private func completeAnimation(for tileView: TileView, with velocity: CGPoint) {
-        guard let dragOperation = currentDrags[tileView] else { return }
+        guard let dragOperation = dragOperations[tileView] else { return }
 
         let animator = dragOperation.animator
         let velocityAdjustment = dragOperation.fractionComplete(with: velocity)
@@ -152,7 +150,7 @@ class BoardView: UIView {
         let timingParameters = UISpringTimingParameters(dampingRatio: 1,
                                                         initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-        currentDrags[tileView] = nil
+        dragOperations[tileView] = nil
     }
 
     private func animate(_ moveOperation: TileMoveOperation) {

@@ -26,7 +26,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     let titleLabel = UILabel()
     let boardNameLabel = UILabel()
     let pageControl = UIPageControl()
-    let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal,
+                                                  options: nil)
     let helpText = UILabel()
     private let boardViewControllers = BoardConfiguration.builtins.map { configuration in
         return BoardViewController(for: configuration)
@@ -89,7 +90,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         pageViewController.dataSource = self
         pageViewController.delegate = self
-        pageViewController.setViewControllers([boardViewControllers.first!], direction: .forward, animated: false, completion: nil)
+        pageViewController.setViewControllers([boardViewControllers.first!], direction: .forward, animated: false,
+                                              completion: nil)
         addChildViewController(pageViewController)
         pageViewController.didMove(toParentViewController: self)
         view.addSubview(pageViewController.view)
@@ -159,7 +161,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
     // MARK: - UIViewControllerTransitioningDelegate Methods
 
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController,
+                             source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         animator.presenting = true
         return animator
     }
@@ -171,31 +174,24 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
     // MARK: - UIPageViewControllerDataSource Methods
 
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+    func pageViewController(_ pageViewController: UIPageViewController,
+                            viewControllerBefore viewController: UIViewController) -> UIViewController? {
         let index = boardViewControllers.index(of: viewController as! BoardViewController)!
-        let previousIndex = index - 1
-
-        if previousIndex >= 0 {
-            return boardViewControllers[previousIndex]
-        } else {
-            return boardViewControllers.last!
-        }
+        let previousIndex = (index - 1 + boardViewControllers.count) % boardViewControllers.count
+        return boardViewControllers[previousIndex]
     }
 
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+    func pageViewController(_ pageViewController: UIPageViewController,
+                            viewControllerAfter viewController: UIViewController) -> UIViewController? {
         let index = boardViewControllers.index(of: viewController as! BoardViewController)!
-        let nextIndex = index + 1
-
-        if nextIndex < boardViewControllers.count {
-            return boardViewControllers[nextIndex]
-        } else {
-            return boardViewControllers.first!
-        }
+        let nextIndex = (index + 1) % boardViewControllers.count
+        return boardViewControllers[nextIndex]
     }
 
     // MARK: - UIPageViewControllerDelegate Methods
 
-    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool,
+                            previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if completed {
             let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
             let index = boardViewControllers.index(of: boardViewController)!
@@ -205,7 +201,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     }
 
     func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-        print(latestPressRecognizer)
         latestPressRecognizer?.isEnabled = false
         latestPressRecognizer?.isEnabled = true
     }
@@ -226,12 +221,12 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         case .began:
             UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                            options: [], animations: {
-                boardView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+                               boardView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
         case .ended, .cancelled:
             UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                            options: [], animations: {
-                boardView.transform = .identity
+                               boardView.transform = .identity
             })
         default:
             break
@@ -247,7 +242,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
 
     @objc private func navigateToCurrentPage() {
         let currentPage = pageControl.currentPage
-        let previousPage = boardViewControllers.index(of: pageViewController.viewControllers!.first as! BoardViewController)!
+        let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
+        let previousPage = boardViewControllers.index(of: boardViewController)!
         let viewController = boardViewControllers[currentPage]
         let completion: (Bool) -> Void = { _ in self.pageControl.updateCurrentPageDisplay() }
 
@@ -257,6 +253,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }()
 
         visibleBoardViewController = viewController
-        pageViewController.setViewControllers([viewController], direction: direction, animated: true, completion: completion)
+        pageViewController.setViewControllers([viewController], direction: direction, animated: true,
+                                              completion: completion)
     }
 }

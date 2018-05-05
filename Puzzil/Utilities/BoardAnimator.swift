@@ -68,19 +68,24 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     typealias BoardController = BoardContainer & UIViewController
 
-    private func animateBoardView(from fromContainer: BoardController, to toContainer: BoardController, with transform: CGAffineTransform, in transitionContext: UIViewControllerContextTransitioning) {
+    private func animateBoardView(from fromContainer: BoardController, to toContainer: BoardController,
+                                  with transform: CGAffineTransform,
+                                  in transitionContext: UIViewControllerContextTransitioning) {
         toContainer.boardView.transform = transform
         toContainer.view.alpha = 0
 
-        UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: UIViewAnimationOptions(rawValue: 0), animations: {
-            toContainer.boardView.transform = .identity
-            toContainer.view.alpha = 1
-            fromContainer.boardView.transform = transform.inverted()
-            fromContainer.view.subviews.filter { $0 != fromContainer.boardView }.forEach { $0.alpha = 0 }
+        UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0,
+                       options: [], animations: {
+                           toContainer.boardView.transform = .identity
+                           toContainer.view.alpha = 1
+
+                           fromContainer.boardView.transform = transform.inverted()
+                           fromContainer.view.alpha = 0
         }) { _ in
             transitionContext.completeTransition(true)
+
             fromContainer.boardView.transform = .identity
-            fromContainer.view.subviews.filter { $0 != fromContainer.boardView }.forEach { $0.alpha = 1 }
+            fromContainer.view.alpha = 1
         }
     }
 }
