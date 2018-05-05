@@ -37,10 +37,14 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         return visibleBoardViewController.boardView
     }
 
-    var visibleBoardViewController: BoardViewController! {
-        didSet {
-            boardNameLabel.text = visibleBoardViewController.configuration.name.capitalized
-        }
+    var visibleBoardViewController: BoardViewController {
+        return boardViewControllers[pageControl.currentPage]
+    }
+
+    // MARK: - UI Updates
+
+    private func updateBoardNameLabel() {
+        boardNameLabel.text = visibleBoardViewController.configuration.name.capitalized
     }
 
     // MARK: - Animation Management
@@ -53,7 +57,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        visibleBoardViewController = boardViewControllers.first!
         for boardViewController in boardViewControllers {
             let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(boardWasTapped))
             boardViewController.boardView.addGestureRecognizer(tapGestureRecognizer)
@@ -110,6 +113,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         pageControl.addTarget(self, action: #selector(navigateToCurrentPage), for: .valueChanged)
         pageControl.defersCurrentPageDisplay = true
         view.addSubview(pageControl)
+
+        updateBoardNameLabel()
 
         let safeArea: UILayoutGuide = {
             if #available(iOS 11.0, *) {
@@ -195,7 +200,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
             let index = boardViewControllers.index(of: boardViewController)!
             pageControl.currentPage = index
-            visibleBoardViewController = boardViewController
+            updateBoardNameLabel()
         }
     }
 
@@ -250,9 +255,10 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             return .reverse
         }()
 
-        visibleBoardViewController = viewController
         pageViewController.setViewControllers([viewController], direction: direction, animated: true) { _ in
             self.pageControl.updateCurrentPageDisplay()
         }
+
+        updateBoardNameLabel()
     }
 }
