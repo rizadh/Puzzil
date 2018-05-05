@@ -104,12 +104,14 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
 
         switch sender.state {
         case .began:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-                tileView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                           options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+                               tileView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
         case .ended, .cancelled:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-                tileView.transform = .identity
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                           options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+                               tileView.transform = .identity
             })
         default:
             break
@@ -250,7 +252,8 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         bottomAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
     }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return gestureRecognizer is UILongPressGestureRecognizer
     }
 

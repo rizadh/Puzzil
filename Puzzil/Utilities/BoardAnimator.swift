@@ -77,7 +77,7 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
         toContainer.view.alpha = 0
 
         UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: presenting ? 0.5 : 1, initialSpringVelocity: 0,
-                       options: [], animations: {
+                       options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                            toContainer.boardView.transform = .identity
                            toContainer.view.alpha = 1
 

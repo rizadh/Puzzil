@@ -25,14 +25,18 @@ extension UIButton {
     }
 
     @objc private func buttonWasPressed() {
-        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-            self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        UIView.animate(
+            withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+                self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         })
     }
 
     @objc private func buttonWasReleased() {
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0, options: [], animations: {
-            self.transform = .identity
+        UIView.animate(
+            withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0,
+            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+                self.transform = .identity
         })
     }
 }
