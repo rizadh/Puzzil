@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardView: UIView {
+class BoardView: UIView, UIGestureRecognizerDelegate {
     override var isOpaque: Bool { get { return false } set {} }
 
     private static let maxTileSize: CGFloat = 96
@@ -99,6 +99,23 @@ class BoardView: UIView {
         }
     }
 
+    @objc private func tileWasPressed(_ sender: UILongPressGestureRecognizer) {
+        let tileView = sender.view as! TileView
+
+        switch sender.state {
+        case .began:
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+                tileView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            })
+        case .ended, .cancelled:
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+                tileView.transform = .identity
+            })
+        default:
+            break
+        }
+    }
+
     @available(iOS 10, *)
     private func beginAnimation(for moveOperation: TileMoveOperation) {
         let tileView = tile(at: moveOperation.position)
@@ -165,7 +182,7 @@ class BoardView: UIView {
 
         UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
             self.layoutIfNeeded()
-        }, completion: nil)
+        })
     }
 
     private func canPerform(_ moveOperation: TileMoveOperation) ->
@@ -233,6 +250,10 @@ class BoardView: UIView {
         bottomAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
     }
 
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return gestureRecognizer is UILongPressGestureRecognizer
+    }
+
     private func layoutTiles() {
         let columns = delegate.numberOfColumns(in: self)
         let rows = delegate.numberOfRows(in: self)
@@ -247,6 +268,10 @@ class BoardView: UIView {
             if isDynamic {
                 tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
                 tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+                let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(tileWasPressed(_:)))
+                pressGestureRecognizer.minimumPressDuration = 0
+                pressGestureRecognizer.delegate = self
+                tile.addGestureRecognizer(pressGestureRecognizer)
             }
 
             NSLayoutConstraint.activate([

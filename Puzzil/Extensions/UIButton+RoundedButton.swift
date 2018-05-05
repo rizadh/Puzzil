@@ -25,13 +25,14 @@ extension UIButton {
     }
 
     @objc private func buttonWasPressed() {
-        titleLabel!.alpha = 0.5
+        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+            self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        })
     }
 
     @objc private func buttonWasReleased() {
-        let animationDuration = 0.1
-        let animations = { self.titleLabel!.alpha = 1 }
-
-        UIView.animate(withDuration: animationDuration, delay: 0, options: .curveLinear, animations: animations, completion: nil)
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0, options: [], animations: {
+            self.transform = .identity
+        })
     }
 }

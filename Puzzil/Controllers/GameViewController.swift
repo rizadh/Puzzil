@@ -216,7 +216,7 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
     }
 
     private func navigateToMainMenu() {
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true)
     }
 
     private func resetBestTime() {
@@ -247,7 +247,7 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
             self.resetBoardWithAnimation()
         }))
 
-        present(alert, animated: true, completion: nil)
+        present(alert, animated: true)
     }
 
     // MARK: - Event Handlers
@@ -260,7 +260,7 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-            present(alertController, animated: true, completion: nil)
+            present(alertController, animated: true)
         } else {
             navigateToMainMenu()
         }
@@ -274,7 +274,7 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-            present(alertController, animated: true, completion: nil)
+            present(alertController, animated: true)
         } else {
             resetBoardWithAnimation()
         }
@@ -291,7 +291,7 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
         })
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
-        present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true)
     }
 
     @objc private func updateTimeStat() {

@@ -90,8 +90,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         pageViewController.dataSource = self
         pageViewController.delegate = self
-        pageViewController.setViewControllers([boardViewControllers.first!], direction: .forward, animated: false,
-                                              completion: nil)
+        pageViewController.setViewControllers([boardViewControllers.first!], direction: .forward, animated: false)
         addChildViewController(pageViewController)
         pageViewController.didMove(toParentViewController: self)
         view.addSubview(pageViewController.view)
@@ -237,7 +236,7 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration,
                                                     difficulty: 0.5)
         gameViewController.transitioningDelegate = self
-        present(gameViewController, animated: true, completion: nil)
+        present(gameViewController, animated: true)
     }
 
     @objc private func navigateToCurrentPage() {
@@ -245,7 +244,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
         let previousPage = boardViewControllers.index(of: boardViewController)!
         let viewController = boardViewControllers[currentPage]
-        let completion: (Bool) -> Void = { _ in self.pageControl.updateCurrentPageDisplay() }
 
         let direction: UIPageViewControllerNavigationDirection = {
             if previousPage < currentPage { return .forward }
@@ -253,7 +251,8 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }()
 
         visibleBoardViewController = viewController
-        pageViewController.setViewControllers([viewController], direction: direction, animated: true,
-                                              completion: completion)
+        pageViewController.setViewControllers([viewController], direction: direction, animated: true) { _ in
+            self.pageControl.updateCurrentPageDisplay()
+        }
     }
 }
