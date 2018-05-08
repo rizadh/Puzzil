@@ -10,9 +10,7 @@ import UIKit
 
 class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     var presenting = true
-    var duration: Double {
-        return presenting ? 0.5 : 0.25
-    }
+    private let duration = 0.25
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return duration
@@ -76,13 +74,14 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
         toContainer.boardView.transform = transform
         toContainer.view.alpha = 0
 
-        UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: presenting ? 0.5 : 1, initialSpringVelocity: 0,
-                       options: [.allowUserInteraction, .beginFromCurrentState], animations: {
-                           toContainer.boardView.transform = .identity
-                           toContainer.view.alpha = 1
+        UIView.animate(
+            withDuration: duration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+            options: [], animations: {
+                toContainer.boardView.transform = .identity
+                toContainer.view.alpha = 1
 
-                           fromContainer.boardView.transform = transform.inverted()
-                           fromContainer.view.alpha = 0
+                fromContainer.boardView.transform = transform.inverted()
+                fromContainer.view.alpha = 0
         }) { _ in
             transitionContext.completeTransition(true)
 
