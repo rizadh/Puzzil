@@ -308,7 +308,6 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
         return board.columns
     }
 
-
     func boardIsDynamic(_ boardView: BoardView) -> Bool {
         return true
     }

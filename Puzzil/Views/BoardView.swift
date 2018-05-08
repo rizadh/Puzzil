@@ -24,6 +24,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     private var columnGuides = [UILayoutGuide]()
 
     // MARK: - Drag Management
+
     private var _currentDrags = [TileView: Any]()
     @available(iOS 10, *)
     private var dragOperations: [TileView: TileDragOperation] {
@@ -111,7 +112,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
 
         switch sender.state {
         case .began:
-            UIView.animate(withDuration: 0.125, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                                tileView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
