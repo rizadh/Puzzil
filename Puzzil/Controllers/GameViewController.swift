@@ -308,6 +308,11 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
         return board.columns
     }
 
+
+    func boardIsDynamic(_ boardView: BoardView) -> Bool {
+        return true
+    }
+
     func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String? {
         return board.tileText(at: position)
     }

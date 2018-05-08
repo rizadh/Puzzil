@@ -11,6 +11,7 @@ import Foundation
 protocol BoardViewDelegate: NSObjectProtocol {
     func numberOfRows(in boardView: BoardView) -> Int
     func numberOfColumns(in boardView: BoardView) -> Int
+    func boardIsDynamic(_ boardView: BoardView) -> Bool
     func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String?
     func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool?
     func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation)

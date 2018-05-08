@@ -9,17 +9,21 @@
 import UIKit
 
 class BoardView: UIView, UIGestureRecognizerDelegate {
-    override var isOpaque: Bool { get { return false } set {} }
+
+    // MARK: - Dimension Constants
 
     private static let maxTileSize: CGFloat = 96
     private static let cornerRadius: CGFloat = 32
     private static let borderWidth: CGFloat = 8
+
+    // MARK: - Board Properties
 
     weak var delegate: BoardViewDelegate!
     private var tiles = [TileView: TileInfo]()
     private var rowGuides = [UILayoutGuide]()
     private var columnGuides = [UILayoutGuide]()
 
+    // MARK: - Drag Management
     private var _currentDrags = [TileView: Any]()
     @available(iOS 10, *)
     private var dragOperations: [TileView: TileDragOperation] {
@@ -32,11 +36,12 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         }
     }
 
-    var isDynamic = true
+    // MARK: - Constructors
 
     init() {
         super.init(frame: .zero)
 
+        isOpaque = false
         backgroundColor = .themeBoard
         layer.cornerRadius = BoardView.cornerRadius
     }
@@ -44,6 +49,12 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    private func tile(at position: TilePosition) -> TileView {
+        return tiles.first { $0.value.position == position }!.key
+    }
+
+    // MARK: - Event Handlers
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
         let tile = sender.view as! TileView
@@ -57,10 +68,6 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         } else if simpleOperations.count == 1 {
             animate(simpleOperations.first!)
         }
-    }
-
-    private func tile(at position: TilePosition) -> TileView {
-        return tiles.first { $0.value.position == position }!.key
     }
 
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
@@ -104,7 +111,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
 
         switch sender.state {
         case .began:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+            UIView.animate(withDuration: 0.125, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                                tileView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
@@ -117,6 +124,25 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
             break
         }
     }
+
+    // MARK: - Tile Animations
+
+    private func animate(_ moveOperation: TileMoveOperation) {
+        let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
+
+        guard operationIsPossible else { return }
+
+        requiredOperations.forEach {
+            perform($0)
+            delegate.boardView(self, didPerform: $0)
+        }
+
+        UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
+            self.layoutIfNeeded()
+        })
+    }
+
+    // MARK: Interactive Drag
 
     @available(iOS 10, *)
     private func beginAnimation(for moveOperation: TileMoveOperation) {
@@ -172,21 +198,6 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         dragOperations[tileView] = nil
     }
 
-    private func animate(_ moveOperation: TileMoveOperation) {
-        let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
-
-        guard operationIsPossible else { return }
-
-        requiredOperations.forEach {
-            perform($0)
-            delegate.boardView(self, didPerform: $0)
-        }
-
-        UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
-            self.layoutIfNeeded()
-        })
-    }
-
     private func canPerform(_ moveOperation: TileMoveOperation) ->
         (result: Bool, requiredOperations: [TileMoveOperation]) {
         guard let operationIsPossible = delegate.boardView(self, canPerform: moveOperation) else {
@@ -203,6 +214,8 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
 
         return (false, [moveOperation])
     }
+
+    // MARK: - Tile Layout
 
     func reloadTiles() {
         clearTiles()
@@ -221,6 +234,8 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         columnGuides.forEach(removeLayoutGuide(_:))
         columnGuides.removeAll()
     }
+
+    // MARK: Layout Guide Generation
 
     private func generateColumnLayoutGuides() {
         var lastAnchor = leftAnchor
@@ -252,10 +267,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         bottomAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
     }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return gestureRecognizer is UILongPressGestureRecognizer
-    }
+    // MARK: Tile Creation
 
     private func layoutTiles() {
         let columns = delegate.numberOfColumns(in: self)
@@ -268,7 +280,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
             tile.translatesAutoresizingMaskIntoConstraints = false
             tile.text = text
 
-            if isDynamic {
+            if delegate.boardIsDynamic(self) {
                 tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
                 tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
                 let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(tileWasPressed(_:)))
@@ -287,6 +299,8 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
             place(tile, at: position)
         }
     }
+
+    // MARK: Tile Placement
 
     private func remove(_ tile: TileView) {
         let constraints = tiles[tile]!.constraints
@@ -316,6 +330,13 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         let tileView = tile(at: moveOperation.position)
         remove(tileView)
         place(tileView, at: moveOperation.targetPosition)
+    }
+
+    // MARK: - UIGestureRecognizerDelegate Methods
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return gestureRecognizer is UILongPressGestureRecognizer
     }
 }
 

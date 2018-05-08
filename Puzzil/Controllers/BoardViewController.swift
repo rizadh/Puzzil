@@ -72,7 +72,6 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             return $0
         })
 
-        boardView.isDynamic = false
         boardView.reloadTiles()
     }
 
@@ -84,6 +83,10 @@ class BoardViewController: UIViewController, BoardViewDelegate {
 
     func numberOfColumns(in boardView: BoardView) -> Int {
         return board.columns
+    }
+
+    func boardIsDynamic(_ boardView: BoardView) -> Bool {
+        return false
     }
 
     func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String? {
