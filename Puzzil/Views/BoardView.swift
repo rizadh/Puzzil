@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardView: UIView, UIGestureRecognizerDelegate {
+class BoardView: UIView {
 
     // MARK: - Dimension Constants
 
@@ -18,12 +18,14 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
 
     // MARK: - Board Properties
 
+    private(set) var board: Board!
+    var isDynamic = true
     weak var delegate: BoardViewDelegate!
     private var tiles = [TileView: TileInfo]()
     private var rowGuides = [UILayoutGuide]()
     private var columnGuides = [UILayoutGuide]()
 
-    // MARK: - Drag Management
+    // MARK: - Drag Operation Coordination
 
     private var _currentDrags = [TileView: Any]()
     @available(iOS 10, *)
@@ -36,6 +38,10 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
             _currentDrags = newValue
         }
     }
+
+    // MARK: - Move Operation Coordination
+
+    private var reservedPositions = Set<TilePosition>()
 
     // MARK: - Constructors
 
@@ -60,9 +66,20 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
         let tile = sender.view as! TileView
         let position = tiles[tile]!.position
+        var validOperations = [TileMoveOperation]()
+        var simpleOperations = [TileMoveOperation]()
 
-        let validOperations = position.possibleOperations.filter { canPerform($0).result }
-        let simpleOperations = validOperations.filter { canPerform($0).requiredOperations.count == 1 }
+        for moveOperation in position.possibleOperations {
+            switch board.canPerform(moveOperation) {
+            case let .possible(after: requiredOperations):
+                validOperations.append(moveOperation)
+                if requiredOperations.count == 1 {
+                    simpleOperations.append(moveOperation)
+                }
+            case .notPossible:
+                break
+            }
+        }
 
         if validOperations.count == 1 {
             animate(validOperations.first!)
@@ -129,13 +146,16 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     // MARK: - Tile Animations
 
     private func animate(_ moveOperation: TileMoveOperation) {
-        let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
+        switch board.canPerform(moveOperation) {
+        case let .possible(after: operations):
+            for operation in operations + [moveOperation] {
+                perform(operation)
+            }
 
-        guard operationIsPossible else { return }
-
-        requiredOperations.forEach {
-            perform($0)
-            delegate.boardView(self, didPerform: $0)
+            board.perform(moveOperation)
+            delegate.boardDidChange(self)
+        case .notPossible:
+            fatalError("Cannot animate an impossible move operation")
         }
 
         UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
@@ -143,86 +163,17 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
         })
     }
 
-    // MARK: Interactive Drag
-
-    @available(iOS 10, *)
-    private func beginAnimation(for moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.position)
-        if dragOperations[tileView] != nil { return }
-        let (operationIsPossible, requiredOperations) = canPerform(moveOperation)
-        guard operationIsPossible else { return }
-
-        requiredOperations.forEach(perform)
-        delegate.boardView(self, didStart: requiredOperations.first!)
-
-        let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-            self.layoutIfNeeded()
-        }
-
-        let originalFrame = tileView.frame
-        animator.pauseAnimation()
-        let targetFrame = tileView.frame
-        let dragOperation = TileDragOperation(direction: moveOperation.direction, originalFrame: originalFrame,
-                                              targetFrame: targetFrame, animator: animator,
-                                              requiredMoveOperations: requiredOperations)
-
-        dragOperations[tileView] = dragOperation
-    }
-
-    @available(iOS 10, *)
-    private func updateAnimation(for tileView: TileView, with translation: CGPoint) {
-        guard let dragOperation = dragOperations[tileView] else { return }
-
-        let fractionComplete = dragOperation.fractionComplete(with: translation)
-        dragOperation.animator.fractionComplete = fractionComplete
-    }
-
-    @available(iOS 10, *)
-    private func completeAnimation(for tileView: TileView, with velocity: CGPoint) {
-        guard let dragOperation = dragOperations[tileView] else { return }
-
-        let animator = dragOperation.animator
-        let velocityAdjustment = dragOperation.fractionComplete(with: velocity)
-
-        if animator.fractionComplete + velocityAdjustment < 0.5 {
-            animator.isReversed = true
-            dragOperation.requiredMoveOperations.map { $0.reversed }.forEach(perform)
-            delegate.boardView(self, didCancel: dragOperation.requiredMoveOperations.first!)
-        } else {
-            delegate.boardView(self, didComplete: dragOperation.requiredMoveOperations.first!)
-            dragOperation.requiredMoveOperations.dropFirst().forEach { self.delegate.boardView(self, didPerform: $0) }
-        }
-
-        let timingParameters = UISpringTimingParameters(dampingRatio: 1,
-                                                        initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
-        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-        dragOperations[tileView] = nil
-    }
-
-    private func canPerform(_ moveOperation: TileMoveOperation) ->
-        (result: Bool, requiredOperations: [TileMoveOperation]) {
-        guard let operationIsPossible = delegate.boardView(self, canPerform: moveOperation) else {
-            return (false, [moveOperation])
-        }
-
-        if operationIsPossible { return (true, [moveOperation]) }
-
-        let nextOperationIsPossible = canPerform(moveOperation.nextOperation)
-
-        if nextOperationIsPossible.result {
-            return (true, nextOperationIsPossible.requiredOperations + [moveOperation])
-        }
-
-        return (false, [moveOperation])
-    }
-
     // MARK: - Tile Layout
 
-    func reloadTiles() {
+    func reloadBoard() {
         clearTiles()
-        generateColumnLayoutGuides()
-        generateRowLayoutGuides()
-        layoutTiles()
+
+        delegate.newBoard(for: self) { board in
+            self.board = board
+            self.generateColumnLayoutGuides()
+            self.generateRowLayoutGuides()
+            self.layoutTiles()
+        }
     }
 
     private func clearTiles() {
@@ -241,7 +192,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     private func generateColumnLayoutGuides() {
         var lastAnchor = leftAnchor
 
-        for columnIndex in 0..<delegate.numberOfColumns(in: self) {
+        for columnIndex in 0..<board.columnCount {
             let columnGuide = UILayoutGuide()
             columnGuides.append(columnGuide)
             addLayoutGuide(columnGuide)
@@ -256,7 +207,7 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     private func generateRowLayoutGuides() {
         var lastAnchor = topAnchor
 
-        for rowIndex in 0..<delegate.numberOfRows(in: self) {
+        for rowIndex in 0..<board.rowCount {
             let rowGuide = UILayoutGuide()
             rowGuides.append(rowGuide)
             addLayoutGuide(rowGuide)
@@ -271,17 +222,14 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     // MARK: Tile Creation
 
     private func layoutTiles() {
-        let columns = delegate.numberOfColumns(in: self)
-        let rows = delegate.numberOfRows(in: self)
-
-        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
-            guard let text = delegate.boardView(self, tileTextAt: position) else { continue }
+        for position in TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount) {
+            guard let text = board.tileText(at: position) else { continue }
 
             let tile = TileView()
             tile.translatesAutoresizingMaskIntoConstraints = false
             tile.text = text
 
-            if delegate.boardIsDynamic(self) {
+            if isDynamic {
                 tile.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
                 tile.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
                 let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(tileWasPressed(_:)))
@@ -328,13 +276,72 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
     }
 
     private func perform(_ moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.position)
+        let tileView = tile(at: moveOperation.sourcePosition)
         remove(tileView)
         place(tileView, at: moveOperation.targetPosition)
     }
+}
 
-    // MARK: - UIGestureRecognizerDelegate Methods
+// MARK: - Interactive Drag Support
 
+@available(iOS 10, *)
+extension BoardView {
+    private func beginAnimation(for moveOperation: TileMoveOperation) {
+        let tileView = tile(at: moveOperation.sourcePosition)
+        guard case let .possible(after: operations) = board.canPerform(moveOperation),
+            dragOperations[tileView] == nil
+        else { return }
+
+        (operations + [moveOperation]).forEach(perform)
+        board.begin(moveOperation)
+
+        let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+            self.layoutIfNeeded()
+        }
+
+        let originalFrame = tileView.frame
+        animator.pauseAnimation()
+        let targetFrame = tileView.frame
+        let dragOperation = TileDragOperation(direction: moveOperation.direction, originalFrame: originalFrame,
+                                              targetFrame: targetFrame, animator: animator,
+                                              moveOperation: moveOperation,
+                                              requiredMoveOperations: operations)
+
+        dragOperations[tileView] = dragOperation
+    }
+
+    private func updateAnimation(for tileView: TileView, with translation: CGPoint) {
+        guard let dragOperation = dragOperations[tileView] else { return }
+
+        let fractionComplete = dragOperation.fractionComplete(with: translation)
+        dragOperation.animator.fractionComplete = fractionComplete
+    }
+
+    private func completeAnimation(for tileView: TileView, with velocity: CGPoint) {
+        guard let dragOperation = dragOperations[tileView] else { return }
+
+        let animator = dragOperation.animator
+        let velocityAdjustment = dragOperation.fractionComplete(with: velocity)
+
+        if animator.fractionComplete + velocityAdjustment < 0.5 {
+            animator.isReversed = true
+            dragOperation.allOperations.map { $0.reversed }.forEach(perform)
+            board.cancel(dragOperation.moveOperation)
+        } else {
+            board.complete(dragOperation.moveOperation)
+            delegate.boardDidChange(self)
+        }
+
+        let timingParameters = UISpringTimingParameters(dampingRatio: 1,
+                                                        initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
+        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+        dragOperations[tileView] = nil
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension BoardView: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return gestureRecognizer is UILongPressGestureRecognizer
@@ -344,31 +351,4 @@ class BoardView: UIView, UIGestureRecognizerDelegate {
 fileprivate struct TileInfo {
     let position: TilePosition
     let constraints: [NSLayoutConstraint]
-}
-
-@available(iOS 10, *)
-struct TileDragOperation {
-    let direction: TileMoveDirection
-    let originalFrame: CGRect
-    let targetFrame: CGRect
-    let animator: UIViewPropertyAnimator
-    let requiredMoveOperations: [TileMoveOperation]
-
-    var distance: CGFloat {
-        switch direction {
-        case .left, .right:
-            return targetFrame.midX - originalFrame.midX
-        case .up, .down:
-            return targetFrame.midY - originalFrame.midY
-        }
-    }
-
-    func fractionComplete(with translation: CGPoint) -> CGFloat {
-        switch direction {
-        case .left, .right:
-            return translation.x / distance
-        case .up, .down:
-            return translation.y / distance
-        }
-    }
 }

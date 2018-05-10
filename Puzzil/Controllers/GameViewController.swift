@@ -8,7 +8,7 @@
 
 import UIKit
 
-class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
+class GameViewController: UIViewController, BoardContainer {
 
     // MARK: UIViewController Property Overrides
 
@@ -23,9 +23,7 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
     // MARK: - Board Management
 
     private var boardConfiguration: BoardConfiguration
-    private var board: Board!
     private let difficulty: Double
-    private var operationsInProgress = Set<TileMoveOperation>()
 
     // MARK: - Subviews
 
@@ -80,8 +78,6 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        board = boardFromConfiguration()
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
@@ -189,14 +185,22 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
         })
     }
 
+    private func generateNewBoard() -> Board {
+        do {
+            sleep(1)
+            return try BoardScrambler.scramble(boardFromConfiguration(), untilProgressIsBelow: 1 - difficulty)
+        } catch BoardScramblerError.scrambleStagnated { navigateToMainMenu(); return boardFromConfiguration() }
+        catch { fatalError(error.localizedDescription) }
+    }
+
     private func resetBoard() {
-        board = boardFromConfiguration()
+        var board = boardFromConfiguration()
         do { board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - difficulty) }
         catch BoardScramblerError.scrambleStagnated { navigateToMainMenu() }
         catch { fatalError(error.localizedDescription) }
         timeStatRefresher?.isPaused = false
 
-        boardView.reloadTiles()
+        boardView.reloadBoard()
 
         updateBestTimeStat()
         moves = 0
@@ -297,59 +301,39 @@ class GameViewController: UIViewController, BoardViewDelegate, BoardContainer {
     @objc private func updateTimeStat() {
         timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
     }
+}
 
-    // MARK: - BoardViewDelegate Methods
+// MARK: BoardViewDelegate
 
-    func numberOfRows(in boardView: BoardView) -> Int {
-        return board.rows
+extension GameViewController: BoardViewDelegate {
+    func boardView(_ boardView: BoardView, didPerform moveOperations: [TileMoveOperation]) {
+        moves += moveOperations.count
+        if boardView.board.isSolved { boardWasSolved() }
     }
 
-    func numberOfColumns(in boardView: BoardView) -> Int {
-        return board.columns
-    }
-
-    func boardIsDynamic(_ boardView: BoardView) -> Bool {
-        return true
-    }
-
-    func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String? {
-        return board.tileText(at: position)
-    }
-
-    func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool? {
-        guard let canPerformMoveOperation = board.canPerform(moveOperation) else {
-            return nil
-        }
-
-        if let _ = operationsInProgress.first(where: { $0.targetPosition == moveOperation.targetPosition }) {
-            return false
-        }
-
-        return canPerformMoveOperation
-    }
-
-    func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation) {
-        if self.boardView(boardView, canPerform: moveOperation) ?? false {
-            operationsInProgress.insert(moveOperation)
-        } else {
-            fatalError("Move operation not allowed")
-        }
-    }
-
-    func boardView(_ boardView: BoardView, didCancel moveOperation: TileMoveOperation) {
-        guard let _ = operationsInProgress.remove(moveOperation) else {
-            fatalError("Move operation was cancelled before it started")
-        }
-    }
-
-    func boardView(_ boardView: BoardView, didComplete moveOperation: TileMoveOperation) {
-        guard let _ = operationsInProgress.remove(moveOperation) else {
-            fatalError("Move operation was completed before it started")
-        }
-
-        board.perform(moveOperation)
+    func boardDidChange(_ boardView: BoardView) {
         moves += 1
+        if boardView.board.isSolved { boardWasSolved() }
+    }
 
-        if board.isSolved && operationsInProgress.isEmpty { boardWasSolved() }
+    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
+//        DispatchQueue.global().async {
+        //            let board = self.generateNewBoard()
+        //
+        //            DispatchQueue.main.async {
+        //                completion(board)
+        //            }
+        //        }
+
+        var board = boardFromConfiguration()
+        do { return board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - difficulty)
+        } catch BoardScramblerError.scrambleStagnated { navigateToMainMenu() }
+        catch { fatalError(error.localizedDescription) }
+
+        completion(board)
+
+        updateBestTimeStat()
+        moves = 0
+        startTime = Date()
     }
 }

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardViewController: UIViewController, BoardViewDelegate {
+class BoardViewController: UIViewController {
     let configuration: BoardConfiguration
     let boardView = BoardView()
     private let board: Board
@@ -32,6 +32,7 @@ class BoardViewController: UIViewController, BoardViewDelegate {
         super.viewDidLoad()
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
+        boardView.isDynamic = false
         boardView.delegate = self
         view.addSubview(boardView)
 
@@ -72,40 +73,18 @@ class BoardViewController: UIViewController, BoardViewDelegate {
             return $0
         })
 
-        boardView.reloadTiles()
+        boardView.reloadBoard()
+    }
+}
+
+// MARK: - BoardViewDelegate
+
+extension BoardViewController: BoardViewDelegate {
+    func boardDidChange(_ boardView: BoardView) {
+        fatalError("Static board cannot change")
     }
 
-    // MARK: - BoardViewDelegate Methods
-
-    func numberOfRows(in boardView: BoardView) -> Int {
-        return board.rows
-    }
-
-    func numberOfColumns(in boardView: BoardView) -> Int {
-        return board.columns
-    }
-
-    func boardIsDynamic(_ boardView: BoardView) -> Bool {
-        return false
-    }
-
-    func boardView(_ boardView: BoardView, tileTextAt position: TilePosition) -> String? {
-        return board.tileText(at: position)
-    }
-
-    func boardView(_ boardView: BoardView, canPerform moveOperation: TileMoveOperation) -> Bool? {
-        fatalError("Cannot perform move operation")
-    }
-
-    func boardView(_ boardView: BoardView, didStart moveOperation: TileMoveOperation) {
-        fatalError("Cannot start move operation")
-    }
-
-    func boardView(_ boardView: BoardView, didCancel moveOperation: TileMoveOperation) {
-        fatalError("Cannot cancel move operation")
-    }
-
-    func boardView(_ boardView: BoardView, didComplete moveOperation: TileMoveOperation) {
-        fatalError("Cannot complete move operation")
+    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
+        completion(board)
     }
 }

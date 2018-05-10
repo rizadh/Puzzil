@@ -12,3 +12,9 @@ struct Tile {
     var targets: [TilePosition]
     var text: String
 }
+
+extension Tile: CustomStringConvertible {
+    var description: String {
+        return text
+    }
+}

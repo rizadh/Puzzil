@@ -49,10 +49,16 @@ struct BoardScrambler {
     }
 
     private static func possibleMoveOperations(in board: Board) -> [TileMoveOperation] {
-        return TilePosition.traversePositions(rows: board.rows, columns: board.columns).flatMap { position in
+        return TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount).flatMap { position in
             [.left, .right, .up, .down]
                 .map { direction in TileMoveOperation(moving: direction, from: position) }
-                .filter { moveOperation in board.canPerform(moveOperation) ?? false }
+                .filter { moveOperation in
+                    guard case let .possible(after: operations) = board.canPerform(moveOperation),
+                        operations == []
+                    else { return false }
+
+                    return true
+                }
         }
     }
 

@@ -11,16 +11,17 @@ import Foundation
 struct Board {
     private typealias TileMatrix = [[Tile?]]
 
-    // MARK: - Board Properties
+    // MARK: - Board Properties-
 
-    let rows: Int
-    let columns: Int
+    let rowCount: Int
+    let columnCount: Int
     private var tiles: TileMatrix = []
+    private var reservedPositions = [TileMoveOperation: TilePosition]()
 
     // MARK: - Board Status
 
     var isSolved: Bool {
-        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
+        for position in TilePosition.traversePositions(rows: rowCount, columns: columnCount) {
             if let tile = tiles[position], !tile.targets.contains(position) {
                 return false
             }
@@ -36,7 +37,7 @@ struct Board {
     private var distanceLeft: Int {
         var distance = 0
 
-        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
+        for position in TilePosition.traversePositions(rows: rowCount, columns: columnCount) {
             if let tile = tiles[position], !tile.targets.contains(position) {
                 distance += tile.targets.map(position.distance(to:)).min()!
             }
@@ -75,19 +76,19 @@ struct Board {
         guard matrix.count > 0 else { fatalError("Matrix must have at least one row") }
         guard matrix.first!.count > 0 else { fatalError("Matrix must have at least one column") }
 
-        rows = matrix.count
-        columns = matrix.first!.count
+        rowCount = matrix.count
+        columnCount = matrix.first!.count
 
-        tiles.reserveCapacity(rows)
+        tiles.reserveCapacity(rowCount)
 
         var tilePositions = [String: [TilePosition]]()
         var tileTexts = [[String?]]()
 
         for (rowIndex, row) in matrix.enumerated() {
-            guard columns == row.count else { fatalError("Provided matrix does not have a consistent row length") }
+            guard columnCount == row.count else { fatalError("Provided matrix does not have a consistent row length") }
 
             var tileRow = [String?]()
-            tileRow.reserveCapacity(columns)
+            tileRow.reserveCapacity(columnCount)
 
             for (columnIndex, element) in row.enumerated() {
                 var text: String?
@@ -114,42 +115,47 @@ struct Board {
             return Tile(targets: positions, text: text)
         } }
 
-        maxDistanceRemaining = Board.calculateMaxDistance(for: tiles, rows: rows, columns: columns)
+        maxDistanceRemaining = Board.calculateMaxDistance(for: tiles, rows: rowCount, columns: columnCount)
     }
 
     // MARK: - Private Methods
 
     private func boardContains(_ position: TilePosition) -> Bool {
-        return position.row >= 0 && position.row < rows &&
-            position.column >= 0 && position.column < columns
+        return position.row >= 0 && position.row < rowCount &&
+            position.column >= 0 && position.column < columnCount
     }
 
-    private func tileIsPresent(at position: TilePosition) -> Bool? {
-        guard boardContains(position) else { return nil }
+    private func tileIsPresent(at position: TilePosition) -> Bool {
+        guard boardContains(position) else { return false }
 
         return tiles[position] != nil
     }
 
+    private func reservationExists(at position: TilePosition) -> Bool {
+        return Set(reservedPositions.values).contains(position)
+    }
+
     // MARK: - Public Methods
 
-    func canPerform(_ moveOperation: TileMoveOperation) -> Bool? {
-        let target = moveOperation.targetPosition
+    func canPerform(_ moveOperation: TileMoveOperation) -> TileMoveResult {
+        // Check that a tile is present to be moved
+        guard tileIsPresent(at: moveOperation.sourcePosition),
+            boardContains(moveOperation.targetPosition),
+            !reservationExists(at: moveOperation.targetPosition)
+        else { return .notPossible }
 
-        guard let tileIsPresentAtSource = tileIsPresent(at: moveOperation.position) else { return nil }
-
-        guard let _ = tileIsPresent(at: target) else { return nil }
-
-        if !tileIsPresentAtSource { return false }
-
-        var currentPosition = target
-
-        while currentPosition != moveOperation.position {
-            if tileIsPresent(at: currentPosition)! { return false }
-
-            currentPosition = target.moved(moveOperation.direction.opposite)
+        // Check if the target position is already occupied
+        if tileIsPresent(at: moveOperation.targetPosition) {
+            // Check if the next tile can be moved away
+            switch canPerform(moveOperation.nextOperation) {
+            case let .possible(after: operations):
+                return .possible(after: operations + [moveOperation.nextOperation])
+            case .notPossible:
+                return .notPossible
+            }
+        } else {
+            return .possible(after: [])
         }
-
-        return true
     }
 
     func tileText(at position: TilePosition) -> String? {
@@ -158,17 +164,70 @@ struct Board {
         return tiles[position]?.text
     }
 
+    mutating func begin(_ moveOperation: TileMoveOperation) {
+        switch canPerform(moveOperation) {
+        case let .possible(after: operations):
+            let finalOperation = operations.last ?? moveOperation
+            let finalPosition = finalOperation.targetPosition
+            reservedPositions[moveOperation] = finalPosition
+        case .notPossible:
+            fatalError("Cannot begin an impossible move operation")
+        }
+    }
+
+    mutating func cancel(_ moveOperation: TileMoveOperation) {
+        guard let _ = reservedPositions.removeValue(forKey: moveOperation) else {
+            fatalError("Cannot cancel a move that was not started")
+        }
+    }
+
+    mutating func complete(_ moveOperation: TileMoveOperation) {
+        cancel(moveOperation)
+        perform(moveOperation)
+    }
+
     mutating func perform(_ moveOperation: TileMoveOperation) {
-        guard let tileIsMovable = canPerform(moveOperation) else {
-            fatalError("Move operation exceeds the bounds of the board")
+        switch canPerform(moveOperation) {
+        case let .possible(after: operations):
+            for operation in operations + [moveOperation] {
+                tiles[operation.targetPosition] = tiles[operation.sourcePosition]
+                tiles[operation.sourcePosition] = nil
+            }
+        case .notPossible:
+            fatalError("Cannot perform an impossible move operation")
+        }
+    }
+}
+
+enum TileMoveResult {
+    case possible(after: [TileMoveOperation])
+    case notPossible
+}
+
+extension Board: CustomStringConvertible {
+    var description: String {
+        var string = ""
+
+        for row in tiles {
+            for _ in 0..<row.count * 4 + 1 {
+                string += "-"
+            }
+            string += "\n"
+            for elementOrNil in row {
+                if let element = elementOrNil {
+                    string += "| \(element) "
+                } else {
+                    string += "|   "
+                }
+            }
+            string += "|\n"
         }
 
-        precondition(tileIsMovable, "Tile cannot be moved to desired position")
+        for _ in 0..<tiles.first!.count * 4 + 1 {
+            string += "-"
+        }
 
-        let targetPosition = moveOperation.targetPosition
-
-        tiles[targetPosition] = tiles[moveOperation.position]
-        tiles[moveOperation.position] = nil
+        return string
     }
 }
 

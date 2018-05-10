@@ -9,16 +9,23 @@
 import Foundation
 
 struct TileMoveOperation: Equatable, Hashable {
-    let position: TilePosition
+    let sourcePosition: TilePosition
     let direction: TileMoveDirection
-    let targetPosition: TilePosition
 
-    var nextOperation: TileMoveOperation { return TileMoveOperation(moving: direction, from: targetPosition) }
-    var reversed: TileMoveOperation { return TileMoveOperation(moving: direction.opposite, from: targetPosition) }
+    var targetPosition: TilePosition {
+        return sourcePosition.moved(direction)
+    }
+
+    var nextOperation: TileMoveOperation {
+        return TileMoveOperation(moving: direction, from: targetPosition)
+    }
+
+    var reversed: TileMoveOperation {
+        return TileMoveOperation(moving: direction.opposite, from: targetPosition)
+    }
 
     init(moving direction: TileMoveDirection, from position: TilePosition) {
-        self.position = position
+        sourcePosition = position
         self.direction = direction
-        targetPosition = position.moved(direction)
     }
 }

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIViewControllerTransitioningDelegate, BoardContainer, UIGestureRecognizerDelegate {
+class BoardSelectorViewController: UIViewController {
 
     // MARK: UIViewController Property Overrides
 
@@ -31,10 +31,6 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
     let helpText = UILabel()
     private let boardViewControllers = BoardConfiguration.builtins.map { configuration in
         return BoardViewController(for: configuration)
-    }
-
-    var boardView: BoardView {
-        return visibleBoardViewController.boardView
     }
 
     var visibleBoardViewController: BoardViewController {
@@ -162,62 +158,12 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
             safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor, constant: 16),
         ])
     }
+}
 
-    // MARK: - UIViewControllerTransitioningDelegate Methods
+// MARK: - Event Handlers
 
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController,
-                             source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        animator.presenting = true
-        return animator
-    }
-
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        animator.presenting = false
-        return animator
-    }
-
-    // MARK: - UIPageViewControllerDataSource Methods
-
-    func pageViewController(_ pageViewController: UIPageViewController,
-                            viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
-        let previousIndex = (index - 1 + boardViewControllers.count) % boardViewControllers.count
-        return boardViewControllers[previousIndex]
-    }
-
-    func pageViewController(_ pageViewController: UIPageViewController,
-                            viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
-        let nextIndex = (index + 1) % boardViewControllers.count
-        return boardViewControllers[nextIndex]
-    }
-
-    // MARK: - UIPageViewControllerDelegate Methods
-
-    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool,
-                            previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        if completed {
-            let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
-            let index = boardViewControllers.index(of: boardViewController)!
-            pageControl.currentPage = index
-            updateBoardNameLabel()
-        }
-    }
-
-    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-        latestPressRecognizer?.isEnabled = false
-        latestPressRecognizer?.isEnabled = true
-    }
-
-    // MARK: - UIGestureRecognizerDelegate Methods
-
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
-    }
-
-    // MARK: - Event Handlers
-
-    @objc private func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
+@objc private extension BoardSelectorViewController {
+    func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
         latestPressRecognizer = sender
         let boardView = visibleBoardViewController.boardView
 
@@ -237,14 +183,14 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
     }
 
-    @objc private func boardWasTapped(_ sender: UITapGestureRecognizer) {
+    func boardWasTapped(_ sender: UITapGestureRecognizer) {
         let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration,
                                                     difficulty: 0.5)
         gameViewController.transitioningDelegate = self
         present(gameViewController, animated: true)
     }
 
-    @objc private func navigateToCurrentPage() {
+    func navigateToCurrentPage() {
         let currentPage = pageControl.currentPage
         let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
         let previousPage = boardViewControllers.index(of: boardViewController)!
@@ -260,5 +206,73 @@ class BoardSelectorViewController: UIViewController, UIPageViewControllerDataSou
         }
 
         updateBoardNameLabel()
+    }
+}
+
+// MARK: - BoardContainer
+
+extension BoardSelectorViewController: BoardContainer {
+    var boardView: BoardView {
+        return visibleBoardViewController.boardView
+    }
+}
+
+// MARK: - UIViewControllerTransitioningDelegate
+
+extension BoardSelectorViewController: UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController,
+                             source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        animator.presenting = true
+        return animator
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        animator.presenting = false
+        return animator
+    }
+}
+
+// MARK: - UIPageViewControllerDelegate
+
+extension BoardSelectorViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+}
+
+// MARK: - UIPageViewControllerDelegate
+
+extension BoardSelectorViewController: UIPageViewControllerDelegate {
+    func pageViewController(_ pageViewController: UIPageViewController,
+                            viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
+        let previousIndex = (index - 1 + boardViewControllers.count) % boardViewControllers.count
+        return boardViewControllers[previousIndex]
+    }
+
+    func pageViewController(_ pageViewController: UIPageViewController,
+                            viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
+        let nextIndex = (index + 1) % boardViewControllers.count
+        return boardViewControllers[nextIndex]
+    }
+}
+
+// MARK: - UIPageViewControllerDataSource
+
+extension BoardSelectorViewController: UIPageViewControllerDataSource {
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool,
+                            previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        if completed {
+            let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
+            let index = boardViewControllers.index(of: boardViewController)!
+            pageControl.currentPage = index
+            updateBoardNameLabel()
+        }
+    }
+
+    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+        latestPressRecognizer?.isEnabled = false
+        latestPressRecognizer?.isEnabled = true
     }
 }
