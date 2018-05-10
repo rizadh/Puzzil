@@ -20,10 +20,20 @@ class BoardView: UIView {
 
     private(set) var board: Board!
     var isDynamic = true
+    var isAwaitingBoard = true {
+        didSet {
+            if isAwaitingBoard {
+                activityIndicator.startAnimating()
+            } else {
+                activityIndicator.stopAnimating()
+            }
+        }
+    }
+
     weak var delegate: BoardViewDelegate!
     private var tiles = [TileView: TileInfo]()
-    private var rowGuides = [UILayoutGuide]()
-    private var columnGuides = [UILayoutGuide]()
+    private var tileGuides = [[UILayoutGuide]]()
+    private var activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
 
     // MARK: - Drag Operation Coordination
 
@@ -51,11 +61,19 @@ class BoardView: UIView {
         isOpaque = false
         backgroundColor = .themeBoard
         layer.cornerRadius = BoardView.cornerRadius
+
+        addSubview(activityIndicator)
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        activityIndicator.color = .themePageControlActive
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    // MARK: - Private Helpers
 
     private func tile(at position: TilePosition) -> TileView {
         return tiles.first { $0.value.position == position }!.key
@@ -168,55 +186,103 @@ class BoardView: UIView {
     func reloadBoard() {
         clearTiles()
 
+        let (rowCount, columnCount) = delegate.expectedBoardDimensions(self)
+
+        generateLayoutGuides(rowCount: rowCount, columnCount: columnCount)
+
+        isAwaitingBoard = true
+
         delegate.newBoard(for: self) { board in
+            self.isAwaitingBoard = false
             self.board = board
-            self.generateColumnLayoutGuides()
-            self.generateRowLayoutGuides()
             self.layoutTiles()
+
+            self.tiles.keys.forEach { tileView in
+                tileView.alpha = 0
+                tileView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            }
+
+            for (tileView, tileInfo) in self.tiles {
+                let relativeY = 1 - Double(tileInfo.position.row) / Double(board.rowCount)
+
+                UIView.animate(withDuration: 0.125, delay: 0.125 * relativeY, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: [], animations: {
+                    tileView.alpha = 1
+                    tileView.transform = .identity
+                })
+            }
+
+            Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.boardWasPresented), userInfo: nil, repeats: false)
         }
+    }
+
+    @objc private func boardWasPresented() {
+        delegate?.boardWasPresented(self)
     }
 
     private func clearTiles() {
         tiles.keys.forEach { $0.removeFromSuperview() }
         tiles.removeAll()
 
-        rowGuides.forEach(removeLayoutGuide(_:))
-        rowGuides.removeAll()
-
-        columnGuides.forEach(removeLayoutGuide(_:))
-        columnGuides.removeAll()
+        tileGuides.forEach { $0.forEach(removeLayoutGuide(_:)) }
+        tileGuides = []
     }
 
     // MARK: Layout Guide Generation
 
-    private func generateColumnLayoutGuides() {
-        var lastAnchor = leftAnchor
+    private func generateLayoutGuides(rowCount: Int, columnCount: Int) {
+        // Generate column guides
 
-        for columnIndex in 0..<board.columnCount {
+        var columnGuides = [UILayoutGuide]()
+        var lastColumnAnchor = leftAnchor
+
+        for columnIndex in 0..<columnCount {
             let columnGuide = UILayoutGuide()
             columnGuides.append(columnGuide)
             addLayoutGuide(columnGuide)
 
-            columnGuide.leftAnchor.constraint(equalTo: lastAnchor, constant: columnIndex == 0 ? 16 : 8).isActive = true
-            lastAnchor = columnGuide.rightAnchor
+            columnGuide.leftAnchor.constraint(equalTo: lastColumnAnchor, constant: columnIndex == 0 ? 16 : 8).isActive = true
+            lastColumnAnchor = columnGuide.rightAnchor
         }
 
-        rightAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
-    }
+        rightAnchor.constraint(equalTo: lastColumnAnchor, constant: 16).isActive = true
 
-    private func generateRowLayoutGuides() {
-        var lastAnchor = topAnchor
+        // Generate row guides
 
-        for rowIndex in 0..<board.rowCount {
+        var rowGuides = [UILayoutGuide]()
+        var lastRowAnchor = topAnchor
+
+        for rowIndex in 0..<rowCount {
             let rowGuide = UILayoutGuide()
             rowGuides.append(rowGuide)
             addLayoutGuide(rowGuide)
 
-            rowGuide.topAnchor.constraint(equalTo: lastAnchor, constant: rowIndex == 0 ? 16 : 8).isActive = true
-            lastAnchor = rowGuide.bottomAnchor
+            rowGuide.topAnchor.constraint(equalTo: lastRowAnchor, constant: rowIndex == 0 ? 16 : 8).isActive = true
+            lastRowAnchor = rowGuide.bottomAnchor
         }
 
-        bottomAnchor.constraint(equalTo: lastAnchor, constant: 16).isActive = true
+        bottomAnchor.constraint(equalTo: lastRowAnchor, constant: 16).isActive = true
+
+        // Generate tile guides
+
+        for columnGuide in columnGuides {
+            var tileGuidesForRow = [UILayoutGuide]()
+            for rowGuide in rowGuides {
+                let tileGuide = UILayoutGuide()
+                addLayoutGuide(tileGuide)
+                NSLayoutConstraint.activate([
+                    tileGuide.leftAnchor.constraint(equalTo: columnGuide.leftAnchor),
+                    tileGuide.rightAnchor.constraint(equalTo: columnGuide.rightAnchor),
+                    tileGuide.topAnchor.constraint(equalTo: rowGuide.topAnchor),
+                    tileGuide.bottomAnchor.constraint(equalTo: rowGuide.bottomAnchor),
+
+                    tileGuide.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
+                    tileGuide.heightAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
+                    tileGuide.widthAnchor.constraint(equalTo: tileGuide.heightAnchor),
+                ])
+                tileGuidesForRow.append(tileGuide)
+            }
+            tileGuides.append(tileGuidesForRow)
+        }
     }
 
     // MARK: Tile Creation
@@ -238,12 +304,6 @@ class BoardView: UIView {
                 tile.addGestureRecognizer(pressGestureRecognizer)
             }
 
-            NSLayoutConstraint.activate([
-                tile.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
-                tile.heightAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
-                tile.widthAnchor.constraint(equalTo: tile.heightAnchor),
-            ])
-
             addSubview(tile)
             place(tile, at: position)
         }
@@ -260,14 +320,13 @@ class BoardView: UIView {
     }
 
     private func place(_ tile: TileView, at position: TilePosition) {
-        let rowGuide = rowGuides[position.row]
-        let columnGuide = columnGuides[position.column]
+        let tileGuide = tileGuides[position.column][position.row]
 
         let constraints = [
-            tile.leftAnchor.constraint(equalTo: columnGuide.leftAnchor),
-            tile.rightAnchor.constraint(equalTo: columnGuide.rightAnchor),
-            tile.topAnchor.constraint(equalTo: rowGuide.topAnchor),
-            tile.bottomAnchor.constraint(equalTo: rowGuide.bottomAnchor),
+            tile.leftAnchor.constraint(equalTo: tileGuide.leftAnchor),
+            tile.rightAnchor.constraint(equalTo: tileGuide.rightAnchor),
+            tile.topAnchor.constraint(equalTo: tileGuide.topAnchor),
+            tile.bottomAnchor.constraint(equalTo: tileGuide.bottomAnchor),
         ]
 
         NSLayoutConstraint.activate(constraints)

@@ -80,11 +80,19 @@ class BoardViewController: UIViewController {
 // MARK: - BoardViewDelegate
 
 extension BoardViewController: BoardViewDelegate {
+    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
+        completion(board)
+    }
+
     func boardDidChange(_ boardView: BoardView) {
         fatalError("Static board cannot change")
     }
 
-    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
-        completion(board)
+    func boardWasPresented(_ boardView: BoardView) {
+        return
+    }
+
+    func expectedBoardDimensions(_ boardView: BoardView) -> (rowCount: Int, columnCount: Int) {
+        return (board.rowCount, board.columnCount)
     }
 }

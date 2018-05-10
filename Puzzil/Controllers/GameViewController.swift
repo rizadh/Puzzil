@@ -38,14 +38,15 @@ class GameViewController: UIViewController, BoardContainer {
 
     // MARK: - Stat Management
 
-    private var timeStatRefresher: CADisplayLink!
-
-    private var startTime = Date()
-    private var moves = 0 {
+    private var isAwaitingBoard = true {
         didSet {
-            movesStat.valueLabel.text = moves.description
+            restartButton.isEnabled = !isAwaitingBoard
         }
     }
+
+    private var timeStatRefresher: CADisplayLink!
+    private var startTime = Date()
+    private var moves = 0
 
     private var elapsedSeconds: TimeInterval {
         return Date().timeIntervalSince(startTime)
@@ -82,8 +83,9 @@ class GameViewController: UIViewController, BoardContainer {
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
 
-        resetBoard()
         setupSubviews()
+        updateStats()
+        boardView.reloadBoard()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -91,6 +93,14 @@ class GameViewController: UIViewController, BoardContainer {
     }
 
     // MARK: - Private Methods
+
+    private func resetBoard() {
+        UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel]) {
+            self.isAwaitingBoard = true
+            self.updateStats()
+            self.boardView.reloadBoard()
+        }
+    }
 
     private func boardFromConfiguration() -> Board {
         return Board(from: boardConfiguration.matrix)
@@ -185,47 +195,8 @@ class GameViewController: UIViewController, BoardContainer {
         })
     }
 
-    private func generateNewBoard() -> Board {
-        do {
-            sleep(1)
-            return try BoardScrambler.scramble(boardFromConfiguration(), untilProgressIsBelow: 1 - difficulty)
-        } catch BoardScramblerError.scrambleStagnated { navigateToMainMenu(); return boardFromConfiguration() }
-        catch { fatalError(error.localizedDescription) }
-    }
-
-    private func resetBoard() {
-        var board = boardFromConfiguration()
-        do { board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - difficulty) }
-        catch BoardScramblerError.scrambleStagnated { navigateToMainMenu() }
-        catch { fatalError(error.localizedDescription) }
-        timeStatRefresher?.isPaused = false
-
-        boardView.reloadBoard()
-
-        updateBestTimeStat()
-        moves = 0
-        startTime = Date()
-    }
-
-    private func updateBestTimeStat() {
-        if let bestTime = bestTimesController.getBestTime(for: boardConfiguration.name) {
-            bestTimeStat.valueLabel.text = GameViewController.secondsToTimeString(bestTime)
-        } else {
-            bestTimeStat.valueLabel.text = "N/A"
-        }
-    }
-
-    private func resetBoardWithAnimation() {
-        UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel], reloadBlock: resetBoard)
-    }
-
     private func navigateToMainMenu() {
         dismiss(animated: true)
-    }
-
-    private func resetBestTime() {
-        _ = bestTimesController.resetBestTime(for: boardConfiguration.name)
-        UIView.springReload(views: [bestTimeStat.valueLabel], reloadBlock: updateBestTimeStat)
     }
 
     private func boardWasSolved() {
@@ -248,10 +219,42 @@ class GameViewController: UIViewController, BoardContainer {
         let title = String(format: "Your time was %.1f s!", elapsedSeconds)
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
-            self.resetBoardWithAnimation()
+            self.resetBoard()
         }))
 
         present(alert, animated: true)
+    }
+
+    // MARK: - Stat Management
+
+    private func updateBestTimeStat() {
+        if let bestTime = bestTimesController.getBestTime(for: boardConfiguration.name) {
+            bestTimeStat.valueLabel.text = GameViewController.secondsToTimeString(bestTime)
+        } else {
+            bestTimeStat.valueLabel.text = "N/A"
+        }
+    }
+
+    @objc private func updateTimeStat() {
+        if isAwaitingBoard {
+            timeStat.valueLabel.text = "-"
+        } else {
+            timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
+        }
+    }
+
+    private func updateMovesStat() {
+        if isAwaitingBoard {
+            movesStat.valueLabel.text = "-"
+        } else {
+            movesStat.valueLabel.text = moves.description
+        }
+    }
+
+    private func updateStats() {
+        updateBestTimeStat()
+        updateTimeStat()
+        updateMovesStat()
     }
 
     // MARK: - Event Handlers
@@ -273,14 +276,15 @@ class GameViewController: UIViewController, BoardContainer {
     @objc private func restartButtonWasTapped() {
         if progressWasMade {
             let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+
             alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
-                self.resetBoardWithAnimation()
+                self.resetBoard()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
             present(alertController, animated: true)
         } else {
-            resetBoardWithAnimation()
+            resetBoard()
         }
     }
 
@@ -291,24 +295,34 @@ class GameViewController: UIViewController, BoardContainer {
         let boardName = boardConfiguration.name.capitalized
         let alertController = UIAlertController(title: "Reset your best time?", message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Reset Best Time", style: .destructive) { _ in
-            self.resetBestTime()
+            _ = self.bestTimesController.resetBestTime(for: self.boardConfiguration.name)
+            self.updateBestTimeStat()
         })
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
         present(alertController, animated: true)
-    }
-
-    @objc private func updateTimeStat() {
-        timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
     }
 }
 
 // MARK: BoardViewDelegate
 
 extension GameViewController: BoardViewDelegate {
-    func boardView(_ boardView: BoardView, didPerform moveOperations: [TileMoveOperation]) {
-        moves += moveOperations.count
-        if boardView.board.isSolved { boardWasSolved() }
+    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
+        DispatchQueue.global().async {
+            var board = self.boardFromConfiguration()
+            do { board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - self.difficulty)
+            } catch BoardScramblerError.scrambleStagnated { self.navigateToMainMenu() }
+            catch { fatalError(error.localizedDescription) }
+
+            DispatchQueue.main.async {
+                completion(board)
+            }
+        }
+    }
+
+    func expectedBoardDimensions(_ boardView: BoardView) -> (rowCount: Int, columnCount: Int) {
+        let board = boardFromConfiguration()
+        return (board.rowCount, board.columnCount)
     }
 
     func boardDidChange(_ boardView: BoardView) {
@@ -316,24 +330,11 @@ extension GameViewController: BoardViewDelegate {
         if boardView.board.isSolved { boardWasSolved() }
     }
 
-    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
-//        DispatchQueue.global().async {
-        //            let board = self.generateNewBoard()
-        //
-        //            DispatchQueue.main.async {
-        //                completion(board)
-        //            }
-        //        }
-
-        var board = boardFromConfiguration()
-        do { return board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - difficulty)
-        } catch BoardScramblerError.scrambleStagnated { navigateToMainMenu() }
-        catch { fatalError(error.localizedDescription) }
-
-        completion(board)
-
-        updateBestTimeStat()
+    func boardWasPresented(_ boardView: BoardView) {
+        isAwaitingBoard = false
         moves = 0
         startTime = Date()
+
+        updateStats()
     }
 }
