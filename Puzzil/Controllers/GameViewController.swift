@@ -47,7 +47,11 @@ class GameViewController: UIViewController, BoardContainer {
 
     private var timeStatRefresher: CADisplayLink!
     private var startTime = Date()
-    private var moves = 0
+    private var moves = 0 {
+        didSet {
+            updateMovesStat()
+        }
+    }
 
     private var elapsedSeconds: TimeInterval {
         return Date().timeIntervalSince(startTime)
