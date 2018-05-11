@@ -40,6 +40,7 @@ class GameViewController: UIViewController, BoardContainer {
 
     private var isAwaitingBoard = true {
         didSet {
+            updateStats()
             restartButton.isEnabled = !isAwaitingBoard
         }
     }
@@ -97,7 +98,6 @@ class GameViewController: UIViewController, BoardContainer {
     private func resetBoard() {
         UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel]) {
             self.isAwaitingBoard = true
-            self.updateStats()
             self.boardView.reloadBoard()
         }
     }
@@ -200,7 +200,7 @@ class GameViewController: UIViewController, BoardContainer {
     }
 
     private func boardWasSolved() {
-        timeStatRefresher.isPaused = true
+        isAwaitingBoard = true
 
         let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, seconds: elapsedSeconds)
         let message: String
@@ -237,7 +237,7 @@ class GameViewController: UIViewController, BoardContainer {
 
     @objc private func updateTimeStat() {
         if isAwaitingBoard {
-            timeStat.valueLabel.text = "-"
+            timeStat.valueLabel.text = "—"
         } else {
             timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
         }
@@ -245,7 +245,7 @@ class GameViewController: UIViewController, BoardContainer {
 
     private func updateMovesStat() {
         if isAwaitingBoard {
-            movesStat.valueLabel.text = "-"
+            movesStat.valueLabel.text = "—"
         } else {
             movesStat.valueLabel.text = moves.description
         }
@@ -331,10 +331,8 @@ extension GameViewController: BoardViewDelegate {
     }
 
     func boardWasPresented(_ boardView: BoardView) {
-        isAwaitingBoard = false
         moves = 0
         startTime = Date()
-
-        updateStats()
+        isAwaitingBoard = false
     }
 }
