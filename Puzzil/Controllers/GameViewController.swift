@@ -101,7 +101,6 @@ class GameViewController: UIViewController, BoardContainer {
 
     private func resetBoard() {
         UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel]) {
-            self.isAwaitingBoard = true
             self.boardView.reloadBoard()
         }
     }
@@ -278,6 +277,8 @@ class GameViewController: UIViewController, BoardContainer {
     }
 
     @objc private func restartButtonWasTapped() {
+        isAwaitingBoard = true
+
         if progressWasMade {
             let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
 
