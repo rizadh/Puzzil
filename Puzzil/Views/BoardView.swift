@@ -30,6 +30,8 @@ class BoardView: UIView {
         }
     }
 
+    var boardIsPresent = false
+
     weak var delegate: BoardViewDelegate!
     private var tiles = [TileView: TileInfo]()
     private var tileGuides = [[UILayoutGuide]]()
@@ -82,6 +84,8 @@ class BoardView: UIView {
     // MARK: - Event Handlers
 
     @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
+        guard boardIsPresent else { return }
+
         let tile = sender.view as! TileView
         let position = tiles[tile]!.position
         var validOperations = [TileMoveOperation]()
@@ -107,6 +111,8 @@ class BoardView: UIView {
     }
 
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
+        guard boardIsPresent else { return }
+
         let tileView = sender.view as! TileView
 
         switch sender.state {
@@ -143,6 +149,8 @@ class BoardView: UIView {
     }
 
     @objc private func tileWasPressed(_ sender: UILongPressGestureRecognizer) {
+        guard boardIsPresent else { return }
+
         let tileView = sender.view as! TileView
 
         switch sender.state {
@@ -188,6 +196,7 @@ class BoardView: UIView {
         generateLayoutGuides(rowCount: rowCount, columnCount: columnCount)
 
         isAwaitingBoard = true
+        boardIsPresent = false
 
         delegate.newBoard(for: self) { board in
             self.isAwaitingBoard = false
@@ -213,6 +222,7 @@ class BoardView: UIView {
     }
 
     @objc private func boardWasPresented() {
+        boardIsPresent = true
         delegate?.boardWasPresented(self)
     }
 
