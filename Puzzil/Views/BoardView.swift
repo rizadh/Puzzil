@@ -164,17 +164,14 @@ class BoardView: UIView {
     // MARK: - Tile Animations
 
     private func animate(_ moveOperation: TileMoveOperation) {
-        switch board.canPerform(moveOperation) {
-        case let .possible(after: operations):
-            for operation in operations + [moveOperation] {
-                perform(operation)
-            }
+        guard case let .possible(after: operations) = board.canPerform(moveOperation) else { return }
 
-            board.perform(moveOperation)
-            delegate.boardDidChange(self)
-        case .notPossible:
-            fatalError("Cannot animate an impossible move operation")
+        for operation in operations + [moveOperation] {
+            perform(operation)
         }
+
+        board.perform(moveOperation)
+        delegate.boardDidChange(self)
 
         UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
             self.layoutIfNeeded()
