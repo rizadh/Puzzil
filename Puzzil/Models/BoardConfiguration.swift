@@ -9,6 +9,8 @@
 import Foundation
 
 struct BoardConfiguration {
+    typealias BoardElement = CustomStringConvertible?
+
     static let builtins = [
         BoardConfiguration(name: "original", matrix: [
             [1, 2, 3],
@@ -41,5 +43,5 @@ struct BoardConfiguration {
     ]
 
     let name: String
-    let matrix: [[CustomStringConvertible?]]
+    let matrix: [[BoardElement]]
 }
