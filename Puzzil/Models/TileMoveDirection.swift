@@ -23,25 +23,4 @@ enum TileMoveDirection {
             return .left
         }
     }
-
-    init?(from swipeDirection: UISwipeGestureRecognizerDirection) {
-        if swipeDirection.contains(.left) {
-            self = .left
-        } else if swipeDirection.contains(.right) {
-            self = .right
-        }
-
-        switch swipeDirection {
-        case .left:
-            self = .left
-        case .right:
-            self = .right
-        case .up:
-            self = .up
-        case .down:
-            self = .down
-        default:
-            return nil
-        }
-    }
 }
