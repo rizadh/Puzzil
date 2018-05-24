@@ -37,6 +37,10 @@ class BoardSelectorViewController: UIViewController {
         return boardViewControllers[pageControl.currentPage]
     }
 
+    var boardView: BoardView {
+        return visibleBoardViewController.boardView
+    }
+
     // MARK: - UI Updates
 
     private func updateBoardNameLabel() {
@@ -205,14 +209,6 @@ class BoardSelectorViewController: UIViewController {
         }
 
         updateBoardNameLabel()
-    }
-}
-
-// MARK: - BoardContainer
-
-extension BoardSelectorViewController: BoardContainer {
-    var boardView: BoardView {
-        return visibleBoardViewController.boardView
     }
 }
 

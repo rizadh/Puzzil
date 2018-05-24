@@ -8,7 +8,7 @@
 
 import UIKit
 
-class GameViewController: UIViewController, BoardContainer {
+class GameViewController: UIViewController {
 
     // MARK: UIViewController Property Overrides
 

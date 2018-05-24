@@ -30,7 +30,6 @@
 		4ABAB82220065BC300D09C93 /* StatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABAB82120065BC300D09C93 /* StatView.swift */; };
 		4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2362200340A30042592B /* BoardScrambler.swift */; };
 		4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2364200341D70042592B /* TileMoveOperation.swift */; };
-		4AD30E1D209C1BAE0051F7C5 /* BoardContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AD30E1C209C1BAE0051F7C5 /* BoardContainer.swift */; };
 		4AE7F1BB20B5DBFE008AAEC6 /* BoardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE7F1BA20B5DBFE008AAEC6 /* BoardStyle.swift */; };
 /* End PBXBuildFile section */
 
@@ -60,7 +59,6 @@
 		4ABAB82120065BC300D09C93 /* StatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatView.swift; sourceTree = "<group>"; };
 		4ABC2362200340A30042592B /* BoardScrambler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardScrambler.swift; sourceTree = "<group>"; };
 		4ABC2364200341D70042592B /* TileMoveOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileMoveOperation.swift; sourceTree = "<group>"; };
-		4AD30E1C209C1BAE0051F7C5 /* BoardContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardContainer.swift; sourceTree = "<group>"; };
 		4AE7F1BA20B5DBFE008AAEC6 /* BoardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStyle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -157,7 +155,6 @@
 			isa = PBXGroup;
 			children = (
 				4AB63DCA1FEDA6B2003EBC29 /* GameViewController.swift */,
-				4AD30E1C209C1BAE0051F7C5 /* BoardContainer.swift */,
 				4A2940C52013D4B40077EE36 /* BoardViewController.swift */,
 				4AAA706F200AD9B700123A02 /* BoardSelectorViewController.swift */,
 			);
@@ -250,7 +247,6 @@
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A3772FE2002E2B400C3C0F9 /* TileMoveDirection.swift in Sources */,
 				4AB9C5662097C04100BD7BA1 /* BoardAnimator.swift in Sources */,
-				4AD30E1D209C1BAE0051F7C5 /* BoardContainer.swift in Sources */,
 				4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */,
 				4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */,
 				4A2940C62013D4B40077EE36 /* BoardViewController.swift in Sources */,
