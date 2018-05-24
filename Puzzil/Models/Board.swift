@@ -74,7 +74,7 @@ struct Board {
 
     // MARK: - Constructors
 
-    init(from matrix: [[BoardElement]]) {
+    init(matrix: [[BoardElement]]) {
         guard matrix.count > 0 else { fatalError("Matrix must have at least one row") }
         guard matrix.first!.count > 0 else { fatalError("Matrix must have at least one column") }
 
@@ -201,7 +201,7 @@ struct Board {
     }
 
     func clearingAllTiles() -> Board {
-        return Board(from: Array(repeating: Array(repeating: nil, count: columnCount), count: rowCount))
+        return Board(matrix: Array(repeating: Array(repeating: nil, count: columnCount), count: rowCount))
     }
 }
 
