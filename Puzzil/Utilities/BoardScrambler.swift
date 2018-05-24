@@ -8,29 +8,49 @@
 
 import Foundation
 
-struct BoardScrambler {
-    static func scramble(_ board: Board, untilProgressIsBelow targetProgress: Double) throws -> Board {
+class BoardScrambler {
+    private static let targetBoardProgress = 0.5
+    private var boardGenerators: [BoardStyle: QueuedGenerator<Board>]
+
+    init() {
+        boardGenerators = Dictionary(uniqueKeysWithValues: BoardStyle.all.map { boardStyle in
+            let generator = QueuedGenerator(queueLength: 5) {
+                return BoardScrambler.generateBoard(style: boardStyle)
+            }
+
+            return (boardStyle, generator)
+        })
+    }
+
+    func nextBoard(style: BoardStyle) -> Board {
+        return boardGenerators[style]!.next()
+    }
+
+    private static func generateBoard(style: BoardStyle) -> Board? {
+        var board = style.board
         var minimumProgress = 1.0
+        let maxRounds = 100
         var stagnantRounds = 0
-        var scrambledBoard = board
 
-        while scrambledBoard.progress > targetProgress && stagnantRounds < 1000 {
-            scrambledBoard = moveRandomTile(in: scrambledBoard)
+        while board.progress > targetBoardProgress && stagnantRounds < maxRounds {
+            moveRandomTile(in: &board)
 
-            let progress = scrambledBoard.progress
+            let progress = board.progress
             if progress < minimumProgress {
                 minimumProgress = progress
                 stagnantRounds = 0
             } else { stagnantRounds += 1 }
         }
 
-        if scrambledBoard.progress > targetProgress { throw BoardScramblerError.scrambleStagnated }
+        if board.progress > targetBoardProgress {
+            return nil
+        }
 
-        return scrambledBoard
+        return board
     }
 
-    private static func moveRandomTile(in board: Board) -> Board {
-        let moveOperations = possibleMoveOperations(in: board)
+    private static func moveRandomTile(in board: inout Board) {
+        let moveOperations = possibleMoveOperations(for: board)
         var maximumProgressReduction = -Double.greatestFiniteMagnitude
         for moveOperation in moveOperations {
             maximumProgressReduction = max(maximumProgressReduction, progressReduction(in: board, after: moveOperation))
@@ -43,12 +63,10 @@ struct BoardScrambler {
         let index = Int(arc4random_uniform(UInt32(effectiveMoves.count)))
         let moveOperation = effectiveMoves[index]
 
-        var movedBoard = board
-        movedBoard.perform(moveOperation)
-        return movedBoard
+        board.perform(moveOperation)
     }
 
-    private static func possibleMoveOperations(in board: Board) -> [TileMoveOperation] {
+    private static func possibleMoveOperations(for board: Board) -> [TileMoveOperation] {
         return TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount).flatMap { position in
             [.left, .right, .up, .down]
                 .map { direction in TileMoveOperation(moving: direction, from: position) }
@@ -67,8 +85,4 @@ struct BoardScrambler {
         potentialBoard.perform(moveOperation)
         return board.progress - potentialBoard.progress
     }
-}
-
-enum BoardScramblerError: Error {
-    case scrambleStagnated
 }

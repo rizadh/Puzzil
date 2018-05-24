@@ -13,17 +13,18 @@ class GameViewController: UIViewController, BoardContainer {
     // MARK: UIViewController Property Overrides
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if UIColor.themeBackground.isLight {
-            return .default
-        } else {
-            return .lightContent
-        }
+        return UIColor.themeBackground.isLight ? .default : .lightContent
     }
 
     // MARK: - Board Management
 
-    private var boardConfiguration: BoardConfiguration
+    private let boardStyle: BoardStyle
+    private lazy var originalBoard = boardStyle.board
     private let difficulty: Double
+    private var boardIsScrambling = false
+    private var gameIsRunning = false {
+        didSet { restartButton.isEnabled = gameIsRunning }
+    }
 
     // MARK: - Subviews
 
@@ -38,20 +39,9 @@ class GameViewController: UIViewController, BoardContainer {
 
     // MARK: - Stat Management
 
-    private var isAwaitingBoard = true {
-        didSet {
-            updateStats()
-            restartButton.isEnabled = !isAwaitingBoard
-        }
-    }
-
     private var timeStatRefresher: CADisplayLink!
     private var startTime = Date()
-    private var moves = 0 {
-        didSet {
-            updateMovesStat()
-        }
-    }
+    private var moves = 0
 
     private var elapsedSeconds: TimeInterval {
         return Date().timeIntervalSince(startTime)
@@ -62,6 +52,7 @@ class GameViewController: UIViewController, BoardContainer {
     }
 
     private let bestTimesController = (UIApplication.shared.delegate as! AppDelegate).bestTimesController
+    private let boardScrambler = (UIApplication.shared.delegate as! AppDelegate).boardScrambler
 
     private static func secondsToTimeString(_ rawSeconds: Double) -> String {
         return String(format: "%.1f s", rawSeconds)
@@ -69,8 +60,8 @@ class GameViewController: UIViewController, BoardContainer {
 
     // MARK: - Constructors
 
-    init(boardConfiguration: BoardConfiguration, difficulty: Double) {
-        self.boardConfiguration = boardConfiguration
+    init(boardStyle: BoardStyle, difficulty: Double) {
+        self.boardStyle = boardStyle
         self.difficulty = difficulty
 
         super.init(nibName: nil, bundle: nil)
@@ -89,7 +80,12 @@ class GameViewController: UIViewController, BoardContainer {
         boardView.delegate = self
 
         setupSubviews()
-        updateStats()
+        setupConstraints()
+
+        updateBestTimeStat(animated: false)
+        updateMovesStat(animated: false)
+        updateTimeStat(animated: false)
+
         boardView.reloadBoard()
     }
 
@@ -97,16 +93,27 @@ class GameViewController: UIViewController, BoardContainer {
         timeStatRefresher.invalidate()
     }
 
+    // MARK: Public Methods
+
+    func beginGame() {
+        gameIsRunning = true
+        boardView.reloadBoard()
+        resetStats()
+    }
+
     // MARK: - Private Methods
 
-    private func resetBoard() {
-        UIView.springReload(views: [boardView, bestTimeStat.valueLabel, timeStat.valueLabel, movesStat.valueLabel]) {
-            self.boardView.reloadBoard()
-        }
+    private func resetStats() {
+        moves = 0
+        startTime = Date()
+
+        updateBestTimeStat(animated: true)
+        updateTimeStat(animated: true)
+        updateMovesStat(animated: true)
     }
 
     private func boardFromConfiguration() -> Board {
-        return Board(from: boardConfiguration.matrix)
+        return boardStyle.board
     }
 
     private func setupSubviews() {
@@ -116,6 +123,7 @@ class GameViewController: UIViewController, BoardContainer {
         } else {
             timeStatRefresher.frameInterval = 60 / 10
         }
+        timeStatRefresher.isPaused = true
         timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
 
         let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
@@ -148,7 +156,9 @@ class GameViewController: UIViewController, BoardContainer {
         view.addSubview(stats)
         view.addSubview(boardView)
         view.addSubview(buttons)
+    }
 
+    private func setupConstraints() {
         let safeArea: UILayoutGuide = {
             if #available(iOS 11.0, *) {
                 return view.safeAreaLayoutGuide
@@ -202,11 +212,15 @@ class GameViewController: UIViewController, BoardContainer {
         dismiss(animated: true)
     }
 
-    private func boardWasSolved() {
-        isAwaitingBoard = true
+    private func freezeTimeStat() {
+        timeStatRefresher.isPaused = true
+        updateTimeStat(animated: false)
+    }
 
-        let updateResult = bestTimesController.boardWasSolved(board: boardConfiguration.name, seconds: elapsedSeconds)
+    private func boardWasSolved() {
+        let updateResult = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
         let message: String
+        gameIsRunning = false
 
         switch updateResult {
         case .created:
@@ -217,12 +231,13 @@ class GameViewController: UIViewController, BoardContainer {
             message = String(format: "Play again to beat your %.1f s record!", bestTime)
         }
 
-        updateTimeStat()
+        updateTimeStat(animated: true)
+        updateMovesStat(animated: true)
 
         let title = String(format: "Your time was %.1f s!", elapsedSeconds)
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
-            self.resetBoard()
+            self.beginGame()
         }))
 
         present(alert, animated: true)
@@ -230,34 +245,51 @@ class GameViewController: UIViewController, BoardContainer {
 
     // MARK: - Stat Management
 
-    private func updateBestTimeStat() {
-        if let bestTime = bestTimesController.getBestTime(for: boardConfiguration.name) {
-            bestTimeStat.valueLabel.text = GameViewController.secondsToTimeString(bestTime)
+    private func updateBestTimeStat(animated: Bool) {
+        let newValue: String
+
+        if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
+            newValue = GameViewController.secondsToTimeString(bestTime)
         } else {
-            bestTimeStat.valueLabel.text = "N/A"
+            newValue = "N/A"
+        }
+
+        updateStat(bestTimeStat, newValue: newValue, animated: animated)
+    }
+
+    @objc private func updateTimeStat(animated: Bool) {
+        timeStatRefresher.isPaused = true
+
+        if gameIsRunning {
+            updateStat(timeStat, newValue: GameViewController.secondsToTimeString(elapsedSeconds), animated: animated) { _ in
+                self.timeStatRefresher.isPaused = !self.gameIsRunning
+            }
+        } else {
+            updateStat(timeStat, newValue: "—", animated: animated) { _ in
+                self.timeStatRefresher.isPaused = !self.gameIsRunning
+            }
         }
     }
 
-    @objc private func updateTimeStat() {
-        if isAwaitingBoard {
-            timeStat.valueLabel.text = "—"
+    private func updateMovesStat(animated: Bool) {
+        if gameIsRunning {
+            updateStat(movesStat, newValue: moves.description, animated: animated)
         } else {
-            timeStat.valueLabel.text = GameViewController.secondsToTimeString(elapsedSeconds)
+            updateStat(movesStat, newValue: "—", animated: animated)
         }
     }
 
-    private func updateMovesStat() {
-        if isAwaitingBoard {
-            movesStat.valueLabel.text = "—"
-        } else {
-            movesStat.valueLabel.text = moves.description
-        }
-    }
+    private func updateStat(_ statView: StatView, newValue: String, animated: Bool, completion: ((Bool) -> Void)? = nil) {
+        let oldValue = statView.valueLabel.text
 
-    private func updateStats() {
-        updateBestTimeStat()
-        updateTimeStat()
-        updateMovesStat()
+        if animated && newValue != oldValue {
+            statView.valueLabel.springReload(reloadBlock: { _ in
+                statView.valueLabel.text = newValue
+            }, completion: completion)
+        } else {
+            statView.valueLabel.text = newValue
+            completion?(true)
+        }
     }
 
     // MARK: - Event Handlers
@@ -266,6 +298,7 @@ class GameViewController: UIViewController, BoardContainer {
         if progressWasMade {
             let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
+                self.gameIsRunning = false
                 self.navigateToMainMenu()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -277,31 +310,29 @@ class GameViewController: UIViewController, BoardContainer {
     }
 
     @objc private func restartButtonWasTapped() {
-        isAwaitingBoard = true
-
         if progressWasMade {
             let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
 
             alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
-                self.resetBoard()
+                self.beginGame()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
             present(alertController, animated: true)
         } else {
-            resetBoard()
+            beginGame()
         }
     }
 
     @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began else { return }
-        guard bestTimesController.getBestTime(for: boardConfiguration.name) != nil else { return }
+        guard bestTimesController.getBestTime(for: boardStyle) != nil else { return }
 
-        let boardName = boardConfiguration.name.capitalized
+        let boardName = boardStyle.rawValue.capitalized
         let alertController = UIAlertController(title: "Reset your best time?", message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Reset Best Time", style: .destructive) { _ in
-            _ = self.bestTimesController.resetBestTime(for: self.boardConfiguration.name)
-            self.updateBestTimeStat()
+            _ = self.bestTimesController.resetBestTime(for: self.boardStyle)
+            self.updateBestTimeStat(animated: true)
         })
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
@@ -312,32 +343,17 @@ class GameViewController: UIViewController, BoardContainer {
 // MARK: BoardViewDelegate
 
 extension GameViewController: BoardViewDelegate {
-    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
-        DispatchQueue.global().async {
-            var board = self.boardFromConfiguration()
-            do { board = try BoardScrambler.scramble(board, untilProgressIsBelow: 1 - self.difficulty)
-            } catch BoardScramblerError.scrambleStagnated { self.navigateToMainMenu() }
-            catch { fatalError(error.localizedDescription) }
-
-            DispatchQueue.main.async {
-                completion(board)
-            }
+    func newBoard(for boardView: BoardView) -> Board {
+        if gameIsRunning {
+            return boardScrambler.nextBoard(style: boardStyle)
+        } else {
+            return boardStyle.board.clearingAllTiles()
         }
-    }
-
-    func expectedBoardDimensions(_ boardView: BoardView) -> (rowCount: Int, columnCount: Int) {
-        let board = boardFromConfiguration()
-        return (board.rowCount, board.columnCount)
     }
 
     func boardDidChange(_ boardView: BoardView) {
         moves += 1
+        updateMovesStat(animated: true)
         if boardView.board.isSolved { boardWasSolved() }
-    }
-
-    func boardWasPresented(_ boardView: BoardView) {
-        moves = 0
-        startTime = Date()
-        isAwaitingBoard = false
     }
 }

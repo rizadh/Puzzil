@@ -29,8 +29,8 @@ class BoardSelectorViewController: UIViewController {
     let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal,
                                                   options: nil)
     let helpText = UILabel()
-    private let boardViewControllers = BoardConfiguration.builtins.map { configuration in
-        return BoardViewController(for: configuration)
+    private let boardViewControllers = BoardStyle.all.map { boardStyle in
+        return BoardViewController(boardStyle: boardStyle)
     }
 
     var visibleBoardViewController: BoardViewController {
@@ -40,7 +40,7 @@ class BoardSelectorViewController: UIViewController {
     // MARK: - UI Updates
 
     private func updateBoardNameLabel() {
-        boardNameLabel.text = visibleBoardViewController.configuration.name.capitalized
+        boardNameLabel.text = visibleBoardViewController.boardStyle.rawValue.capitalized
     }
 
     // MARK: - Animation Management
@@ -184,8 +184,7 @@ class BoardSelectorViewController: UIViewController {
     }
 
     func boardWasTapped(_ sender: UITapGestureRecognizer) {
-        let gameViewController = GameViewController(boardConfiguration: visibleBoardViewController.configuration,
-                                                    difficulty: 0.5)
+        let gameViewController = GameViewController(boardStyle: visibleBoardViewController.boardStyle, difficulty: 0.5)
         gameViewController.transitioningDelegate = self
         present(gameViewController, animated: true)
     }

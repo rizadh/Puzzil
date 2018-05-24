@@ -9,8 +9,6 @@
 import Foundation
 
 protocol BoardViewDelegate: NSObjectProtocol {
-    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void)
+    func newBoard(for boardView: BoardView) -> Board
     func boardDidChange(_ boardView: BoardView)
-    func boardWasPresented(_ boardView: BoardView)
-    func expectedBoardDimensions(_ boardView: BoardView) -> (rowCount: Int, columnCount: Int)
 }

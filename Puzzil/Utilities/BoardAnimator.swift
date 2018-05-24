@@ -46,6 +46,7 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
                     self.performGameIn(gameViewController)
             }) { _ in
                 transitionContext.completeTransition(true)
+                gameViewController.beginGame()
             }
         } else {
             let gameViewController = transitionContext.viewController(forKey: .from) as! GameViewController

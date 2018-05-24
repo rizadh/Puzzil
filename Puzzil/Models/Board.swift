@@ -8,6 +8,8 @@
 
 import Foundation
 
+typealias BoardElement = CustomStringConvertible?
+
 struct Board {
     private typealias TileMatrix = [[Tile?]]
 
@@ -72,7 +74,7 @@ struct Board {
 
     // MARK: - Constructors
 
-    init(from matrix: [[CustomStringConvertible?]]) {
+    init(from matrix: [[BoardElement]]) {
         guard matrix.count > 0 else { fatalError("Matrix must have at least one row") }
         guard matrix.first!.count > 0 else { fatalError("Matrix must have at least one column") }
 
@@ -196,6 +198,10 @@ struct Board {
         case .notPossible:
             fatalError("Cannot perform an impossible move operation")
         }
+    }
+
+    func clearingAllTiles() -> Board {
+        return Board(from: Array(repeating: Array(repeating: nil, count: columnCount), count: rowCount))
     }
 }
 

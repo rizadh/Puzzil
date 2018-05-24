@@ -9,15 +9,13 @@
 import UIKit
 
 class BoardViewController: UIViewController {
-    let configuration: BoardConfiguration
+    let boardStyle: BoardStyle
     let boardView = BoardView()
-    private let board: Board
 
     // MARK: - Constructors
 
-    init(for configuration: BoardConfiguration) {
-        self.configuration = configuration
-        board = Board(from: configuration.matrix)
+    init(boardStyle: BoardStyle) {
+        self.boardStyle = boardStyle
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -80,19 +78,11 @@ class BoardViewController: UIViewController {
 // MARK: - BoardViewDelegate
 
 extension BoardViewController: BoardViewDelegate {
-    func newBoard(for boardView: BoardView, _ completion: @escaping (Board) -> Void) {
-        completion(board)
+    func newBoard(for boardView: BoardView) -> Board {
+        return boardStyle.board
     }
 
     func boardDidChange(_ boardView: BoardView) {
         fatalError("Static board cannot change")
-    }
-
-    func boardWasPresented(_ boardView: BoardView) {
-        return
-    }
-
-    func expectedBoardDimensions(_ boardView: BoardView) -> (rowCount: Int, columnCount: Int) {
-        return (board.rowCount, board.columnCount)
     }
 }

@@ -9,26 +9,21 @@
 import UIKit
 
 extension UIView {
-    static func springReload(views: [UIView], reloadBlock: @escaping () -> Void) {
-        UIView.animate(
-            withDuration: 0.125, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-            options: [.allowUserInteraction, .beginFromCurrentState],
-            animations: {
-                views.forEach {
-                    $0.alpha = 0
-                    $0.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-                }
-        }) { _ in
-            reloadBlock()
-            UIView.animate(
-                withDuration: 0.125, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1,
-                options: [.allowUserInteraction, .beginFromCurrentState],
-                animations: {
-                    views.forEach {
-                        $0.alpha = 1
-                        $0.transform = .identity
-                    }
-            })
-        }
+    func springReload(reloadBlock: ((Bool) -> Void)? = nil, completion: ((Bool) -> Void)? = nil) {
+        let exitDuration = 0.125
+        let popDuration = 0.25
+
+        UIView.animate(withDuration: exitDuration, delay: 0, options: [.beginFromCurrentState], animations: {
+            self.transform = .zero
+        }, completion: reloadBlock)
+
+        UIView.animate(withDuration: popDuration, delay: exitDuration, usingSpringWithDamping: 1,
+                       initialSpringVelocity: 1, options: [.beginFromCurrentState],
+                       animations: { self.transform = .identity },
+                       completion: completion)
     }
+}
+
+extension CGAffineTransform {
+    static let zero = CGAffineTransform(scaleX: 1e-5, y: 1e-5)
 }

@@ -26,15 +26,17 @@ class BestTimesController {
         NSUbiquitousKeyValueStore.default.synchronize()
     }
 
-    func boardWasSolved(board: String, seconds newTime: Double) -> BestTimeUpdateResult {
-        guard let existingTime = bestTimes[board] else {
-            bestTimes[board] = newTime
+    func boardWasSolved(boardStyle: BoardStyle, seconds newTime: Double) -> BestTimeUpdateResult {
+        let boardName = boardStyle.rawValue
+
+        guard let existingTime = bestTimes[boardName] else {
+            bestTimes[boardName] = newTime
 
             return .created
         }
 
         if newTime < existingTime {
-            bestTimes[board] = newTime
+            bestTimes[boardName] = newTime
 
             return .replaced(oldTime: existingTime)
         } else {
@@ -42,12 +44,12 @@ class BestTimesController {
         }
     }
 
-    func getBestTime(for board: String) -> Double? {
-        return bestTimes[board]
+    func getBestTime(for boardStyle: BoardStyle) -> Double? {
+        return bestTimes[boardStyle.rawValue]
     }
 
-    func resetBestTime(for board: String) -> Double? {
-        return bestTimes.removeValue(forKey: board)
+    func resetBestTime(for boardStyle: BoardStyle) -> Double? {
+        return bestTimes.removeValue(forKey: boardStyle.rawValue)
     }
 
     private func saveBestTimes() {
