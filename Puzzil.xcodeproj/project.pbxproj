@@ -76,7 +76,6 @@
 		4A03F6721FEEC61900A625D8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				4A8EE63A20A4162F0072CCEA /* TileDragOperation.swift */,
 				4ABAB82120065BC300D09C93 /* StatView.swift */,
 				4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */,
 				4A4573C31FF77FE600F13884 /* TileView.swift */,
@@ -94,6 +93,7 @@
 				4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */,
 				4A3772FD2002E2B400C3C0F9 /* TileMoveDirection.swift */,
 				4ABC2364200341D70042592B /* TileMoveOperation.swift */,
+				4A8EE63A20A4162F0072CCEA /* TileDragOperation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
