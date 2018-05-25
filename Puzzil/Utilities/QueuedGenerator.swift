@@ -11,36 +11,37 @@ import Foundation
 class QueuedGenerator<Element> {
     typealias GeneratorBlock = () -> Element?
 
-    private let generationQueue: DispatchQueue
     private let generatorBlock: GeneratorBlock
     private var queue = [Element]()
-    private let elementRequired: DispatchSemaphore
     private let elementAvailable = DispatchSemaphore(value: 0)
     private let queueLock = DispatchSemaphore(value: 1)
 
-    init(name: String, queueLength: Int, _ generatorBlock: @escaping GeneratorBlock) {
+    init(queueLength: Int, _ generatorBlock: @escaping GeneratorBlock) {
         self.generatorBlock = generatorBlock
-        generationQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue.\(name)", qos: .utility)
-        elementRequired = DispatchSemaphore(value: queueLength)
 
-        generationQueue.async {
-            while true { self.populateQueue() }
-        }
+        for _ in 0..<queueLength { populateQueue() }
     }
 
     private func populateQueue() {
-        if let element = generatorBlock() {
-            elementRequired.wait()
-            queueLock.wait()
-            queue.append(element)
-            queueLock.signal()
-            elementAvailable.signal()
+        let generationQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue", qos: .utility)
+
+        generationQueue.async {
+            var element: Element!
+
+            while element == nil {
+                element = self.generatorBlock()
+            }
+
+            self.queueLock.wait()
+            self.queue.append(element)
+            self.queueLock.signal()
+            self.elementAvailable.signal()
         }
     }
 
     func next() -> Element {
         elementAvailable.wait()
-        elementRequired.signal()
+        populateQueue()
 
         queueLock.wait()
         let element = queue.removeLast()

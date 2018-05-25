@@ -13,7 +13,7 @@ class BoardScrambler {
 
     init() {
         boardGenerators = Dictionary(uniqueKeysWithValues: BoardStyle.all.map { boardStyle in
-            let generator = QueuedGenerator(name: boardStyle.rawValue, queueLength: 5) {
+            let generator = QueuedGenerator(queueLength: 5) {
                 return BoardScrambler.generateBoard(style: boardStyle)
             }
 
