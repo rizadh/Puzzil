@@ -36,6 +36,7 @@ class GameViewController: UIViewController {
     let buttons = UIStackView()
     private var endButton: UIButton!
     private var restartButton: UIButton!
+    let progressBar = UIProgressView(progressViewStyle: .bar)
 
     // MARK: - Stat Management
 
@@ -76,9 +77,6 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        boardView.translatesAutoresizingMaskIntoConstraints = false
-        boardView.delegate = self
-
         setupSubviews()
         setupConstraints()
 
@@ -97,6 +95,7 @@ class GameViewController: UIViewController {
 
     func beginGame() {
         gameIsRunning = true
+        progressBar.progress = 0
         boardView.reloadBoard()
         resetStats()
     }
@@ -139,6 +138,9 @@ class GameViewController: UIViewController {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
+        boardView.translatesAutoresizingMaskIntoConstraints = false
+        boardView.delegate = self
+
         endButton = UIButton.createThemedButton()
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
         endButton.setTitle("End", for: .normal)
@@ -153,9 +155,17 @@ class GameViewController: UIViewController {
         buttons.distribution = .fillEqually
         buttons.spacing = 8
 
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        progressBar.trackTintColor = UIColor.themePageControlInactive
+        progressBar.progressTintColor = UIColor.themePageControlActive
+        progressBar.subviews.forEach { $0.clipsToBounds = true; $0.layer.cornerRadius = 4 }
+        progressBar.layer.cornerRadius = 4
+        progressBar.clipsToBounds = true
+
         view.addSubview(stats)
         view.addSubview(boardView)
         view.addSubview(buttons)
+        view.addSubview(progressBar)
     }
 
     private func setupConstraints() {
@@ -183,12 +193,12 @@ class GameViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             statsLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
-            boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
 
             stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
 
+            boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
             boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
             boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
@@ -197,8 +207,13 @@ class GameViewController: UIViewController {
             buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
-            buttons.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
             buttons.heightAnchor.constraint(equalToConstant: 48),
+
+            progressBar.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            progressBar.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            progressBar.topAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 16),
+            progressBar.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
+            progressBar.heightAnchor.constraint(equalToConstant: 8),
         ] + [
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
@@ -354,6 +369,7 @@ extension GameViewController: BoardViewDelegate {
     func boardDidChange(_ boardView: BoardView) {
         moves += 1
         updateMovesStat(animated: true)
+        progressBar.setProgress(Float(boardView.board.progress), animated: true)
         if boardView.board.isSolved { boardWasSolved() }
     }
 }

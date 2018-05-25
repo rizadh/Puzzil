@@ -86,8 +86,9 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     private func performGameOut(_ gameViewController: GameViewController, using boardTransform: CGAffineTransform) {
         gameViewController.boardView.transform = boardTransform.inverted()
-        gameViewController.stats.transform = BoardAnimator.slideDown
-        gameViewController.buttons.transform = BoardAnimator.slideUp
+        gameViewController.stats.transform = BoardAnimator.slideUp
+        gameViewController.buttons.transform = BoardAnimator.slideDown
+        gameViewController.progressBar.transform = BoardAnimator.slideDown
         gameViewController.view.alpha = 0
     }
 
@@ -95,6 +96,7 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
         gameViewController.boardView.transform = .identity
         gameViewController.stats.transform = .identity
         gameViewController.buttons.transform = .identity
+        gameViewController.progressBar.transform = .identity
         gameViewController.view.alpha = 1
     }
 
