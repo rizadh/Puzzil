@@ -329,8 +329,9 @@ extension BoardView {
 
         let animator = dragOperation.animator
         let velocityAdjustment = dragOperation.fractionComplete(with: velocity)
+        let moveShouldBeCancelled = animator.fractionComplete + velocityAdjustment < 0.5
 
-        if animator.fractionComplete + velocityAdjustment < 0.5 {
+        if moveShouldBeCancelled {
             animator.isReversed = true
             dragOperation.allMoveOperations.map { $0.reversed }.forEach(perform)
             board.cancel(dragOperation.keyMoveOperation)
