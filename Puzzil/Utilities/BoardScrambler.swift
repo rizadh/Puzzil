@@ -9,7 +9,7 @@
 import Foundation
 
 class BoardScrambler {
-    private static let targetBoardProgress = 0.5
+    private static let targetBoardProgress = 0.25
     private var boardGenerators: [BoardStyle: QueuedGenerator<Board>]
 
     init() {
@@ -29,21 +29,14 @@ class BoardScrambler {
     private static func generateBoard(style: BoardStyle) -> Board? {
         var board = style.board
         var minimumProgress = 1.0
-        let maxRounds = 100
-        var stagnantRounds = 0
 
-        while board.progress > targetBoardProgress && stagnantRounds < maxRounds {
+        while board.progress > targetBoardProgress {
             moveRandomTile(in: &board)
 
             let progress = board.progress
             if progress < minimumProgress {
                 minimumProgress = progress
-                stagnantRounds = 0
-            } else { stagnantRounds += 1 }
-        }
-
-        if board.progress > targetBoardProgress {
-            return nil
+            } else { return nil }
         }
 
         return board
@@ -52,6 +45,7 @@ class BoardScrambler {
     private static func moveRandomTile(in board: inout Board) {
         let moveOperations = possibleMoveOperations(for: board)
         var maximumProgressReduction = -Double.greatestFiniteMagnitude
+
         for moveOperation in moveOperations {
             maximumProgressReduction = max(maximumProgressReduction, progressReduction(in: board, after: moveOperation))
         }
