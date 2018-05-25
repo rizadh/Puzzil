@@ -311,8 +311,8 @@ extension BoardView {
         let targetFrame = tileView.frame
         let dragOperation = TileDragOperation(direction: moveOperation.direction, originalFrame: originalFrame,
                                               targetFrame: targetFrame, animator: animator,
-                                              moveOperation: moveOperation,
-                                              requiredMoveOperations: operations)
+                                              keyMoveOperation: moveOperation,
+                                              moveOperations: operations)
 
         dragOperations[tileView] = dragOperation
     }
@@ -332,10 +332,10 @@ extension BoardView {
 
         if animator.fractionComplete + velocityAdjustment < 0.5 {
             animator.isReversed = true
-            dragOperation.allOperations.map { $0.reversed }.forEach(perform)
-            board.cancel(dragOperation.moveOperation)
+            dragOperation.allMoveOperations.map { $0.reversed }.forEach(perform)
+            board.cancel(dragOperation.keyMoveOperation)
         } else {
-            board.complete(dragOperation.moveOperation)
+            board.complete(dragOperation.keyMoveOperation)
             delegate.boardDidChange(self)
         }
 

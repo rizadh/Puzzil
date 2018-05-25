@@ -14,8 +14,8 @@ struct TileDragOperation {
     let originalFrame: CGRect
     let targetFrame: CGRect
     let animator: UIViewPropertyAnimator
-    let moveOperation: TileMoveOperation
-    let requiredMoveOperations: [TileMoveOperation]
+    let keyMoveOperation: TileMoveOperation
+    let moveOperations: [TileMoveOperation]
 
     var distance: CGFloat {
         switch direction {
@@ -26,8 +26,8 @@ struct TileDragOperation {
         }
     }
 
-    var allOperations: [TileMoveOperation] {
-        return (requiredMoveOperations + [moveOperation])
+    var allMoveOperations: [TileMoveOperation] {
+        return (moveOperations + [keyMoveOperation])
     }
 
     func fractionComplete(with translation: CGPoint) -> CGFloat {
