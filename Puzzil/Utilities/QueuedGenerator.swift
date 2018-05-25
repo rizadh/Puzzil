@@ -11,38 +11,40 @@ import Foundation
 class QueuedGenerator<Element> {
     typealias GeneratorBlock = () -> Element?
 
-    private let accessQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.accessQueue", qos: .userInitiated)
-    private let generatorQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generatorQueue", qos: .userInitiated)
+    private let generationQueue: DispatchQueue
     private let generatorBlock: GeneratorBlock
-    private var queuedElements = [Element]()
-    private let generatorSemaphore: DispatchSemaphore
+    private var queue = [Element]()
+    private let elementRequired: DispatchSemaphore
+    private let elementAvailable = DispatchSemaphore(value: 0)
+    private let queueLock = DispatchSemaphore(value: 1)
 
-    init(queueLength: Int = 5, _ generatorBlock: @escaping GeneratorBlock) {
+    init(name: String, queueLength: Int, _ generatorBlock: @escaping GeneratorBlock) {
         self.generatorBlock = generatorBlock
-        generatorSemaphore = DispatchSemaphore(value: queueLength)
+        generationQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue.\(name)", qos: .utility)
+        elementRequired = DispatchSemaphore(value: queueLength)
 
-        generatorQueue.async { self.populateQueue() }
+        generationQueue.async {
+            while true { self.populateQueue() }
+        }
     }
 
     private func populateQueue() {
         if let element = generatorBlock() {
-            generatorSemaphore.wait()
-            accessQueue.async {
-                self.queuedElements.append(element)
-            }
+            elementRequired.wait()
+            queueLock.wait()
+            queue.append(element)
+            queueLock.signal()
+            elementAvailable.signal()
         }
-
-        populateQueue()
     }
 
     func next() -> Element {
-        var element: Element!
+        elementAvailable.wait()
+        elementRequired.signal()
 
-        accessQueue.sync {
-            element = queuedElements.removeLast()
-        }
-
-        generatorSemaphore.signal()
+        queueLock.wait()
+        let element = queue.removeLast()
+        queueLock.signal()
 
         return element
     }
