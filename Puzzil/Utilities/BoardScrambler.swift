@@ -9,7 +9,6 @@
 import Foundation
 
 class BoardScrambler {
-    private static let targetBoardProgress = 0.25
     private var boardGenerators: [BoardStyle: QueuedGenerator<Board>]
 
     init() {
@@ -30,7 +29,7 @@ class BoardScrambler {
         var board = style.board
         var minimumProgress = 1.0
 
-        while board.progress > targetBoardProgress {
+        while board.progress > 0 {
             moveRandomTile(in: &board)
 
             let progress = board.progress
