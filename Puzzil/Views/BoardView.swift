@@ -115,13 +115,11 @@ class BoardView: UIView {
             }
         case .changed:
             if #available(iOS 10, *) {
-                let translation = sender.translation(in: self)
-                updateAnimation(for: tileView, with: translation)
+                updateAnimation(for: tileView, sender: sender)
             }
         default:
             if #available(iOS 10, *) {
-                let velocity = sender.velocity(in: self)
-                completeAnimation(for: tileView, with: velocity)
+                completeAnimation(for: tileView, sender: sender)
             }
         }
     }
@@ -317,16 +315,28 @@ extension BoardView {
         dragOperations[tileView] = dragOperation
     }
 
-    private func updateAnimation(for tileView: TileView, with translation: CGPoint) {
+    private func updateAnimation(for tileView: TileView, sender: UIPanGestureRecognizer) {
         guard let dragOperation = dragOperations[tileView] else { return }
 
+        let translation = sender.translation(in: self)
         let fractionComplete = dragOperation.fractionComplete(with: translation)
-        dragOperation.animator.fractionComplete = fractionComplete
+        if fractionComplete < 1 {
+            dragOperation.animator.fractionComplete = fractionComplete
+        } else {
+            board.complete(dragOperation.keyMoveOperation)
+            delegate.boardDidChange(self)
+            sender.setTranslation(.zero, in: self)
+            dragOperation.animator.stopAnimation(false)
+            dragOperation.animator.finishAnimation(at: .end)
+            dragOperations[tileView] = nil
+            beginAnimation(for: dragOperation.keyMoveOperation.nextOperation)
+        }
     }
 
-    private func completeAnimation(for tileView: TileView, with velocity: CGPoint) {
+    private func completeAnimation(for tileView: TileView, sender: UIPanGestureRecognizer) {
         guard let dragOperation = dragOperations[tileView] else { return }
 
+        let velocity = sender.velocity(in: self)
         let animator = dragOperation.animator
         let velocityAdjustment = dragOperation.fractionComplete(with: velocity)
         let moveShouldBeCancelled = animator.fractionComplete + velocityAdjustment < 0.5
