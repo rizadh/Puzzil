@@ -53,19 +53,10 @@ struct Board {
     private static func calculateMaxDistance(for tiles: TileMatrix, rows: Int, columns: Int) -> Int {
         var maxDistance = 0
 
-        let topLeftCorner = TilePosition(row: 0, column: 0)
-        let topRightCorner = TilePosition(row: 0, column: columns - 1)
-        let bottomRightCorner = TilePosition(row: rows - 1, column: columns - 1)
-        let bottomLeftCorner = TilePosition(row: rows - 1, column: 0)
-
         for position in TilePosition.traversePositions(rows: rows, columns: columns) {
             if tiles[position] != nil {
-                maxDistance += max(
-                    position.distance(to: topLeftCorner),
-                    position.distance(to: topRightCorner),
-                    position.distance(to: bottomRightCorner),
-                    position.distance(to: bottomLeftCorner)
-                )
+                let oppositePosition = TilePosition(row: rows - 1 - position.row, column: columns - 1 - position.column)
+                maxDistance += position.distance(to: oppositePosition)
             }
         }
 
