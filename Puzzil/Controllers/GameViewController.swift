@@ -116,7 +116,7 @@ class GameViewController: UIViewController {
     }
 
     private func setupSubviews() {
-        timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStat))
+        timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStatWithoutAnimation))
         if #available(iOS 10.0, *) {
             timeStatRefresher.preferredFramesPerSecond = 10
         } else {
@@ -272,7 +272,11 @@ class GameViewController: UIViewController {
         updateStat(bestTimeStat, newValue: newValue, animated: animated)
     }
 
-    @objc private func updateTimeStat(animated: Bool) {
+    @objc private func updateTimeStatWithoutAnimation() {
+        updateTimeStat(animated: false)
+    }
+
+    private func updateTimeStat(animated: Bool) {
         timeStatRefresher.isPaused = true
 
         if gameIsRunning {
