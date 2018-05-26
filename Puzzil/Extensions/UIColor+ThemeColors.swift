@@ -9,7 +9,7 @@
 import UIKit
 
 extension UIColor {
-    private static let selectedColorTheme = ColorTheme.original
+    private static let selectedColorTheme: ColorTheme = .original
 
     static let themeBackground = selectedColorTheme.background
     static let themeTile = selectedColorTheme.tile
@@ -23,6 +23,8 @@ extension UIColor {
     static let themePageControlInactive = selectedColorTheme.pageControlInactive
     static let themePrimaryText = selectedColorTheme.primaryText
     static let themeSecondaryText = selectedColorTheme.secondaryText
+    static let themeProgressBarTrack = selectedColorTheme.progressBarTrack
+    static let themeProgressBarProgress = selectedColorTheme.progressBarProgress
 
     var isLight: Bool {
         var white: CGFloat = 0
@@ -45,6 +47,8 @@ private struct ColorTheme {
     let pageControlInactive: UIColor
     let primaryText: UIColor
     let secondaryText: UIColor
+    let progressBarTrack: UIColor
+    let progressBarProgress: UIColor
 }
 
 extension ColorTheme {
@@ -60,7 +64,9 @@ extension ColorTheme {
         pageControlActive: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1),
         pageControlInactive: UIColor(hue: 345 / 360, saturation: 5 / 32, brightness: 1, alpha: 1),
         primaryText: .black,
-        secondaryText: UIColor(white: 0.5, alpha: 1)
+        secondaryText: UIColor(white: 0.5, alpha: 1),
+        progressBarTrack: UIColor(hue: 345 / 360, saturation: 5 / 32, brightness: 1, alpha: 1),
+        progressBarProgress: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1)
     )
 
     static let darkPurple = ColorTheme(
@@ -75,6 +81,8 @@ extension ColorTheme {
         pageControlActive: UIColor(red: 1, green: 204 / 255, blue: 0, alpha: 1),
         pageControlInactive: UIColor(hue: 241 / 360, saturation: 0.12, brightness: 1, alpha: 1),
         primaryText: .white,
-        secondaryText: UIColor(white: 0.5, alpha: 1)
+        secondaryText: UIColor(white: 0.5, alpha: 1),
+        progressBarTrack: UIColor(hue: 241 / 360, saturation: 0.12, brightness: 1, alpha: 1),
+        progressBarProgress: UIColor(red: 88 / 255, green: 86 / 255, blue: 214 / 255, alpha: 1)
     )
 }
