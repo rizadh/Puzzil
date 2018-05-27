@@ -225,6 +225,7 @@ class GameViewController: UIViewController {
     }
 
     private func navigateToMainMenu() {
+        gameIsRunning = false
         dismiss(animated: true)
     }
 
@@ -318,7 +319,6 @@ class GameViewController: UIViewController {
         if progressWasMade {
             let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
-                self.gameIsRunning = false
                 self.navigateToMainMenu()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
