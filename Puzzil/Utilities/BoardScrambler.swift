@@ -62,7 +62,7 @@ class BoardScrambler {
     private static func possibleMoveOperations(for board: Board) -> [TileMoveOperation] {
         return TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount).flatMap { position in
             [.left, .right, .up, .down]
-                .map { direction in TileMoveOperation(moving: direction, from: position) }
+                .map { direction in TileMoveOperation(position: position, direction: direction) }
                 .filter { moveOperation in
                     guard case let .possible(after: operations) = board.canPerform(moveOperation),
                         operations == []

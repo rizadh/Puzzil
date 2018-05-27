@@ -14,10 +14,10 @@ struct TilePosition: Equatable, Hashable {
 
     var possibleOperations: [TileMoveOperation] {
         return [
-            TileMoveOperation(moving: .left, from: self),
-            TileMoveOperation(moving: .right, from: self),
-            TileMoveOperation(moving: .up, from: self),
-            TileMoveOperation(moving: .down, from: self),
+            TileMoveOperation(position: self, direction: .left),
+            TileMoveOperation(position: self, direction: .right),
+            TileMoveOperation(position: self, direction: .up),
+            TileMoveOperation(position: self, direction: .down),
         ]
     }
 

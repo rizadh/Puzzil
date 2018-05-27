@@ -106,7 +106,7 @@ class BoardView: UIView {
                 else { direction = .down }
             }
 
-            let moveOperation = TileMoveOperation(moving: direction, from: position)
+            let moveOperation = TileMoveOperation(position: position, direction: direction)
 
             if #available(iOS 10, *) {
                 beginAnimation(for: moveOperation)
@@ -281,7 +281,7 @@ class BoardView: UIView {
     }
 
     private func perform(_ moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.sourcePosition)
+        let tileView = tile(at: moveOperation.startPosition)
         remove(tileView)
         place(tileView, at: moveOperation.targetPosition)
     }
@@ -292,7 +292,7 @@ class BoardView: UIView {
 @available(iOS 10, *)
 extension BoardView {
     private func beginAnimation(for moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.sourcePosition)
+        let tileView = tile(at: moveOperation.startPosition)
         guard case let .possible(after: operations) = board.canPerform(moveOperation),
             dragOperations[tileView] == nil
         else { return }

@@ -132,7 +132,7 @@ struct Board {
 
     func canPerform(_ moveOperation: TileMoveOperation) -> TileMoveResult {
         // Check that a tile is present to be moved
-        guard tileIsPresent(at: moveOperation.sourcePosition),
+        guard tileIsPresent(at: moveOperation.startPosition),
             boardContains(moveOperation.targetPosition),
             !reservationExists(at: moveOperation.targetPosition)
         else { return .notPossible }
@@ -183,8 +183,8 @@ struct Board {
         switch canPerform(moveOperation) {
         case let .possible(after: operations):
             for operation in operations + [moveOperation] {
-                tiles[operation.targetPosition] = tiles[operation.sourcePosition]
-                tiles[operation.sourcePosition] = nil
+                tiles[operation.targetPosition] = tiles[operation.startPosition]
+                tiles[operation.startPosition] = nil
             }
         case .notPossible:
             fatalError("Cannot perform an impossible move operation")
