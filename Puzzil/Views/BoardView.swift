@@ -115,28 +115,11 @@ class BoardView: UIView {
 
     @available(iOS 10, *)
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
-        let tileView = sender.view as! TileView
-
         switch sender.state {
-        case .began:
-            let velocity = sender.velocity(in: self)
-            let direction: TileMoveDirection
-            let position = tiles[tileView]!.position
-            if abs(velocity.x) > abs(velocity.y) {
-                if velocity.x < 0 { direction = .left }
-                else { direction = .right }
-            } else {
-                if velocity.y < 0 { direction = .up }
-                else { direction = .down }
-            }
-
-            let moveOperation = TileMoveOperation(position: position, direction: direction)
-
-            beginAnimation(for: moveOperation)
-        case .changed:
-            updateAnimation(for: tileView, sender: sender)
+        case .began, .changed:
+            updateAnimation(sender: sender)
         default:
-            completeAnimation(for: tileView, sender: sender)
+            completeAnimation(sender: sender)
         }
     }
 
@@ -325,8 +308,21 @@ class BoardView: UIView {
 
 @available(iOS 10, *)
 extension BoardView {
-    private func beginAnimation(for moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.startPosition)
+    private func beginAnimation(sender: UIPanGestureRecognizer) {
+        let tileView = sender.view as! TileView
+        let velocity = sender.velocity(in: self)
+        let direction: TileMoveDirection
+        let position = tiles[tileView]!.position
+        if abs(velocity.x) > abs(velocity.y) {
+            if velocity.x < 0 { direction = .left }
+            else { direction = .right }
+        } else {
+            if velocity.y < 0 { direction = .up }
+            else { direction = .down }
+        }
+
+        let moveOperation = TileMoveOperation(position: position, direction: direction)
+
         guard case let .possible(after: operations) = board.canPerform(moveOperation),
             dragOperations[tileView] == nil
         else { return }
@@ -349,25 +345,41 @@ extension BoardView {
         dragOperations[tileView] = dragOperation
     }
 
-    private func updateAnimation(for tileView: TileView, sender: UIPanGestureRecognizer) {
-        guard let dragOperation = dragOperations[tileView] else { return }
+    private func updateAnimation(sender: UIPanGestureRecognizer) {
+        let tileView = sender.view as! TileView
+        guard let dragOperation = dragOperations[tileView] else {
+            beginAnimation(sender: sender)
+            return
+        }
 
         let translation = sender.translation(in: self)
         let fractionComplete = dragOperation.fractionComplete(with: translation)
-        if fractionComplete < 1 {
-            dragOperation.animator.fractionComplete = fractionComplete
-        } else {
+        if fractionComplete <= 0 {
+            board.cancel(dragOperation.keyMoveOperation)
+            dragOperation.animator.stopAnimation(false)
+            dragOperation.animator.finishAnimation(at: .start)
+            dragOperation.allMoveOperations.map { $0.reversed }.forEach(perform)
+            dragOperations[tileView] = nil
+        } else if fractionComplete >= 1 {
             board.complete(dragOperation.keyMoveOperation)
             delegate.boardDidChange(self)
+            switch dragOperation.direction {
+            case .left, .right:
+                sender.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
+            case .up, .down:
+                sender.setTranslation(CGPoint(x: translation.x, y: 0), in: self)
+            }
             sender.setTranslation(.zero, in: self)
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .end)
             dragOperations[tileView] = nil
-            beginAnimation(for: dragOperation.keyMoveOperation.nextOperation)
+        } else {
+            dragOperation.animator.fractionComplete = fractionComplete
         }
     }
 
-    private func completeAnimation(for tileView: TileView, sender: UIPanGestureRecognizer) {
+    private func completeAnimation(sender: UIPanGestureRecognizer) {
+        let tileView = sender.view as! TileView
         guard let dragOperation = dragOperations[tileView] else { return }
 
         let velocity = sender.velocity(in: self)
