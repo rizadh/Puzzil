@@ -23,10 +23,7 @@ class GameViewController: UIViewController {
     private let difficulty: Double
     private var boardIsScrambling = false
     private var gameIsRunning = false {
-        didSet {
-            restartButton.isEnabled = gameIsRunning
-            UIApplication.shared.isIdleTimerDisabled = gameIsRunning
-        }
+        didSet { restartButton.isEnabled = gameIsRunning }
     }
 
     // MARK: - Subviews
