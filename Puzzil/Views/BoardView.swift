@@ -90,6 +90,30 @@ class BoardView: UIView {
         }
     }
 
+    @objc private func tileWasSwiped(_ sender: UISwipeGestureRecognizer) {
+        let tileView = sender.view as! TileView
+        let position = tiles[tileView]!.position
+        let direction: TileMoveDirection = {
+            switch sender.direction {
+            case .left:
+                return .left
+            case .right:
+                return .right
+            case .up:
+                return .up
+            case .down:
+                return .down
+            default:
+                fatalError("Invalid swipe direction.")
+            }
+        }()
+
+        let moveOperation = TileMoveOperation(position: position, direction: direction)
+
+        animate(moveOperation)
+    }
+
+    @available(iOS 10, *)
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
         let tileView = sender.view as! TileView
 
@@ -108,19 +132,11 @@ class BoardView: UIView {
 
             let moveOperation = TileMoveOperation(position: position, direction: direction)
 
-            if #available(iOS 10, *) {
-                beginAnimation(for: moveOperation)
-            } else {
-                animate(moveOperation)
-            }
+            beginAnimation(for: moveOperation)
         case .changed:
-            if #available(iOS 10, *) {
-                updateAnimation(for: tileView, sender: sender)
-            }
+            updateAnimation(for: tileView, sender: sender)
         default:
-            if #available(iOS 10, *) {
-                completeAnimation(for: tileView, sender: sender)
-            }
+            completeAnimation(for: tileView, sender: sender)
         }
     }
 
@@ -246,8 +262,26 @@ class BoardView: UIView {
                 pressGestureRecognizer.minimumPressDuration = 0
                 pressGestureRecognizer.delegate = self
                 tileView.addGestureRecognizer(pressGestureRecognizer)
+
                 tileView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
-                tileView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+
+                if #available(iOS 10, *) {
+                    tileView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+                } else {
+                    let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+                    rightSwipeGestureRecognizer.direction = .right
+                    let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+                    leftSwipeGestureRecognizer.direction = .left
+                    let upSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+                    upSwipeGestureRecognizer.direction = .up
+                    let downSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+                    downSwipeGestureRecognizer.direction = .down
+
+                    tileView.addGestureRecognizer(rightSwipeGestureRecognizer)
+                    tileView.addGestureRecognizer(leftSwipeGestureRecognizer)
+                    tileView.addGestureRecognizer(upSwipeGestureRecognizer)
+                    tileView.addGestureRecognizer(downSwipeGestureRecognizer)
+                }
             }
 
             addSubview(tileView)
