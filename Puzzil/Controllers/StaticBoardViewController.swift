@@ -1,5 +1,5 @@
 //
-//  BoardViewController.swift
+//  StaticBoardViewController.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-01-20.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardViewController: UIViewController {
+class StaticBoardViewController: UIViewController {
     let boardStyle: BoardStyle
     let boardView = BoardView()
 
@@ -77,7 +77,7 @@ class BoardViewController: UIViewController {
 
 // MARK: - BoardViewDelegate
 
-extension BoardViewController: BoardViewDelegate {
+extension StaticBoardViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
         return boardStyle.board
     }

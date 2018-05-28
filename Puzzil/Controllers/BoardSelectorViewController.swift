@@ -30,10 +30,10 @@ class BoardSelectorViewController: UIViewController {
                                                   options: nil)
     let helpText = UILabel()
     private let boardViewControllers = BoardStyle.all.map { boardStyle in
-        return BoardViewController(boardStyle: boardStyle)
+        return StaticBoardViewController(boardStyle: boardStyle)
     }
 
-    var visibleBoardViewController: BoardViewController {
+    var visibleBoardViewController: StaticBoardViewController {
         return boardViewControllers[pageControl.currentPage]
     }
 
@@ -195,7 +195,7 @@ class BoardSelectorViewController: UIViewController {
 
     func navigateToCurrentPage() {
         let currentPage = pageControl.currentPage
-        let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
+        let boardViewController = pageViewController.viewControllers!.first as! StaticBoardViewController
         let previousPage = boardViewControllers.index(of: boardViewController)!
         let viewController = boardViewControllers[currentPage]
 
@@ -240,14 +240,14 @@ extension BoardSelectorViewController: UIGestureRecognizerDelegate {
 extension BoardSelectorViewController: UIPageViewControllerDelegate {
     func pageViewController(_ pageViewController: UIPageViewController,
                             viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
+        let index = boardViewControllers.index(of: viewController as! StaticBoardViewController)!
         let previousIndex = (index - 1 + boardViewControllers.count) % boardViewControllers.count
         return boardViewControllers[previousIndex]
     }
 
     func pageViewController(_ pageViewController: UIPageViewController,
                             viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        let index = boardViewControllers.index(of: viewController as! BoardViewController)!
+        let index = boardViewControllers.index(of: viewController as! StaticBoardViewController)!
         let nextIndex = (index + 1) % boardViewControllers.count
         return boardViewControllers[nextIndex]
     }
@@ -259,7 +259,7 @@ extension BoardSelectorViewController: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool,
                             previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if completed {
-            let boardViewController = pageViewController.viewControllers!.first as! BoardViewController
+            let boardViewController = pageViewController.viewControllers!.first as! StaticBoardViewController
             let index = boardViewControllers.index(of: boardViewController)!
             pageControl.currentPage = index
             updateBoardNameLabel()
