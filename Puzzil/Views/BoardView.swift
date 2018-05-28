@@ -27,11 +27,11 @@ class BoardView: UIView {
 
     // MARK: - Drag Operation Coordination
 
-    private var _currentDrags = [TileView: Any]()
+    private var _currentDrags = [UIPanGestureRecognizer: Any]()
     @available(iOS 10, *)
-    private var dragOperations: [TileView: TileDragOperation] {
+    private var dragOperations: [UIPanGestureRecognizer: TileDragOperation] {
         get {
-            return _currentDrags as! [TileView: TileDragOperation]
+            return _currentDrags as! [UIPanGestureRecognizer: TileDragOperation]
         }
 
         set {
@@ -117,7 +117,11 @@ class BoardView: UIView {
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began, .changed:
-            updateAnimation(sender: sender)
+            if dragOperations[sender] == nil {
+                beginAnimation(sender: sender)
+            } else {
+                updateAnimation(sender: sender)
+            }
         default:
             completeAnimation(sender: sender)
         }
@@ -324,7 +328,7 @@ extension BoardView {
         let moveOperation = TileMoveOperation(position: position, direction: direction)
 
         guard case let .possible(after: operations) = board.canPerform(moveOperation),
-            dragOperations[tileView] == nil
+            dragOperations[sender] == nil
         else { return }
 
         (operations + [moveOperation]).forEach(perform)
@@ -342,15 +346,11 @@ extension BoardView {
                                               keyMoveOperation: moveOperation,
                                               moveOperations: operations)
 
-        dragOperations[tileView] = dragOperation
+        dragOperations[sender] = dragOperation
     }
 
     private func updateAnimation(sender: UIPanGestureRecognizer) {
-        let tileView = sender.view as! TileView
-        guard let dragOperation = dragOperations[tileView] else {
-            beginAnimation(sender: sender)
-            return
-        }
+        guard let dragOperation = dragOperations[sender] else { return }
 
         let translation = sender.translation(in: self)
         let fractionComplete = dragOperation.fractionComplete(with: translation)
@@ -359,7 +359,7 @@ extension BoardView {
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .start)
             dragOperation.allMoveOperations.map { $0.reversed }.forEach(perform)
-            dragOperations[tileView] = nil
+            dragOperations[sender] = nil
         } else if fractionComplete >= 1 {
             board.complete(dragOperation.keyMoveOperation)
             delegate.boardDidChange(self)
@@ -372,15 +372,14 @@ extension BoardView {
             sender.setTranslation(.zero, in: self)
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .end)
-            dragOperations[tileView] = nil
+            dragOperations[sender] = nil
         } else {
             dragOperation.animator.fractionComplete = fractionComplete
         }
     }
 
     private func completeAnimation(sender: UIPanGestureRecognizer) {
-        let tileView = sender.view as! TileView
-        guard let dragOperation = dragOperations[tileView] else { return }
+        guard let dragOperation = dragOperations[sender] else { return }
 
         let velocity = sender.velocity(in: self)
         let animator = dragOperation.animator
@@ -399,7 +398,7 @@ extension BoardView {
         let timingParameters = UISpringTimingParameters(dampingRatio: 1,
                                                         initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-        dragOperations[tileView] = nil
+        dragOperations[sender] = nil
     }
 }
 
