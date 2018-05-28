@@ -1,5 +1,5 @@
 //
-//  BoardAnimator.swift
+//  GameBoardAnimator.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-04-30.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
+class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     private static let slideDistance: CGFloat = 64
     private static let slideUp = CGAffineTransform(translationX: 0, y: -slideDistance)
     private static let slideDown = CGAffineTransform(translationX: 0, y: slideDistance)
@@ -68,10 +68,10 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     private func performBoardSelectorOut(_ boardSelectorViewController: BoardSelectorViewController, using boardTransform: CGAffineTransform) {
         boardSelectorViewController.boardView.transform = boardTransform
-        boardSelectorViewController.headerView.transform = BoardAnimator.slideUp
-        boardSelectorViewController.boardNameLabel.transform = BoardAnimator.slideUp
-        boardSelectorViewController.pageControl.transform = BoardAnimator.slideUp
-        boardSelectorViewController.helpText.transform = BoardAnimator.slideDown
+        boardSelectorViewController.headerView.transform = GameBoardAnimator.slideUp
+        boardSelectorViewController.boardNameLabel.transform = GameBoardAnimator.slideUp
+        boardSelectorViewController.pageControl.transform = GameBoardAnimator.slideUp
+        boardSelectorViewController.helpText.transform = GameBoardAnimator.slideDown
         boardSelectorViewController.view.alpha = 0
     }
 
@@ -86,9 +86,9 @@ class BoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     private func performGameOut(_ gameViewController: GameViewController, using boardTransform: CGAffineTransform) {
         gameViewController.boardView.transform = boardTransform.inverted()
-        gameViewController.stats.transform = BoardAnimator.slideUp
-        gameViewController.buttons.transform = BoardAnimator.slideDown
-        gameViewController.progressBar.transform = BoardAnimator.slideDown
+        gameViewController.stats.transform = GameBoardAnimator.slideUp
+        gameViewController.buttons.transform = GameBoardAnimator.slideDown
+        gameViewController.progressBar.transform = GameBoardAnimator.slideDown
         gameViewController.view.alpha = 0
     }
 

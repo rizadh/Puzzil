@@ -26,7 +26,7 @@
 		4AB63DD01FEDA6B2003EBC29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */; };
 		4AB63DD31FEDA6B2003EBC29 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DD11FEDA6B2003EBC29 /* LaunchScreen.storyboard */; };
 		4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */; };
-		4AB9C5662097C04100BD7BA1 /* BoardAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB9C5652097C04100BD7BA1 /* BoardAnimator.swift */; };
+		4AB9C5662097C04100BD7BA1 /* GameBoardAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB9C5652097C04100BD7BA1 /* GameBoardAnimator.swift */; };
 		4ABAB82220065BC300D09C93 /* StatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABAB82120065BC300D09C93 /* StatView.swift */; };
 		4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2362200340A30042592B /* BoardScrambler.swift */; };
 		4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2364200341D70042592B /* TileMoveOperation.swift */; };
@@ -55,7 +55,7 @@
 		4AB63DD21FEDA6B2003EBC29 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4AB63DD41FEDA6B3003EBC29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4AB63DDA1FEDB34F003EBC29 /* UIColor+ThemeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+ThemeColors.swift"; sourceTree = "<group>"; };
-		4AB9C5652097C04100BD7BA1 /* BoardAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BoardAnimator.swift; path = Puzzil/Utilities/BoardAnimator.swift; sourceTree = SOURCE_ROOT; };
+		4AB9C5652097C04100BD7BA1 /* GameBoardAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GameBoardAnimator.swift; path = Puzzil/Utilities/GameBoardAnimator.swift; sourceTree = SOURCE_ROOT; };
 		4ABAB82120065BC300D09C93 /* StatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatView.swift; sourceTree = "<group>"; };
 		4ABC2362200340A30042592B /* BoardScrambler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardScrambler.swift; sourceTree = "<group>"; };
 		4ABC2364200341D70042592B /* TileMoveOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileMoveOperation.swift; sourceTree = "<group>"; };
@@ -104,7 +104,7 @@
 				4ABC2362200340A30042592B /* BoardScrambler.swift */,
 				4A79845F20B65BDA00ADD49D /* QueuedGenerator.swift */,
 				4A2E34082032308800986946 /* BestTimesController.swift */,
-				4AB9C5652097C04100BD7BA1 /* BoardAnimator.swift */,
+				4AB9C5652097C04100BD7BA1 /* GameBoardAnimator.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -246,7 +246,7 @@
 				4A79846020B65BDA00ADD49D /* QueuedGenerator.swift in Sources */,
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A3772FE2002E2B400C3C0F9 /* TileMoveDirection.swift in Sources */,
-				4AB9C5662097C04100BD7BA1 /* BoardAnimator.swift in Sources */,
+				4AB9C5662097C04100BD7BA1 /* GameBoardAnimator.swift in Sources */,
 				4AB63DDB1FEDB34F003EBC29 /* UIColor+ThemeColors.swift in Sources */,
 				4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */,
 				4A2940C62013D4B40077EE36 /* StaticBoardViewController.swift in Sources */,

@@ -49,7 +49,7 @@ class BoardSelectorViewController: UIViewController {
 
     // MARK: - Animation Management
 
-    private let animator = BoardAnimator()
+    private let animator = GameBoardAnimator()
     private var latestPressRecognizer: UIGestureRecognizer?
 
     // MARK: - UIViewController Method Overrides
