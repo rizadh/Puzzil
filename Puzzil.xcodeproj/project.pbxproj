@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4A12B22F201DCC9D006B039F /* UIView+CustomAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */; };
+		4A18584B20BCBAF90079B604 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A18584A20BCBAF90079B604 /* ResultView.swift */; };
 		4A1B65EB1FEE409700A98FF7 /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1B65EA1FEE409700A98FF7 /* Board.swift */; };
 		4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */; };
 		4A2940C62013D4B40077EE36 /* StaticBoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2940C52013D4B40077EE36 /* StaticBoardViewController.swift */; };
@@ -35,6 +36,7 @@
 
 /* Begin PBXFileReference section */
 		4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+CustomAnimations.swift"; sourceTree = "<group>"; };
+		4A18584A20BCBAF90079B604 /* ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultView.swift; sourceTree = "<group>"; };
 		4A1B65EA1FEE409700A98FF7 /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewDelegate.swift; sourceTree = "<group>"; };
 		4A2940C52013D4B40077EE36 /* StaticBoardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticBoardViewController.swift; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				4ABAB82120065BC300D09C93 /* StatView.swift */,
+				4A18584A20BCBAF90079B604 /* ResultView.swift */,
 				4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */,
 				4A4573C31FF77FE600F13884 /* TileView.swift */,
 				4A21CC3B2001840B00632EE4 /* BoardViewDelegate.swift */,
@@ -237,6 +240,7 @@
 				4AB63DCB1FEDA6B2003EBC29 /* GameViewController.swift in Sources */,
 				4A21CC3C2001840B00632EE4 /* BoardViewDelegate.swift in Sources */,
 				4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */,
+				4A18584B20BCBAF90079B604 /* ResultView.swift in Sources */,
 				4ABC2363200340A30042592B /* BoardScrambler.swift in Sources */,
 				4A12B22F201DCC9D006B039F /* UIView+CustomAnimations.swift in Sources */,
 				4A7341C21FFD4648003DB6C6 /* UIButton+RoundedButton.swift in Sources */,

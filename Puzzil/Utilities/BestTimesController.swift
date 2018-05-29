@@ -32,15 +32,15 @@ class BestTimesController {
         guard let existingTime = bestTimes[boardName] else {
             bestTimes[boardName] = newTime
 
-            return .created
+            return .created(time: newTime)
         }
 
         if newTime < existingTime {
             bestTimes[boardName] = newTime
 
-            return .replaced(oldTime: existingTime)
+            return .replaced(oldTime: existingTime, newTime: newTime)
         } else {
-            return .preserved(bestTime: existingTime)
+            return .preserved(oldTime: existingTime, newTime: newTime)
         }
     }
 
@@ -66,7 +66,7 @@ class BestTimesController {
 }
 
 enum BestTimeUpdateResult {
-    case created
-    case replaced(oldTime: Double)
-    case preserved(bestTime: Double)
+    case created(time: Double)
+    case replaced(oldTime: Double, newTime: Double)
+    case preserved(oldTime: Double, newTime: Double)
 }

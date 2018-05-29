@@ -23,7 +23,17 @@ class GameViewController: UIViewController {
     private let difficulty: Double
     private var boardIsScrambling = false
     private var gameIsRunning = false {
-        didSet { restartButton.isEnabled = gameIsRunning }
+        didSet {
+            restartButton.isEnabled = gameIsRunning || resultsAreVisible
+            endButton.isEnabled = gameIsRunning || resultsAreVisible
+        }
+    }
+
+    private var resultsAreVisible = false {
+        didSet {
+            restartButton.isEnabled = gameIsRunning || resultsAreVisible
+            endButton.isEnabled = gameIsRunning || resultsAreVisible
+        }
     }
 
     // MARK: - Subviews
@@ -33,6 +43,7 @@ class GameViewController: UIViewController {
     let timeStat = StatView()
     let movesStat = StatView()
     let boardView = BoardView()
+    let resultView = ResultView()
     let buttons = UIStackView()
     private var endButton: UIButton!
     private var restartButton: UIButton!
@@ -94,9 +105,30 @@ class GameViewController: UIViewController {
     // MARK: Public Methods
 
     func beginGame() {
+        if resultsAreVisible {
+            boardView.isHidden = false
+
+            UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
+                self.resultView.transform = .zero
+            }) { _ in
+                self.resultsAreVisible = false
+                self.resultView.isHidden = true
+            }
+
+            UIView.animate(withDuration: 0.25, delay: 0.125, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+                self.boardView.transform = .identity
+            }, completion: { _ in
+                self.resetBoard()
+            })
+        } else {
+            resetBoard()
+        }
+    }
+
+    func resetBoard() {
         gameIsRunning = true
-        progressBar.progress = 0
         boardView.reloadBoard()
+        progressBar.progress = 0
         resetStats()
     }
 
@@ -141,12 +173,17 @@ class GameViewController: UIViewController {
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
 
+        resultView.translatesAutoresizingMaskIntoConstraints = false
+        resultView.isHidden = true
+
         endButton = UIButton.createThemedButton()
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
+        endButton.isEnabled = false
         endButton.setTitle("End", for: .normal)
 
         restartButton = UIButton.createThemedButton()
         restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
+        restartButton.isEnabled = false
         restartButton.setTitle("Restart", for: .normal)
 
         buttons.addArrangedSubview(endButton)
@@ -164,6 +201,7 @@ class GameViewController: UIViewController {
 
         view.addSubview(stats)
         view.addSubview(boardView)
+        view.addSubview(resultView)
         view.addSubview(buttons)
         view.addSubview(progressBar)
     }
@@ -204,6 +242,9 @@ class GameViewController: UIViewController {
             boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
 
+            resultView.timeText.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
+            resultView.timeText.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
+
             buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
@@ -221,6 +262,11 @@ class GameViewController: UIViewController {
         ].map {
             $0.priority = .defaultHigh
             return $0
+        } + [
+            resultView.widthAnchor.constraint(equalTo: boardView.widthAnchor),
+        ].map {
+            $0.priority = .defaultLow
+            return $0
         })
     }
 
@@ -229,35 +275,26 @@ class GameViewController: UIViewController {
         dismiss(animated: true)
     }
 
-    private func freezeTimeStat() {
-        timeStatRefresher.isPaused = true
-        updateTimeStat(animated: false)
-    }
-
     private func boardWasSolved() {
-        let updateResult = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
-        let message: String
         gameIsRunning = false
 
-        switch updateResult {
-        case .created:
-            message = "Congratulations on your first solve!"
-        case let .replaced(oldTime):
-            message = String(format: "New record! Your previous record was %.1f s.", oldTime)
-        case let .preserved(bestTime):
-            message = String(format: "Play again to beat your %.1f s record!", bestTime)
-        }
+        resultView.result = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
+        resultView.transform = .zero
+        resultView.isHidden = false
 
-        updateTimeStat(animated: true)
-        updateMovesStat(animated: true)
+        resetStats()
 
-        let title = String(format: "Your time was %.1f s!", elapsedSeconds)
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Play Again", style: .default, handler: { _ in
-            self.beginGame()
-        }))
+        UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
+            self.boardView.transform = .zero
+        }, completion: { _ in
+            self.boardView.isHidden = true
+        })
 
-        present(alert, animated: true)
+        UIView.animate(withDuration: 0.25, delay: 0.1, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+            self.resultView.transform = .identity
+        }, completion: { _ in
+            self.resultsAreVisible = true
+        })
     }
 
     // MARK: - Stat Management
@@ -265,7 +302,9 @@ class GameViewController: UIViewController {
     private func updateBestTimeStat(animated: Bool) {
         let newValue: String
 
-        if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
+        if !gameIsRunning {
+            newValue = "—"
+        } else if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
             newValue = GameViewController.secondsToTimeString(bestTime)
         } else {
             newValue = "N/A"
@@ -373,7 +412,6 @@ extension GameViewController: BoardViewDelegate {
 
     func boardDidChange(_ boardView: BoardView) {
         moves += 1
-        updateMovesStat(animated: true)
         progressBar.setProgress(Float(boardView.board.progress), animated: true)
         if boardView.board.isSolved { boardWasSolved() }
     }
