@@ -350,14 +350,19 @@ extension BoardView {
                                               keyMoveOperation: moveOperation,
                                               moveOperations: operations)
 
+        dragOperation.updateVelocity(velocity)
         dragOperations[sender] = dragOperation
     }
 
     private func updateAnimation(sender: UIPanGestureRecognizer) {
         guard let dragOperation = dragOperations[sender] else { return }
 
+        let velocity = sender.velocity(in: self)
         let translation = sender.translation(in: self)
         let fractionComplete = dragOperation.fractionComplete(with: translation)
+        dragOperation.animator.fractionComplete = fractionComplete
+        dragOperation.updateVelocity(velocity)
+
         if fractionComplete <= 0 {
             board.cancel(dragOperation.keyMoveOperation)
             dragOperation.animator.stopAnimation(false)
@@ -377,8 +382,6 @@ extension BoardView {
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .end)
             dragOperations[sender] = nil
-        } else {
-            dragOperation.animator.fractionComplete = fractionComplete
         }
     }
 
@@ -387,7 +390,8 @@ extension BoardView {
 
         let velocity = sender.velocity(in: self)
         let animator = dragOperation.animator
-        let velocityAdjustment = dragOperation.fractionComplete(with: velocity)
+        dragOperation.updateVelocity(velocity)
+        let velocityAdjustment = dragOperation.fractionComplete(with: dragOperation.lastVelocity) / 4
         let moveShouldBeCancelled = animator.fractionComplete + velocityAdjustment < 0.5
 
         if moveShouldBeCancelled {
