@@ -65,31 +65,6 @@ class BoardView: UIView {
 
     // MARK: - Event Handlers
 
-    @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
-        let tile = sender.view as! TileView
-        let position = tiles[tile]!.position
-        var validOperations = [TileMoveOperation]()
-        var simpleOperations = [TileMoveOperation]()
-
-        for moveOperation in position.possibleOperations {
-            switch board.canPerform(moveOperation) {
-            case let .possible(after: requiredOperations):
-                validOperations.append(moveOperation)
-                if requiredOperations.count == 1 {
-                    simpleOperations.append(moveOperation)
-                }
-            case .notPossible:
-                break
-            }
-        }
-
-        if validOperations.count == 1 {
-            animate(validOperations.first!)
-        } else if simpleOperations.count == 1 {
-            animate(simpleOperations.first!)
-        }
-    }
-
     @objc private func tileWasSwiped(_ sender: UISwipeGestureRecognizer) {
         let tileView = sender.view as! TileView
         let position = tiles[tileView]!.position
@@ -258,8 +233,6 @@ class BoardView: UIView {
         pressGestureRecognizer.minimumPressDuration = 0
         pressGestureRecognizer.delegate = self
         tileView.addGestureRecognizer(pressGestureRecognizer)
-
-        tileView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
 
         if #available(iOS 10, *) {
             tileView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
