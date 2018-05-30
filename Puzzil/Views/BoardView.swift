@@ -245,34 +245,38 @@ class BoardView: UIView {
             tileView.text = text
 
             if isDynamic {
-                let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(tileWasPressed(_:)))
-                pressGestureRecognizer.minimumPressDuration = 0
-                pressGestureRecognizer.delegate = self
-                tileView.addGestureRecognizer(pressGestureRecognizer)
-
-                tileView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
-
-                if #available(iOS 10, *) {
-                    tileView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
-                } else {
-                    let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-                    rightSwipeGestureRecognizer.direction = .right
-                    let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-                    leftSwipeGestureRecognizer.direction = .left
-                    let upSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-                    upSwipeGestureRecognizer.direction = .up
-                    let downSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-                    downSwipeGestureRecognizer.direction = .down
-
-                    tileView.addGestureRecognizer(rightSwipeGestureRecognizer)
-                    tileView.addGestureRecognizer(leftSwipeGestureRecognizer)
-                    tileView.addGestureRecognizer(upSwipeGestureRecognizer)
-                    tileView.addGestureRecognizer(downSwipeGestureRecognizer)
-                }
+                attachGestureRecognizers(to: tileView)
             }
 
             addSubview(tileView)
             place(tileView, at: position)
+        }
+    }
+
+    private func attachGestureRecognizers(to tileView: TileView) {
+        let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(tileWasPressed(_:)))
+        pressGestureRecognizer.minimumPressDuration = 0
+        pressGestureRecognizer.delegate = self
+        tileView.addGestureRecognizer(pressGestureRecognizer)
+
+        tileView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:))))
+
+        if #available(iOS 10, *) {
+            tileView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+        } else {
+            let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+            rightSwipeGestureRecognizer.direction = .right
+            let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+            leftSwipeGestureRecognizer.direction = .left
+            let upSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+            upSwipeGestureRecognizer.direction = .up
+            let downSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
+            downSwipeGestureRecognizer.direction = .down
+
+            tileView.addGestureRecognizer(rightSwipeGestureRecognizer)
+            tileView.addGestureRecognizer(leftSwipeGestureRecognizer)
+            tileView.addGestureRecognizer(upSwipeGestureRecognizer)
+            tileView.addGestureRecognizer(downSwipeGestureRecognizer)
         }
     }
 
