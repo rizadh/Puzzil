@@ -128,15 +128,15 @@ class ResultView: UIView {
         case let .created(time):
             messageText.text = ResultView.nextFirstSolveMessage()
             timeText.text = String(format: "%.1f s", time)
-            statusText.text = String(format: "Best Time", time)
+            statusText.text = String(format: "New Best", time)
         case let .preserved(oldTime, newTime):
             messageText.text = ResultView.nextSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
-            statusText.text = String(format: "Best Time: %.1f s", oldTime)
+            statusText.text = String(format: "Best: %.1f s", oldTime)
         case let .replaced(oldTime, newTime):
             messageText.text = ResultView.nextBestSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
-            statusText.text = String(format: "Previous Best Time: %.1f s", oldTime)
+            statusText.text = String(format: "Previous Best: %.1f s", oldTime)
             statusTag.isHidden = false
         }
     }
