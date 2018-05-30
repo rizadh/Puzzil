@@ -22,7 +22,7 @@ class BoardView: UIView {
     var isDynamic = true
 
     weak var delegate: BoardViewDelegate!
-    private var tiles = [TileView: TileInfo]()
+    private var tileInfo = [TileView: TileInfo]()
     private var tileGuides = [[UILayoutGuide]]()
 
     // MARK: - Drag Operation Coordination
@@ -60,14 +60,14 @@ class BoardView: UIView {
     // MARK: - Private Helpers
 
     private func tile(at position: TilePosition) -> TileView {
-        return tiles.first { $0.value.position == position }!.key
+        return tileInfo.first { $0.value.position == position }!.key
     }
 
     // MARK: - Event Handlers
 
     @objc private func tileWasSwiped(_ sender: UISwipeGestureRecognizer) {
         let tileView = sender.view as! TileView
-        let position = tiles[tileView]!.position
+        let position = tileInfo[tileView]!.position
         let direction: TileMoveDirection = {
             switch sender.direction {
             case .left:
@@ -149,8 +149,8 @@ class BoardView: UIView {
     }
 
     private func clearBoard() {
-        tiles.keys.forEach { $0.removeFromSuperview() }
-        tiles.removeAll()
+        tileInfo.keys.forEach { $0.removeFromSuperview() }
+        tileInfo.removeAll()
 
         tileGuides.forEach { $0.forEach(removeLayoutGuide(_:)) }
         tileGuides.removeAll()
@@ -256,11 +256,11 @@ class BoardView: UIView {
     // MARK: Tile Placement
 
     private func remove(_ tile: TileView) {
-        let constraints = tiles[tile]!.constraints
+        let constraints = tileInfo[tile]!.constraints
 
         NSLayoutConstraint.deactivate(constraints)
 
-        tiles.removeValue(forKey: tile)
+        tileInfo.removeValue(forKey: tile)
     }
 
     private func place(_ tileView: TileView, at position: TilePosition) {
@@ -275,7 +275,7 @@ class BoardView: UIView {
 
         NSLayoutConstraint.activate(constraints)
 
-        tiles[tileView] = TileInfo(position: position, constraints: constraints)
+        tileInfo[tileView] = TileInfo(position: position, constraints: constraints)
     }
 
     private func perform(_ moveOperation: TileMoveOperation) {
@@ -293,7 +293,7 @@ extension BoardView {
         let tileView = sender.view as! TileView
         let velocity = sender.velocity(in: self)
         let direction: TileMoveDirection
-        let position = tiles[tileView]!.position
+        let position = tileInfo[tileView]!.position
         if abs(velocity.x) > abs(velocity.y) {
             if velocity.x < 0 { direction = .left }
             else { direction = .right }
