@@ -107,6 +107,7 @@ class GameViewController: UIViewController {
     func beginGame() {
         if resultsAreVisible {
             boardView.isHidden = false
+            boardView.reloadBoard()
 
             UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
                 self.resultView.transform = .zero
