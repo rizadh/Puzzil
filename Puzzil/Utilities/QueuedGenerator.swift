@@ -15,6 +15,7 @@ class QueuedGenerator<Element> {
     private var queue = [Element]()
     private let elementAvailable = DispatchSemaphore(value: 0)
     private let queueLock = DispatchSemaphore(value: 1)
+    private let generationQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue", qos: .utility)
 
     init(queueLength: Int, _ generatorBlock: @escaping GeneratorBlock) {
         self.generatorBlock = generatorBlock
@@ -23,8 +24,6 @@ class QueuedGenerator<Element> {
     }
 
     private func populateQueue() {
-        let generationQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue", qos: .utility)
-
         generationQueue.async {
             var element: Element!
 
