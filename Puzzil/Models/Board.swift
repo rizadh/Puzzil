@@ -13,12 +13,12 @@ typealias BoardElement = CustomStringConvertible?
 struct Board {
     private typealias TileMatrix = [[Tile?]]
 
-    // MARK: - Board Properties-
+    // MARK: - Board Properties
 
     let rowCount: Int
     let columnCount: Int
     private var tiles: TileMatrix = []
-    private var reservedPositions = [TileMoveOperation: TilePosition]()
+    private var reservedPositions = [TileMoveOperation: [TilePosition]]()
 
     // MARK: - Board Status
 
@@ -125,7 +125,7 @@ struct Board {
     }
 
     private func reservationExists(at position: TilePosition) -> Bool {
-        return Set(reservedPositions.values).contains(position)
+        return Set(reservedPositions.values.reduce([], +)).contains(position)
     }
 
     // MARK: - Public Methods
@@ -160,9 +160,9 @@ struct Board {
     mutating func begin(_ moveOperation: TileMoveOperation) {
         switch canPerform(moveOperation) {
         case let .possible(after: operations):
-            let finalOperation = operations.last ?? moveOperation
-            let finalPosition = finalOperation.targetPosition
-            reservedPositions[moveOperation] = finalPosition
+            reservedPositions[moveOperation] = (operations + [moveOperation]).flatMap {
+                [$0.startPosition, $0.targetPosition]
+            }
         case .notPossible:
             fatalError("Cannot begin an impossible move operation")
         }
