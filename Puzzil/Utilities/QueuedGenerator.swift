@@ -48,4 +48,14 @@ class QueuedGenerator<Element> {
 
         return element
     }
+
+    func nextImmediate() -> Element? {
+        queueLock.wait()
+        let element = queue.popLast()
+        queueLock.signal()
+
+        if element != nil { populateQueue() }
+
+        return element
+    }
 }
