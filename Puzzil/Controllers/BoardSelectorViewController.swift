@@ -20,24 +20,6 @@ class BoardSelectorViewController: UIViewController {
         }
     }
 
-    // MARK: Queues
-
-    private let boardAvailabilityQueues: [BoardStyle: DispatchQueue] =
-        Dictionary(uniqueKeysWithValues: BoardStyle.all.map { boardStyle in
-            let queue = DispatchQueue(
-                label: "com.rizadh.Puzzil.BoardSelectorViewController.boardAvailabilityQueue.\(boardStyle.rawValue)")
-
-            return (boardStyle, queue)
-        })
-
-    private var availableBoardStyles = Set<BoardStyle>() {
-        didSet {
-            updateBoardAvailabilityIndication()
-        }
-    }
-
-    private let boardScrambler = (UIApplication.shared.delegate as! AppDelegate).boardScrambler
-
     // MARK: - Subviews
 
     let headerView = UIView()
@@ -74,23 +56,10 @@ class BoardSelectorViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        BoardStyle.all.forEach(waitForBoard)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        for boardViewController in boardViewControllers {
-            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(boardWasTapped))
-            boardViewController.boardView.addGestureRecognizer(tapGestureRecognizer)
-
-            let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(boardWasPressed))
-            pressGestureRecognizer.minimumPressDuration = 0
-            boardViewController.boardView.addGestureRecognizer(pressGestureRecognizer)
-
-            pressGestureRecognizer.delegate = self
-        }
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.backgroundColor = .themeHeader
@@ -185,63 +154,12 @@ class BoardSelectorViewController: UIViewController {
             helpText.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 16),
             safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor, constant: 16),
         ])
-
-        updateBoardAvailabilityIndication()
-    }
-
-    // MARK: - Private Methods
-
-    private func waitForBoard(style boardStyle: BoardStyle) {
-        boardAvailabilityQueues[boardStyle]!.async {
-            DispatchQueue.main.async {
-                self.availableBoardStyles.remove(boardStyle)
-            }
-            self.boardScrambler.waitForBoard(style: boardStyle)
-            DispatchQueue.main.async {
-                self.availableBoardStyles.insert(boardStyle)
-            }
-        }
-    }
-
-    private func updateBoardAvailabilityIndication() {
-        for (index, boardStyle) in BoardStyle.all.enumerated() {
-            boardViewControllers[index].isReady = availableBoardStyles.contains(boardStyle)
-        }
     }
 }
 
 // MARK: - Event Handlers
 
 @objc private extension BoardSelectorViewController {
-    func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
-        latestPressRecognizer = sender
-        let boardView = visibleBoardViewController.boardView
-
-        switch sender.state {
-        case .began:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-                           options: [.allowUserInteraction, .beginFromCurrentState], animations: {
-                               boardView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-            })
-        case .ended, .cancelled:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-                           options: [.allowUserInteraction, .beginFromCurrentState], animations: {
-                               boardView.transform = .identity
-            })
-        default:
-            break
-        }
-    }
-
-    func boardWasTapped(_ sender: UITapGestureRecognizer) {
-        let boardStyle = visibleBoardViewController.boardStyle
-        guard availableBoardStyles.contains(boardStyle) else { return }
-
-        let gameViewController = GameViewController(boardStyle: boardStyle, difficulty: 0.5)
-        gameViewController.transitioningDelegate = self
-        present(gameViewController, animated: true)
-    }
-
     func navigateToCurrentPage() {
         let currentPage = pageControl.currentPage
         let boardViewController = pageViewController.viewControllers!.first as! StaticBoardViewController
@@ -276,7 +194,7 @@ extension BoardSelectorViewController: UIViewControllerTransitioningDelegate {
     }
 }
 
-// MARK: - UIPageViewControllerDelegate
+// MARK: - UIGestureRecognizerDelegate
 
 extension BoardSelectorViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {

@@ -9,20 +9,32 @@
 import UIKit
 
 class StaticBoardViewController: UIViewController {
+
+    // MARK: - Subviews
+
     let boardStyle: BoardStyle
     let boardView = BoardView()
+
+    // MARK: - Board Status
+
+    private let boardWaitingQueue: DispatchQueue
     private let loadingIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-    var isReady = true {
+    private var boardIsReady = true {
         didSet {
-            if isReady { hideLoadingIndicator() }
+            if boardIsReady { hideLoadingIndicator() }
             else { showLoadingIndicator() }
         }
     }
+
+    // MARK: Application Globals
+
+    private let boardScrambler = (UIApplication.shared.delegate as! AppDelegate).boardScrambler
 
     // MARK: - Constructors
 
     init(boardStyle: BoardStyle) {
         self.boardStyle = boardStyle
+        boardWaitingQueue = DispatchQueue(label: "com.rizadh.Puzzil.StaticBoardViewController.boardWaitingQueue.\(boardStyle)", qos: .background)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -33,8 +45,22 @@ class StaticBoardViewController: UIViewController {
 
     // MARK: - UIViewController Method Overrides
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        waitForBoard()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(boardWasTapped))
+        boardView.addGestureRecognizer(tapGestureRecognizer)
+
+        let pressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(boardWasPressed))
+        pressGestureRecognizer.minimumPressDuration = 0
+        pressGestureRecognizer.delegate = self
+        boardView.addGestureRecognizer(pressGestureRecognizer)
 
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.isDynamic = false
@@ -100,6 +126,46 @@ class StaticBoardViewController: UIViewController {
         boardView.isHidden = false
         loadingIndicator.stopAnimating()
     }
+
+    private func waitForBoard() {
+        boardWaitingQueue.async {
+            DispatchQueue.main.async {
+                self.boardIsReady = false
+            }
+            self.boardScrambler.waitForBoard(style: self.boardStyle)
+            DispatchQueue.main.async {
+                self.boardIsReady = true
+            }
+        }
+    }
+
+    // MARK: - Event Handlers
+
+    @objc private func boardWasTapped(_ sender: UITapGestureRecognizer) {
+        guard boardIsReady else { return }
+
+        let gameViewController = GameViewController(boardStyle: boardStyle, difficulty: 0.5)
+        gameViewController.transitioningDelegate = parent?.parent as! BoardSelectorViewController
+        present(gameViewController, animated: true)
+    }
+
+    @objc private func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
+        print(sender.state.rawValue)
+        switch sender.state {
+        case .began:
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                           options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+                               self.boardView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            })
+        case .ended, .cancelled, .failed:
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                           options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+                               self.boardView.transform = .identity
+            })
+        default:
+            break
+        }
+    }
 }
 
 // MARK: - BoardViewDelegate
@@ -111,5 +177,13 @@ extension StaticBoardViewController: BoardViewDelegate {
 
     func boardDidChange(_ boardView: BoardView) {
         fatalError("Static board cannot change")
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension StaticBoardViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 }
