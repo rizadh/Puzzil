@@ -419,9 +419,11 @@ extension GameViewController: BoardViewDelegate {
     }
 
     func boardDidChange(_ boardView: BoardView) {
+        guard gameIsRunning else { return }
+
         moves += 1
-        updateMovesStat(animated: true)
         progressBar.setProgress(Float(boardView.board.progress), animated: true)
         if boardView.board.isSolved { boardWasSolved() }
+        else { updateMovesStat(animated: true) }
     }
 }
