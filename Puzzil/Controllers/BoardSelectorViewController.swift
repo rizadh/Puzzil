@@ -20,6 +20,24 @@ class BoardSelectorViewController: UIViewController {
         }
     }
 
+    // MARK: Queues
+
+    private let boardAvailabilityQueues: [BoardStyle: DispatchQueue] =
+        Dictionary(uniqueKeysWithValues: BoardStyle.all.map { boardStyle in
+            let queue = DispatchQueue(
+                label: "com.rizadh.Puzzil.BoardSelectorViewController.boardAvailabilityQueue.\(boardStyle.rawValue)")
+
+            return (boardStyle, queue)
+        })
+
+    private var availableBoardStyles = Set<BoardStyle>() {
+        didSet {
+            updateBoardAvailabilityIndication()
+        }
+    }
+
+    private let boardScrambler = (UIApplication.shared.delegate as! AppDelegate).boardScrambler
+
     // MARK: - Subviews
 
     let headerView = UIView()
@@ -53,6 +71,12 @@ class BoardSelectorViewController: UIViewController {
     private var latestPressRecognizer: UIGestureRecognizer?
 
     // MARK: - UIViewController Method Overrides
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        BoardStyle.all.forEach(waitForBoard)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -161,6 +185,28 @@ class BoardSelectorViewController: UIViewController {
             helpText.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 16),
             safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor, constant: 16),
         ])
+
+        updateBoardAvailabilityIndication()
+    }
+
+    // MARK: - Private Methods
+
+    private func waitForBoard(style boardStyle: BoardStyle) {
+        boardAvailabilityQueues[boardStyle]!.async {
+            DispatchQueue.main.async {
+                self.availableBoardStyles.remove(boardStyle)
+            }
+            self.boardScrambler.waitForBoard(style: boardStyle)
+            DispatchQueue.main.async {
+                self.availableBoardStyles.insert(boardStyle)
+            }
+        }
+    }
+
+    private func updateBoardAvailabilityIndication() {
+        for (index, boardStyle) in BoardStyle.all.enumerated() {
+            boardViewControllers[index].isReady = availableBoardStyles.contains(boardStyle)
+        }
     }
 }
 
@@ -188,7 +234,10 @@ class BoardSelectorViewController: UIViewController {
     }
 
     func boardWasTapped(_ sender: UITapGestureRecognizer) {
-        let gameViewController = GameViewController(boardStyle: visibleBoardViewController.boardStyle, difficulty: 0.5)
+        let boardStyle = visibleBoardViewController.boardStyle
+        guard availableBoardStyles.contains(boardStyle) else { return }
+
+        let gameViewController = GameViewController(boardStyle: boardStyle, difficulty: 0.5)
         gameViewController.transitioningDelegate = self
         present(gameViewController, animated: true)
     }

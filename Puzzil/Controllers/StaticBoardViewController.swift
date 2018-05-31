@@ -11,6 +11,13 @@ import UIKit
 class StaticBoardViewController: UIViewController {
     let boardStyle: BoardStyle
     let boardView = BoardView()
+    private let loadingIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+    var isReady = true {
+        didSet {
+            if isReady { hideLoadingIndicator() }
+            else { showLoadingIndicator() }
+        }
+    }
 
     // MARK: - Constructors
 
@@ -32,7 +39,12 @@ class StaticBoardViewController: UIViewController {
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.isDynamic = false
         boardView.delegate = self
+
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.color = .themeTile
+
         view.addSubview(boardView)
+        view.addSubview(loadingIndicator)
 
         let safeArea: UILayoutGuide = {
             if #available(iOS 11.0, *) {
@@ -57,12 +69,15 @@ class StaticBoardViewController: UIViewController {
             boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             boardView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.7),
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
-            safeArea.rightAnchor.constraint(greaterThanOrEqualTo: boardView.rightAnchor, constant: 16),
+            boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
 
             boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
             boardView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.7),
             boardView.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
-            safeArea.bottomAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
+            boardView.bottomAnchor.constraint(lessThanOrEqualTo: safeArea.bottomAnchor, constant: -16),
+
+            loadingIndicator.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
         ] + [
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.7),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
@@ -72,6 +87,18 @@ class StaticBoardViewController: UIViewController {
         })
 
         boardView.reloadBoard()
+    }
+
+    // MARK: - Private Methods
+
+    private func showLoadingIndicator() {
+        boardView.isHidden = true
+        loadingIndicator.startAnimating()
+    }
+
+    private func hideLoadingIndicator() {
+        boardView.isHidden = false
+        loadingIndicator.stopAnimating()
     }
 }
 
