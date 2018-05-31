@@ -307,8 +307,10 @@ extension BoardView {
         let moveOperation = TileMoveOperation(position: position, direction: direction)
 
         guard case let .possible(after: operations) = board.canPerform(moveOperation),
-            dragOperations[sender] == nil
-        else { return }
+            dragOperations[sender] == nil else {
+            sender.setTranslation(.zero, in: self)
+            return
+        }
 
         (operations + [moveOperation]).forEach(perform)
         board.begin(moveOperation)
@@ -381,6 +383,7 @@ extension BoardView {
         let timingParameters = UISpringTimingParameters(dampingRatio: 1,
                                                         initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+        tileVelocities[tileView] = nil
         dragOperations[sender] = nil
     }
 
