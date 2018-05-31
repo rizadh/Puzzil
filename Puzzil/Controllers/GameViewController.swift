@@ -426,25 +426,7 @@ class GameViewController: UIViewController {
 extension GameViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
         if gameIsRunning {
-            if let board = boardScrambler.nextBoard(style: boardStyle) {
-                return board
-            } else {
-                navigateToMainMenu()
-
-                let message = """
-                A board could not be generated for this game.
-
-                This may be caused by using a slower device or starting new games too quickly. \
-                Give your device a few seconds to get a board ready for you, then try again.
-
-                If this issues persists, please report it.
-                """
-                let alertController = UIAlertController(title: "Uh oh…", message: message, preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "Got it", style: .default))
-                presentingViewController!.present(alertController, animated: true)
-
-                return boardStyle.board.clearingAllTiles()
-            }
+            return boardScrambler.nextBoard(style: boardStyle)
         } else {
             return boardStyle.board.clearingAllTiles()
         }

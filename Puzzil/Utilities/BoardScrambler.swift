@@ -21,8 +21,8 @@ class BoardScrambler {
         })
     }
 
-    func nextBoard(style: BoardStyle) -> Board? {
-        return boardGenerators[style]!.nextImmediate()
+    func nextBoard(style: BoardStyle) -> Board {
+        return boardGenerators[style]!.next()
     }
 
     func waitForBoard(style: BoardStyle) {
