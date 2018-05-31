@@ -27,6 +27,7 @@ class BoardView: UIView {
 
     // MARK: - Drag Operation Coordination
 
+    private var tileVelocities = [TileView: CGPoint]()
     private var _currentDrags = [UIPanGestureRecognizer: Any]()
     @available(iOS 10, *)
     private var dragOperations: [UIPanGestureRecognizer: TileDragOperation] {
@@ -112,6 +113,7 @@ class BoardView: UIView {
                                tileView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
         case .ended, .cancelled:
+            tileVelocities[tileView] = nil
             UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                                tileView.transform = .identity
@@ -323,18 +325,19 @@ extension BoardView {
                                               keyMoveOperation: moveOperation,
                                               moveOperations: operations)
 
-        dragOperation.updateVelocity(velocity)
+        updateVelocity(for: tileView, with: velocity)
         dragOperations[sender] = dragOperation
     }
 
     private func updateAnimation(sender: UIPanGestureRecognizer) {
         guard let dragOperation = dragOperations[sender] else { return }
 
+        let tileView = sender.view as! TileView
         let velocity = sender.velocity(in: self)
         let translation = sender.translation(in: self)
         let fractionComplete = dragOperation.fractionComplete(with: translation)
         dragOperation.animator.fractionComplete = fractionComplete
-        dragOperation.updateVelocity(velocity)
+        updateVelocity(for: tileView, with: velocity)
 
         if fractionComplete <= 0 {
             board.cancel(dragOperation.keyMoveOperation)
@@ -361,10 +364,11 @@ extension BoardView {
     private func completeAnimation(sender: UIPanGestureRecognizer) {
         guard let dragOperation = dragOperations[sender] else { return }
 
+        let tileView = sender.view as! TileView
         let velocity = sender.velocity(in: self)
         let animator = dragOperation.animator
-        dragOperation.updateVelocity(velocity)
-        let velocityAdjustment = dragOperation.fractionComplete(with: dragOperation.lastVelocity) / 4
+        updateVelocity(for: tileView, with: velocity)
+        let velocityAdjustment = dragOperation.fractionComplete(with: tileVelocities[tileView]!) / 4
         let moveShouldBeCancelled = animator.fractionComplete + velocityAdjustment < 0.5
 
         if moveShouldBeCancelled {
@@ -380,6 +384,14 @@ extension BoardView {
                                                         initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
         dragOperations[sender] = nil
+    }
+
+    private func updateVelocity(for tileView: TileView, with velocity: CGPoint) {
+        let currentVelocity = tileVelocities[tileView] ?? CGPoint(x: 0, y: 0)
+        let bias: CGFloat = 0.8
+        let newVelocityX = currentVelocity.x * bias + velocity.x * (1 - bias)
+        let newVelocityY = currentVelocity.y * bias + velocity.y * (1 - bias)
+        tileVelocities[tileView] = CGPoint(x: newVelocityX, y: newVelocityY)
     }
 }
 

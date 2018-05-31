@@ -16,7 +16,6 @@ class TileDragOperation {
     let animator: UIViewPropertyAnimator
     let keyMoveOperation: TileMoveOperation
     let moveOperations: [TileMoveOperation]
-    private(set) var lastVelocity = CGPoint(x: 0, y: 0)
 
     var distance: CGFloat {
         switch direction {
@@ -29,13 +28,6 @@ class TileDragOperation {
 
     var allMoveOperations: [TileMoveOperation] {
         return (moveOperations + [keyMoveOperation])
-    }
-
-    func updateVelocity(_ velocity: CGPoint) {
-        let bias: CGFloat = 0.8
-        let newX = lastVelocity.x * bias + velocity.x * (1 - bias)
-        let newY = lastVelocity.y * bias + velocity.y * (1 - bias)
-        lastVelocity = CGPoint(x: newX, y: newY)
     }
 
     func fractionComplete(with translation: CGPoint) -> CGFloat {
