@@ -15,10 +15,11 @@ class QueuedGenerator<Element> {
     private var queue = [Element]()
     private let elementAvailable = DispatchSemaphore(value: 0)
     private let queueLock = DispatchSemaphore(value: 1)
-    private let generationQueue = DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue", qos: .utility)
-
-    init(queueLength: Int, _ generatorBlock: @escaping GeneratorBlock) {
+    private let generationQueue: DispatchQueue
+    init(name: String, queueLength: Int, _ generatorBlock: @escaping GeneratorBlock) {
         self.generatorBlock = generatorBlock
+        generationQueue =
+            DispatchQueue(label: "com.rizadh.Puzzil.QueuedGenerator.generationQueue.\(name)", qos: .utility)
 
         for _ in 0..<queueLength { populateQueue() }
     }
