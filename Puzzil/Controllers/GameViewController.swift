@@ -16,6 +16,10 @@ class GameViewController: UIViewController {
         return UIColor.themeBackground.isLight ? .default : .lightContent
     }
 
+    // MARK: - Queues
+
+    let boardWaitQueue = DispatchQueue(label: "com.rizadh.Puzzil.GameViewController.boardWaitQueue", qos: .utility)
+
     // MARK: - Board Management
 
     private let boardStyle: BoardStyle
@@ -24,15 +28,19 @@ class GameViewController: UIViewController {
     private var boardIsScrambling = false
     private var gameIsRunning = false {
         didSet {
-            restartButton.isEnabled = gameIsRunning || resultsAreVisible
+            restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
             endButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
-
     private var resultsAreVisible = false {
         didSet {
-            restartButton.isEnabled = gameIsRunning || resultsAreVisible
+            restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
             endButton.isEnabled = gameIsRunning || resultsAreVisible
+        }
+    }
+    private var nextBoardIsReady = false {
+        didSet {
+            restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
         }
     }
 
@@ -131,6 +139,7 @@ class GameViewController: UIViewController {
         boardView.reloadBoard()
         progressBar.progress = 0
         resetStats()
+        waitForBoard()
     }
 
     // MARK: - Private Methods
@@ -296,6 +305,18 @@ class GameViewController: UIViewController {
         }, completion: { _ in
             self.resultsAreVisible = true
         })
+    }
+
+    private func waitForBoard() {
+        boardWaitQueue.async {
+            DispatchQueue.main.async {
+                self.nextBoardIsReady = false
+            }
+            self.boardScrambler.waitForBoard(style: self.boardStyle)
+            DispatchQueue.main.async {
+                self.nextBoardIsReady = true
+            }
+        }
     }
 
     // MARK: - Stat Management

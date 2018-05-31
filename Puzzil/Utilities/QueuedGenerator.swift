@@ -54,8 +54,13 @@ class QueuedGenerator<Element> {
         let element = queue.popLast()
         queueLock.signal()
 
-        if element != nil { populateQueue() }
+        if element != nil { elementAvailable.wait(); populateQueue() }
 
         return element
+    }
+
+    func wait() {
+        elementAvailable.wait()
+        elementAvailable.signal()
     }
 }

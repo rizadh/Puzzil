@@ -25,6 +25,10 @@ class BoardScrambler {
         return boardGenerators[style]!.nextImmediate()
     }
 
+    func waitForBoard(style: BoardStyle) {
+        boardGenerators[style]!.wait()
+    }
+
     private static func generateBoard(style: BoardStyle) -> Board? {
         var board = style.board
         var minimumProgress = 1.0
