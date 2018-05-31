@@ -1,5 +1,5 @@
 //
-//  StaticBoardViewController.swift
+//  BoardSelectionViewController.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-01-20.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class StaticBoardViewController: UIViewController {
+class BoardSelectionViewController: UIViewController {
 
     // MARK: - Subviews
 
@@ -145,7 +145,7 @@ class StaticBoardViewController: UIViewController {
         guard boardIsReady else { return }
 
         let gameViewController = GameViewController(boardStyle: boardStyle, difficulty: 0.5)
-        gameViewController.transitioningDelegate = parent?.parent as! BoardSelectorViewController
+        gameViewController.transitioningDelegate = parent?.parent as! MainViewController
         present(gameViewController, animated: true)
     }
 
@@ -170,7 +170,7 @@ class StaticBoardViewController: UIViewController {
 
 // MARK: - BoardViewDelegate
 
-extension StaticBoardViewController: BoardViewDelegate {
+extension BoardSelectionViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
         return boardStyle.board
     }
@@ -182,7 +182,7 @@ extension StaticBoardViewController: BoardViewDelegate {
 
 // MARK: - UIGestureRecognizerDelegate
 
-extension StaticBoardViewController: UIGestureRecognizerDelegate {
+extension BoardSelectionViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }

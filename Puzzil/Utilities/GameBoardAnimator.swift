@@ -24,16 +24,16 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
         let containerView = transitionContext.containerView
 
         if presenting {
-            let boardSelectorViewController = transitionContext.viewController(forKey: .from) as! BoardSelectorViewController
+            let mainViewController = transitionContext.viewController(forKey: .from) as! MainViewController
             let gameViewController = transitionContext.viewController(forKey: .to) as! GameViewController
-            let fromBoardSelectorView = boardSelectorViewController.visibleBoardViewController.view!
-            let fromBoardView = boardSelectorViewController.visibleBoardViewController.boardView
+            let fromMainView = mainViewController.visibleBoardViewController.view!
+            let fromBoardView = mainViewController.visibleBoardViewController.boardView
 
             let toView = gameViewController.view!
             containerView.addSubview(gameViewController.view)
             toView.layoutIfNeeded()
 
-            let fromFrame = fromBoardSelectorView.convert(fromBoardView.frame, to: toView)
+            let fromFrame = fromMainView.convert(fromBoardView.frame, to: toView)
             let toFrame = gameViewController.boardView.frame
             let boardTransform = calculateTransform(from: fromFrame, to: toFrame)
 
@@ -42,7 +42,7 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
             UIView.animate(
                 withDuration: duration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                 options: [], animations: {
-                    self.performBoardSelectorOut(boardSelectorViewController, using: boardTransform)
+                    self.performMainOut(mainViewController, using: boardTransform)
                     self.performGameIn(gameViewController)
             }) { _ in
                 transitionContext.completeTransition(true)
@@ -50,38 +50,38 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
             }
         } else {
             let gameViewController = transitionContext.viewController(forKey: .from) as! GameViewController
-            let boardSelectorViewController = transitionContext.viewController(forKey: .to) as! BoardSelectorViewController
-            containerView.addSubview(boardSelectorViewController.view)
+            let mainViewController = transitionContext.viewController(forKey: .to) as! MainViewController
+            containerView.addSubview(mainViewController.view)
 
-            let boardTransform = boardSelectorViewController.boardView.transform
+            let boardTransform = mainViewController.boardView.transform
 
             UIView.animate(
                 withDuration: duration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                 options: [], animations: {
                     self.performGameOut(gameViewController, using: boardTransform)
-                    self.performBoardSelectorIn(boardSelectorViewController)
+                    self.performMainIn(mainViewController)
             }) { _ in
                 transitionContext.completeTransition(true)
             }
         }
     }
 
-    private func performBoardSelectorOut(_ boardSelectorViewController: BoardSelectorViewController, using boardTransform: CGAffineTransform) {
-        boardSelectorViewController.boardView.transform = boardTransform
-        boardSelectorViewController.headerView.transform = GameBoardAnimator.slideUp
-        boardSelectorViewController.boardNameLabel.transform = GameBoardAnimator.slideUp
-        boardSelectorViewController.pageControl.transform = GameBoardAnimator.slideUp
-        boardSelectorViewController.helpText.transform = GameBoardAnimator.slideDown
-        boardSelectorViewController.view.alpha = 0
+    private func performMainOut(_ mainViewController: MainViewController, using boardTransform: CGAffineTransform) {
+        mainViewController.boardView.transform = boardTransform
+        mainViewController.headerView.transform = GameBoardAnimator.slideUp
+        mainViewController.boardNameLabel.transform = GameBoardAnimator.slideUp
+        mainViewController.pageControl.transform = GameBoardAnimator.slideUp
+        mainViewController.helpText.transform = GameBoardAnimator.slideDown
+        mainViewController.view.alpha = 0
     }
 
-    private func performBoardSelectorIn(_ boardSelectorViewController: BoardSelectorViewController) {
-        boardSelectorViewController.boardView.transform = .identity
-        boardSelectorViewController.headerView.transform = .identity
-        boardSelectorViewController.boardNameLabel.transform = .identity
-        boardSelectorViewController.pageControl.transform = .identity
-        boardSelectorViewController.helpText.transform = .identity
-        boardSelectorViewController.view.alpha = 1
+    private func performMainIn(_ mainViewController: MainViewController) {
+        mainViewController.boardView.transform = .identity
+        mainViewController.headerView.transform = .identity
+        mainViewController.boardNameLabel.transform = .identity
+        mainViewController.pageControl.transform = .identity
+        mainViewController.helpText.transform = .identity
+        mainViewController.view.alpha = 1
     }
 
     private func performGameOut(_ gameViewController: GameViewController, using boardTransform: CGAffineTransform) {
