@@ -18,7 +18,7 @@ class GameViewController: UIViewController {
 
     // MARK: - Queues
 
-    private lazy var boardWaitQueue = DispatchQueue(
+    private lazy var boardWaitingQueue = DispatchQueue(
         label: "com.rizadh.Puzzil.GameViewController.boardWaitQueue.\(boardStyle.rawValue)", qos: .utility)
 
     // MARK: - Board Management
@@ -294,7 +294,7 @@ class GameViewController: UIViewController {
     }
 
     private func waitForBoard() {
-        boardWaitQueue.async {
+        boardWaitingQueue.async {
             DispatchQueue.main.async {
                 self.nextBoardIsReady = false
             }
