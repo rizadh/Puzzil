@@ -32,7 +32,7 @@ extension UIView {
         }
 
         incomingView.isHidden = false
-        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+        UIView.animate(withDuration: 0.25, delay: 0.125, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
             incomingView.transform = .identity
         }) { _ in completion?() }
     }
