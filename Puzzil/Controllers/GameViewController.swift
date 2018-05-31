@@ -18,7 +18,8 @@ class GameViewController: UIViewController {
 
     // MARK: - Queues
 
-    let boardWaitQueue = DispatchQueue(label: "com.rizadh.Puzzil.GameViewController.boardWaitQueue", qos: .utility)
+    private lazy var boardWaitQueue = DispatchQueue(
+        label: "com.rizadh.Puzzil.GameViewController.boardWaitQueue.\(boardStyle.rawValue)", qos: .utility)
 
     // MARK: - Board Management
 
@@ -32,12 +33,14 @@ class GameViewController: UIViewController {
             endButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
+
     private var resultsAreVisible = false {
         didSet {
             restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
             endButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
+
     private var nextBoardIsReady = false {
         didSet {
             restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
