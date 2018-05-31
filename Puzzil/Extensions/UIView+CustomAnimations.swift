@@ -22,6 +22,20 @@ extension UIView {
                        animations: { self.transform = .identity },
                        completion: completion)
     }
+
+    static func animatedSwap(outgoingView: UIView, incomingView: UIView, midCompletion: (() -> Void)? = nil, completion: (() -> Void)? = nil) {
+        UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
+            outgoingView.transform = .zero
+        }) { _ in
+            outgoingView.isHidden = true
+            midCompletion?()
+        }
+
+        incomingView.isHidden = false
+        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+            incomingView.transform = .identity
+        }) { _ in completion?() }
+    }
 }
 
 extension CGAffineTransform {

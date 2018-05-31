@@ -117,18 +117,9 @@ class GameViewController: UIViewController {
             boardView.isHidden = false
             boardView.reloadBoard()
 
-            UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
-                self.resultView.transform = .zero
-            }) { _ in
+            UIView.animatedSwap(outgoingView: resultView, incomingView: boardView, midCompletion: {
                 self.resultsAreVisible = false
-                self.resultView.isHidden = true
-            }
-
-            UIView.animate(withDuration: 0.25, delay: 0.125, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-                self.boardView.transform = .identity
-            }, completion: { _ in
-                self.resetBoard()
-            })
+            }, completion: resetBoard)
         } else {
             resetBoard()
         }
@@ -294,17 +285,9 @@ class GameViewController: UIViewController {
 
         resetStats()
 
-        UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
-            self.boardView.transform = .zero
-        }, completion: { _ in
-            self.boardView.isHidden = true
-        })
-
-        UIView.animate(withDuration: 0.25, delay: 0.1, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-            self.resultView.transform = .identity
-        }, completion: { _ in
+        UIView.animatedSwap(outgoingView: boardView, incomingView: resultView) {
             self.resultsAreVisible = true
-        })
+        }
     }
 
     private func waitForBoard() {
