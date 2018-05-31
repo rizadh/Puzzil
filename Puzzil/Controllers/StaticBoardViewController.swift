@@ -150,7 +150,6 @@ class BoardSelectionViewController: UIViewController {
     }
 
     @objc private func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
-        print(sender.state.rawValue)
         switch sender.state {
         case .began:
             UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
