@@ -18,7 +18,7 @@ struct Board {
     let rowCount: Int
     let columnCount: Int
     private var tiles: TileMatrix = []
-    private var reservedPositions = [TileMoveOperation: [TilePosition]]()
+    private var reservedPositions = [TilePosition: TileMoveOperation]()
 
     // MARK: - Board Status
 
@@ -125,7 +125,7 @@ struct Board {
     }
 
     private func reservationExists(at position: TilePosition) -> Bool {
-        return Set(reservedPositions.values.reduce([], +)).contains(position)
+        return reservedPositions.keys.contains(position)
     }
 
     // MARK: - Public Methods
@@ -160,8 +160,9 @@ struct Board {
     mutating func begin(_ moveOperation: TileMoveOperation) {
         switch canPerform(moveOperation) {
         case let .possible(after: operations):
-            reservedPositions[moveOperation] = (operations + [moveOperation]).flatMap {
-                [$0.startPosition, $0.targetPosition]
+            for operation in operations + [moveOperation] {
+                reservedPositions[operation.startPosition] = moveOperation
+                reservedPositions[operation.targetPosition] = moveOperation
             }
         case .notPossible:
             fatalError("Cannot begin an impossible move operation")
@@ -169,9 +170,11 @@ struct Board {
     }
 
     mutating func cancel(_ moveOperation: TileMoveOperation) {
-        guard let _ = reservedPositions.removeValue(forKey: moveOperation) else {
+        guard reservedPositions.contains(where: { _, keyMoveOperation in moveOperation == keyMoveOperation }) else {
             fatalError("Cannot cancel a move that was not started")
         }
+
+        reservedPositions = reservedPositions.filter { _, keyMoveOperation in moveOperation != keyMoveOperation }
     }
 
     mutating func complete(_ moveOperation: TileMoveOperation) {
