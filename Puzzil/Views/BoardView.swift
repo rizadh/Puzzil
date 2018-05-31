@@ -340,10 +340,9 @@ extension BoardView {
         updateVelocity(for: tileView, with: velocity)
 
         if fractionComplete <= 0 {
-            board.cancel(dragOperation.keyMoveOperation)
+            cancelDrag(dragOperation)
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .start)
-            dragOperation.allMoveOperations.map { $0.reversed }.forEach(perform)
             dragOperations[sender] = nil
         } else if fractionComplete >= 1 {
             board.complete(dragOperation.keyMoveOperation)
@@ -373,8 +372,7 @@ extension BoardView {
 
         if moveShouldBeCancelled {
             animator.isReversed = true
-            dragOperation.allMoveOperations.map { $0.reversed }.forEach(perform)
-            board.cancel(dragOperation.keyMoveOperation)
+            cancelDrag(dragOperation)
         } else {
             board.complete(dragOperation.keyMoveOperation)
             delegate.boardDidChange(self)
@@ -392,6 +390,11 @@ extension BoardView {
         let newVelocityX = currentVelocity.x * bias + velocity.x * (1 - bias)
         let newVelocityY = currentVelocity.y * bias + velocity.y * (1 - bias)
         tileVelocities[tileView] = CGPoint(x: newVelocityX, y: newVelocityY)
+    }
+
+    private func cancelDrag(_ dragOperation: TileDragOperation) {
+        dragOperation.allMoveOperations.map { $0.reversed }.reversed().forEach(perform)
+        board.cancel(dragOperation.keyMoveOperation)
     }
 }
 
