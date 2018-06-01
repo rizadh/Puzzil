@@ -30,14 +30,12 @@ class GameViewController: UIViewController {
     private var gameIsRunning = false {
         didSet {
             restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
-            endButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
 
     private var resultsAreVisible = false {
         didSet {
             restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
-            endButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
 
@@ -182,7 +180,6 @@ class GameViewController: UIViewController {
 
         endButton = UIButton.createThemedButton()
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
-        endButton.isEnabled = false
         endButton.setTitle("End", for: .normal)
 
         restartButton = UIButton.createThemedButton()
