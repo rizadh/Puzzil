@@ -14,7 +14,8 @@ class BoardView: UIView {
 
     private static let maxTileSize: CGFloat = 96
     private static let cornerRadius: CGFloat = 32
-    private static let borderWidth: CGFloat = 8
+    private static let boardMargins: CGFloat = 16
+    private static let boardPadding: CGFloat = 8
 
     // MARK: - Board Properties
 
@@ -24,6 +25,7 @@ class BoardView: UIView {
     weak var delegate: BoardViewDelegate!
     private var tileInfo = [TileView: TileInfo]()
     private var tileGuides = [[UILayoutGuide]]()
+    private var tileSize: CGFloat = 0
 
     // MARK: - Drag Operation Coordination
 
@@ -214,6 +216,13 @@ class BoardView: UIView {
     // MARK: Tile Creation
 
     private func layoutTiles() {
+        layoutIfNeeded()
+
+        let paddingCount = CGFloat(board.columnCount - 1)
+        let totalPadding = paddingCount * BoardView.boardPadding
+        let totalMargins = 2 * BoardView.boardMargins
+        tileSize = (frame.width - totalMargins - totalPadding) / CGFloat(board.columnCount)
+
         for position in TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount) {
             guard let text = board.tileText(at: position) else { continue }
 
@@ -346,19 +355,32 @@ extension BoardView {
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .start)
             dragOperations[sender] = nil
+            beginAnimation(sender: sender)
         } else if fractionComplete >= 1 {
             board.complete(dragOperation.keyMoveOperation)
             delegate.boardDidChange(self)
+            let dragDistance = tileSize + BoardView.boardPadding
+            let newTranslationX: CGFloat
+            let newTranslationY: CGFloat
             switch dragOperation.direction {
-            case .left, .right:
-                sender.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
-            case .up, .down:
-                sender.setTranslation(CGPoint(x: translation.x, y: 0), in: self)
+            case .left:
+                newTranslationX = translation.x + dragDistance
+                newTranslationY = translation.y
+            case .right:
+                newTranslationX = translation.x - dragDistance
+                newTranslationY = translation.y
+            case .up:
+                newTranslationX = translation.x
+                newTranslationY = translation.y + dragDistance
+            case .down:
+                newTranslationX = translation.x
+                newTranslationY = translation.y - dragDistance
             }
-            sender.setTranslation(.zero, in: self)
+            sender.setTranslation(CGPoint(x: newTranslationX, y: newTranslationY), in: self)
             dragOperation.animator.stopAnimation(false)
             dragOperation.animator.finishAnimation(at: .end)
             dragOperations[sender] = nil
+            beginAnimation(sender: sender)
         }
     }
 
