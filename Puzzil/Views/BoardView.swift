@@ -331,15 +331,15 @@ extension BoardView {
             switch dragOperation.direction {
             case .left:
                 newTranslationX = translation.x + dragDistance
-                newTranslationY = translation.y
+                newTranslationY = 0
             case .right:
                 newTranslationX = translation.x - dragDistance
-                newTranslationY = translation.y
+                newTranslationY = 0
             case .up:
-                newTranslationX = translation.x
+                newTranslationX = 0
                 newTranslationY = translation.y + dragDistance
             case .down:
-                newTranslationX = translation.x
+                newTranslationX = 0
                 newTranslationY = translation.y - dragDistance
             }
             sender.setTranslation(CGPoint(x: newTranslationX, y: newTranslationY), in: self)
