@@ -12,8 +12,18 @@ enum BoardStyle: String {
     case original
     case telephone
     case arrows
+    case vortex
 
-    static var all = [original, telephone, arrows]
+    static var all = [original, telephone, arrows, vortex]
+
+    var targetScrambleProgress: Double {
+        switch self {
+        case .original, .telephone, .arrows:
+            return 0
+        case .vortex:
+            return 0.5
+        }
+    }
 
     var board: Board {
         switch self {
@@ -35,6 +45,14 @@ enum BoardStyle: String {
                 ["↖", "↑", "↗"],
                 ["←", nil, "→"],
                 ["↙", "↓", "↘"],
+            ])
+        case .vortex:
+            return Board(matrix: [
+                [24, 9, 10, 11, 12],
+                [23, 8, 1, 2, 13],
+                [22, 7, nil, 3, 14],
+                [21, 6, 5, 4, 15],
+                [20, 19, 18, 17, 16],
             ])
         }
     }

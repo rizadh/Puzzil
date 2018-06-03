@@ -31,14 +31,20 @@ class BoardScrambler {
 
     private static func generateBoard(style: BoardStyle) -> Board? {
         var board = style.board
+        let targetProgress = style.targetScrambleProgress
         var minimumProgress = 1.0
+        let maxRounds = 3
+        var rounds = 0
 
-        while board.progress > 0 {
+        while board.progress > targetProgress {
             moveRandomTile(in: &board)
 
             let progress = board.progress
             if progress < minimumProgress {
                 minimumProgress = progress
+                rounds = 0
+            } else if rounds < maxRounds {
+                rounds += 1
             } else { return nil }
         }
 

@@ -25,7 +25,7 @@ class GameViewController: UIViewController {
 
     private let boardStyle: BoardStyle
     private lazy var originalBoard = boardStyle.board
-    private let difficulty: Double
+    private var minProgress: Double!
     private var boardIsScrambling = false
     private var gameIsRunning = false {
         didSet {
@@ -81,9 +81,8 @@ class GameViewController: UIViewController {
 
     // MARK: - Constructors
 
-    init(boardStyle: BoardStyle, difficulty: Double) {
+    init(boardStyle: BoardStyle) {
         self.boardStyle = boardStyle
-        self.difficulty = difficulty
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -409,7 +408,9 @@ class GameViewController: UIViewController {
 extension GameViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
         if gameIsRunning {
-            return boardScrambler.nextBoard(style: boardStyle)
+            let board = boardScrambler.nextBoard(style: boardStyle)
+            minProgress = board.progress
+            return board
         } else {
             return boardStyle.board.clearingAllTiles()
         }
@@ -419,7 +420,8 @@ extension GameViewController: BoardViewDelegate {
         guard gameIsRunning else { return }
 
         moves += 1
-        progressBar.setProgress(Float(boardView.board.progress), animated: true)
+        let mappedProgress = (boardView.board.progress - minProgress) * (1 - minProgress)
+        progressBar.setProgress(Float(mappedProgress), animated: true)
         if boardView.board.isSolved { boardWasSolved() }
         else { updateMovesStat(animated: true) }
     }

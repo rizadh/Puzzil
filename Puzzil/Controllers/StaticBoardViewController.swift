@@ -144,7 +144,7 @@ class BoardSelectionViewController: UIViewController {
     @objc private func boardWasTapped(_ sender: UITapGestureRecognizer) {
         guard boardIsReady else { return }
 
-        let gameViewController = GameViewController(boardStyle: boardStyle, difficulty: 0.5)
+        let gameViewController = GameViewController(boardStyle: boardStyle)
         gameViewController.transitioningDelegate = parent?.parent as! MainViewController
         present(gameViewController, animated: true)
     }
