@@ -11,27 +11,27 @@ import UIKit
 @available(iOS 10, *)
 class TileDragOperation {
     let direction: TileMoveDirection
+    let keyMoveOperation: TileMoveOperation
+    let moveOperations: [TileMoveOperation]
     private let originalFrame: CGRect
     private let targetFrame: CGRect
     private let animator: UIViewPropertyAnimator
-    let keyMoveOperation: TileMoveOperation
-    let moveOperations: [TileMoveOperation]
 
     var fractionComplete: CGFloat {
         return animator.fractionComplete
     }
 
-    var distance: CGFloat {
+    var allMoveOperations: [TileMoveOperation] {
+        return (moveOperations + [keyMoveOperation])
+    }
+
+    private var distance: CGFloat {
         switch direction {
         case .left, .right:
             return targetFrame.midX - originalFrame.midX
         case .up, .down:
             return targetFrame.midY - originalFrame.midY
         }
-    }
-
-    var allMoveOperations: [TileMoveOperation] {
-        return (moveOperations + [keyMoveOperation])
     }
 
     init(direction: TileMoveDirection, originalFrame: CGRect, targetFrame: CGRect, animator: UIViewPropertyAnimator,
