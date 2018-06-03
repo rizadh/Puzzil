@@ -26,6 +26,7 @@ class BoardView: UIView {
     private var tilePositions = [TileView: TilePosition]()
     private var tileGuides = [[UILayoutGuide]]()
     private var tileSize: CGFloat = 0
+    private var tileSizeGuide: UILayoutGuide?
 
     // MARK: - Drag Operation Coordination
 
@@ -58,6 +59,42 @@ class BoardView: UIView {
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func updateConstraints() {
+        super.updateConstraints()
+
+        let columns = CGFloat(board.columnCount)
+        let rows = CGFloat(board.rowCount)
+        let totalMargins = 2 * BoardView.boardMargins
+        let horizontalPadding = BoardView.boardPadding * (columns - 1)
+        let verticalPadding = BoardView.boardPadding * (rows - 1)
+        let horizontalSpacing = horizontalPadding + totalMargins
+        let verticalSpacing = verticalPadding + totalMargins
+
+        let guide = UILayoutGuide()
+        tileSizeGuide.flatMap(removeLayoutGuide)
+        tileSizeGuide = guide
+        addLayoutGuide(guide)
+
+        guide.widthAnchor.constraint(equalTo: guide.heightAnchor).isActive = true
+        widthAnchor
+            .constraint(equalTo: guide.widthAnchor, multiplier: columns, constant: horizontalSpacing)
+            .isActive = true
+        heightAnchor
+            .constraint(equalTo: guide.heightAnchor, multiplier: rows, constant: verticalSpacing)
+            .isActive = true
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let totalMargins = 2 * BoardView.boardMargins
+        let horizontalPadding = BoardView.boardPadding * CGFloat(board.columnCount - 1)
+        let tileWidth = (bounds.width - horizontalPadding - totalMargins) / CGFloat(board.columnCount)
+        tileSize = tileWidth
+
+        tilePositions.forEach { place($0, at: $1) }
     }
 
     // MARK: - Private Helpers
@@ -128,8 +165,9 @@ class BoardView: UIView {
         board = delegate.newBoard(for: self)
 
         clearBoard()
-        generateLayoutGuides()
-        layoutTiles()
+        generateTiles()
+
+        setNeedsUpdateConstraints()
     }
 
     private func clearBoard() {
@@ -140,74 +178,9 @@ class BoardView: UIView {
         tileGuides.removeAll()
     }
 
-    // MARK: Layout Guide Generation
-
-    private func generateLayoutGuides() {
-        // Generate column guides
-        var lastColumnAnchor = leftAnchor
-        let columnGuides: [UILayoutGuide] = (0..<board.columnCount).map { columnIndex in
-            let columnGuide = UILayoutGuide()
-            addLayoutGuide(columnGuide)
-
-            columnGuide.leftAnchor.constraint(
-                equalTo: lastColumnAnchor,
-                constant: columnIndex == 0 ? BoardView.boardMargins : BoardView.boardPadding
-            ).isActive = true
-            lastColumnAnchor = columnGuide.rightAnchor
-
-            return columnGuide
-        }
-
-        rightAnchor.constraint(equalTo: lastColumnAnchor, constant: 16).isActive = true
-
-        // Generate row guides
-        var lastRowAnchor = topAnchor
-        let rowGuides: [UILayoutGuide] = (0..<board.rowCount).map { rowIndex in
-            let rowGuide = UILayoutGuide()
-            addLayoutGuide(rowGuide)
-
-            rowGuide.topAnchor.constraint(
-                equalTo: lastRowAnchor,
-                constant: rowIndex == 0 ? BoardView.boardMargins : BoardView.boardPadding
-            ).isActive = true
-            lastRowAnchor = rowGuide.bottomAnchor
-
-            return rowGuide
-        }
-
-        bottomAnchor.constraint(equalTo: lastRowAnchor, constant: 16).isActive = true
-
-        // Generate tile guides
-        tileGuides = rowGuides.map { rowGuide in
-            columnGuides.map { columnGuide in
-                let tileGuide = UILayoutGuide()
-                addLayoutGuide(tileGuide)
-                NSLayoutConstraint.activate([
-                    tileGuide.leftAnchor.constraint(equalTo: columnGuide.leftAnchor),
-                    tileGuide.rightAnchor.constraint(equalTo: columnGuide.rightAnchor),
-                    tileGuide.topAnchor.constraint(equalTo: rowGuide.topAnchor),
-                    tileGuide.bottomAnchor.constraint(equalTo: rowGuide.bottomAnchor),
-
-                    tileGuide.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
-                    tileGuide.heightAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
-                    tileGuide.widthAnchor.constraint(equalTo: tileGuide.heightAnchor),
-                ])
-
-                return tileGuide
-            }
-        }
-    }
-
     // MARK: Tile Creation
 
-    private func layoutTiles() {
-        layoutIfNeeded()
-
-        let paddingCount = CGFloat(board.columnCount - 1)
-        let totalPadding = paddingCount * BoardView.boardPadding
-        let totalMargins = 2 * BoardView.boardMargins
-        tileSize = (frame.width - totalMargins - totalPadding) / CGFloat(board.columnCount)
-
+    private func generateTiles() {
         for position in TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount) {
             guard let text = board.tileText(at: position) else { continue }
 
@@ -219,7 +192,6 @@ class BoardView: UIView {
             }
 
             addSubview(tileView)
-            place(tileView, at: position)
             tilePositions[tileView] = position
         }
     }
