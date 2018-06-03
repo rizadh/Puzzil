@@ -198,7 +198,9 @@ class BoardView: UIView {
 
     private func attachGestureRecognizers(to tileView: TileView) {
         if #available(iOS 10, *) {
-            tileView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:))))
+            let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
+            panGestureRecognizer.cancelsTouchesInView = false
+            tileView.addGestureRecognizer(panGestureRecognizer)
         } else {
             let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
             rightSwipeGestureRecognizer.direction = .right
