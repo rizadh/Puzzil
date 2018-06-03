@@ -11,11 +11,15 @@ import UIKit
 @available(iOS 10, *)
 class TileDragOperation {
     let direction: TileMoveDirection
-    let originalFrame: CGRect
-    let targetFrame: CGRect
-    let animator: UIViewPropertyAnimator
+    private let originalFrame: CGRect
+    private let targetFrame: CGRect
+    private let animator: UIViewPropertyAnimator
     let keyMoveOperation: TileMoveOperation
     let moveOperations: [TileMoveOperation]
+
+    var fractionComplete: CGFloat {
+        return animator.fractionComplete
+    }
 
     var distance: CGFloat {
         switch direction {
@@ -30,15 +34,6 @@ class TileDragOperation {
         return (moveOperations + [keyMoveOperation])
     }
 
-    func fractionComplete(with translation: CGPoint) -> CGFloat {
-        switch direction {
-        case .left, .right:
-            return translation.x / distance
-        case .up, .down:
-            return translation.y / distance
-        }
-    }
-
     init(direction: TileMoveDirection, originalFrame: CGRect, targetFrame: CGRect, animator: UIViewPropertyAnimator,
          keyMoveOperation: TileMoveOperation, moveOperations: [TileMoveOperation]) {
         self.direction = direction
@@ -47,5 +42,30 @@ class TileDragOperation {
         self.animator = animator
         self.keyMoveOperation = keyMoveOperation
         self.moveOperations = moveOperations
+    }
+
+    func setTranslation(_ translation: CGPoint) {
+        animator.fractionComplete = calculateFractionComplete(with: translation)
+    }
+
+    func finish(at position: UIViewAnimatingPosition, animated: Bool) {
+        if animated {
+            if case .start = position {
+                animator.isReversed = true
+            }
+            animator.continueAnimation(withTimingParameters: nil, durationFactor: 1)
+        } else {
+            animator.stopAnimation(false)
+            animator.finishAnimation(at: position)
+        }
+    }
+
+    func calculateFractionComplete(with translation: CGPoint) -> CGFloat {
+        switch direction {
+        case .left, .right:
+            return translation.x / distance
+        case .up, .down:
+            return translation.y / distance
+        }
     }
 }

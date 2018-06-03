@@ -286,14 +286,14 @@ extension BoardView {
         let tileView = sender.view as! TileView
         let velocity = sender.velocity(in: self)
         let translation = sender.translation(in: self)
-        let fractionComplete = dragOperation.fractionComplete(with: translation)
-        dragOperation.animator.fractionComplete = fractionComplete
+        dragOperation.setTranslation(translation)
+        let fractionComplete = dragOperation.fractionComplete
         updateVelocity(for: tileView, with: velocity)
 
         if fractionComplete <= 0 {
             cancelDrag(dragOperation)
-            dragOperation.animator.stopAnimation(false)
-            dragOperation.animator.finishAnimation(at: .start)
+            dragOperation.finish(at: .start, animated: false)
+            sender.setTranslation(.zero, in: self)
             dragOperations[sender] = nil
             beginAnimation(sender: sender)
         } else if fractionComplete >= 1 {
@@ -317,8 +317,7 @@ extension BoardView {
                 newTranslationY = translation.y - dragDistance
             }
             sender.setTranslation(CGPoint(x: newTranslationX, y: newTranslationY), in: self)
-            dragOperation.animator.stopAnimation(false)
-            dragOperation.animator.finishAnimation(at: .end)
+            dragOperation.finish(at: .end, animated: false)
             dragOperations[sender] = nil
             beginAnimation(sender: sender)
         }
@@ -329,22 +328,22 @@ extension BoardView {
 
         let tileView = sender.view as! TileView
         let velocity = sender.velocity(in: self)
-        let animator = dragOperation.animator
+        let translation = sender.translation(in: self)
+        dragOperation.setTranslation(translation)
+        let fractionComplete = dragOperation.fractionComplete
         updateVelocity(for: tileView, with: velocity)
-        let velocityAdjustment = dragOperation.fractionComplete(with: tileVelocities[tileView]!) / 4
-        let moveShouldBeCancelled = animator.fractionComplete + velocityAdjustment < 0.5
+        let velocityAdjustment = dragOperation.calculateFractionComplete(with: tileVelocities[tileView]!) / 4
+        let moveShouldBeCancelled = fractionComplete + velocityAdjustment < 0.5
 
         if moveShouldBeCancelled {
-            animator.isReversed = true
+            dragOperation.finish(at: .start, animated: true)
             cancelDrag(dragOperation)
         } else {
+            dragOperation.finish(at: .end, animated: true)
             board.complete(dragOperation.keyMoveOperation)
             delegate.boardDidChange(self)
         }
 
-        let timingParameters = UISpringTimingParameters(dampingRatio: 1,
-                                                        initialVelocity: CGVector(dx: velocityAdjustment, dy: 0))
-        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
         tileVelocities[tileView] = nil
         dragOperations[sender] = nil
     }
