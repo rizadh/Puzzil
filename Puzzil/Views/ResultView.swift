@@ -9,45 +9,6 @@
 import UIKit
 
 class ResultView: UIView {
-    static var firstSolveMessageIndex = 0
-    static let firstSolveMessages = [
-        "First solve!",
-        "Another board down.",
-        "Tricky, wasn't it?",
-    ]
-
-    static var solveMessageIndex = 0
-    static let solveMessages = [
-        "Give it another shot!",
-        "Not bad.",
-        "Let's try that again?",
-    ]
-
-    static var bestSolveMessageIndex = 0
-    static let bestSolveMessages = [
-        "You're on a role!",
-        "I'm impressed.",
-        "Time for a break?",
-    ]
-
-    static func nextFirstSolveMessage() -> String {
-        let message = firstSolveMessages[firstSolveMessageIndex]
-        firstSolveMessageIndex = (firstSolveMessageIndex + 1) % firstSolveMessages.count
-        return message
-    }
-
-    static func nextSolveMessage() -> String {
-        let message = solveMessages[solveMessageIndex]
-        solveMessageIndex = (solveMessageIndex + 1) % solveMessages.count
-        return message
-    }
-
-    static func nextBestSolveMessage() -> String {
-        let message = bestSolveMessages[bestSolveMessageIndex]
-        bestSolveMessageIndex = (bestSolveMessageIndex + 1) % bestSolveMessages.count
-        return message
-    }
-
     var result: BestTimeUpdateResult? {
         didSet { updateLabels() }
     }
@@ -126,18 +87,59 @@ class ResultView: UIView {
 
         switch result {
         case let .created(time):
-            messageText.text = ResultView.nextFirstSolveMessage()
+            messageText.text = MessageProvider.nextFirstSolveMessage()
             timeText.text = String(format: "%.1f s", time)
             statusText.text = String(format: "New Best", time)
         case let .preserved(oldTime, newTime):
-            messageText.text = ResultView.nextSolveMessage()
+            messageText.text = MessageProvider.nextSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
             statusText.text = String(format: "Best: %.1f s", oldTime)
         case let .replaced(oldTime, newTime):
-            messageText.text = ResultView.nextBestSolveMessage()
+            messageText.text = MessageProvider.nextBestSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
             statusText.text = String(format: "Previous Best: %.1f s", oldTime)
             statusTag.isHidden = false
         }
+    }
+}
+
+private struct MessageProvider {
+    static var firstSolveMessageIndex = 0
+    static let firstSolveMessages = [
+        "First solve!",
+        "Another board down.",
+        "Tricky, wasn't it?",
+    ]
+
+    static var solveMessageIndex = 0
+    static let solveMessages = [
+        "Give it another shot!",
+        "Not bad.",
+        "Let's try that again?",
+    ]
+
+    static var bestSolveMessageIndex = 0
+    static let bestSolveMessages = [
+        "You're on a role!",
+        "I'm impressed.",
+        "Time for a break?",
+    ]
+
+    static func nextFirstSolveMessage() -> String {
+        let message = firstSolveMessages[firstSolveMessageIndex]
+        firstSolveMessageIndex = (firstSolveMessageIndex + 1) % firstSolveMessages.count
+        return message
+    }
+
+    static func nextSolveMessage() -> String {
+        let message = solveMessages[solveMessageIndex]
+        solveMessageIndex = (solveMessageIndex + 1) % solveMessages.count
+        return message
+    }
+
+    static func nextBestSolveMessage() -> String {
+        let message = bestSolveMessages[bestSolveMessageIndex]
+        bestSolveMessageIndex = (bestSolveMessageIndex + 1) % bestSolveMessages.count
+        return message
     }
 }
