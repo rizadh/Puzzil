@@ -242,8 +242,8 @@ class GameViewController: UIViewController {
             boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
 
-            resultView.timeText.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
-            resultView.timeText.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
+            resultView.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
+            resultView.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
 
             buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
@@ -261,11 +261,6 @@ class GameViewController: UIViewController {
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
         ].map {
             $0.priority = .defaultHigh
-            return $0
-        } + [
-            resultView.widthAnchor.constraint(equalTo: boardView.widthAnchor),
-        ].map {
-            $0.priority = .defaultLow
             return $0
         })
     }

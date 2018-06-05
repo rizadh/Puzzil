@@ -51,20 +51,21 @@ class ResultView: UIView {
         addSubview(statusTag)
 
         let margin: CGFloat = 32
-        let padding: CGFloat = 16
-        let tagPadding: CGFloat = 16
+        let padding: CGFloat = 32
+        let tagPadding: CGFloat = 8
 
         NSLayoutConstraint.activate([
-            messageText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: padding),
-            messageText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: padding),
+            widthAnchor.constraint(greaterThanOrEqualTo: heightAnchor),
+
+            messageText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
+            messageText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: margin),
             messageText.centerXAnchor.constraint(equalTo: centerXAnchor),
             messageText.topAnchor.constraint(equalTo: topAnchor, constant: margin),
 
             timeText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
             timeText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: margin),
             timeText.centerXAnchor.constraint(equalTo: centerXAnchor),
-            timeText.topAnchor.constraint(equalTo: messageText.bottomAnchor, constant: 0),
-            timeText.centerYAnchor.constraint(equalTo: centerYAnchor),
+            timeText.topAnchor.constraint(equalTo: messageText.bottomAnchor, constant: padding),
 
             statusTag.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
             statusTag.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: margin),
@@ -78,7 +79,7 @@ class ResultView: UIView {
             statusText.topAnchor.constraint(equalTo: statusTag.topAnchor, constant: tagPadding),
             statusText.bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: -tagPadding),
 
-            bottomAnchor.constraint(greaterThanOrEqualTo: statusTag.bottomAnchor, constant: margin),
+            bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: margin),
         ])
     }
 
