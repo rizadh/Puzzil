@@ -72,12 +72,14 @@ class GameViewController: UIViewController {
         return moves > 0
     }
 
-    private let bestTimesController = (UIApplication.shared.delegate as! AppDelegate).bestTimesController
-    private let boardScrambler = (UIApplication.shared.delegate as! AppDelegate).boardScrambler
-
     private static func secondsToTimeString(_ rawSeconds: Double) -> String {
         return String(format: "%.1f s", rawSeconds)
     }
+
+    // MARK: - Controller Dependencies
+
+    var bestTimesController: BestTimesController!
+    var boardScramblingController: BoardScramblingController!
 
     // MARK: - Constructors
 
@@ -289,7 +291,7 @@ class GameViewController: UIViewController {
             DispatchQueue.main.async {
                 self.nextBoardIsReady = false
             }
-            self.boardScrambler.waitForBoard(style: self.boardStyle)
+            self.boardScramblingController.waitForBoard(style: self.boardStyle)
             DispatchQueue.main.async {
                 self.nextBoardIsReady = true
             }
@@ -403,7 +405,7 @@ class GameViewController: UIViewController {
 extension GameViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
         if gameIsRunning {
-            let board = boardScrambler.nextBoard(style: boardStyle)
+            let board = boardScramblingController.nextBoard(style: boardStyle)
             minProgress = board.progress
             return board
         } else {

@@ -12,12 +12,16 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     var bestTimesController = BestTimesController()
-    var boardScrambler = BoardScrambler()
+    var boardScramblingController = BoardScramblingController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        let mainViewController = MainViewController()
+        mainViewController.boardScramblingController = boardScramblingController
+        mainViewController.bestTimesController = bestTimesController
+
         window = UIWindow(frame: UIScreen.main.bounds)
         window!.backgroundColor = .themeBackground
-        window!.rootViewController = MainViewController()
+        window!.rootViewController = mainViewController
         window!.makeKeyAndVisible()
 
         return true

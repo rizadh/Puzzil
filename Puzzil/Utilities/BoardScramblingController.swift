@@ -1,5 +1,5 @@
 //
-//  BoardScrambler.swift
+//  BoardScramblingController.swift
 //  Puzzil
 //
 //  Created by Rizadh Nizam on 2018-01-08.
@@ -8,13 +8,13 @@
 
 import Foundation
 
-class BoardScrambler {
+class BoardScramblingController {
     private var boardGenerators: [BoardStyle: QueuedGenerator<Board>]
 
     init() {
         boardGenerators = Dictionary(uniqueKeysWithValues: BoardStyle.all.map { boardStyle in
             let generator = QueuedGenerator(name: boardStyle.rawValue, queueLength: 2) {
-                return BoardScrambler.generateBoard(style: boardStyle)
+                return BoardScramblingController.generateBoard(style: boardStyle)
             }
 
             return (boardStyle, generator)

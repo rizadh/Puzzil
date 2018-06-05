@@ -26,9 +26,10 @@ class BoardSelectionViewController: UIViewController {
         }
     }
 
-    // MARK: Application Globals
+    // MARK: - Controller Dependencies
 
-    private let boardScrambler = (UIApplication.shared.delegate as! AppDelegate).boardScrambler
+    var bestTimesController: BestTimesController!
+    var boardScramblingController: BoardScramblingController!
 
     // MARK: - Constructors
 
@@ -132,7 +133,7 @@ class BoardSelectionViewController: UIViewController {
             DispatchQueue.main.async {
                 self.boardIsReady = false
             }
-            self.boardScrambler.waitForBoard(style: self.boardStyle)
+            self.boardScramblingController.waitForBoard(style: self.boardStyle)
             DispatchQueue.main.async {
                 self.boardIsReady = true
             }
@@ -146,6 +147,8 @@ class BoardSelectionViewController: UIViewController {
 
         let gameViewController = GameViewController(boardStyle: boardStyle)
         gameViewController.transitioningDelegate = parent?.parent as! MainViewController
+        gameViewController.boardScramblingController = boardScramblingController
+        gameViewController.bestTimesController = bestTimesController
         present(gameViewController, animated: true)
     }
 

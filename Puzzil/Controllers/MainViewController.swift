@@ -29,8 +29,11 @@ class MainViewController: UIViewController {
     let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal,
                                                   options: nil)
     let helpText = UILabel()
-    private let boardViewControllers = BoardStyle.all.map { boardStyle in
-        return BoardSelectionViewController(boardStyle: boardStyle)
+    private lazy var boardViewControllers: [BoardSelectionViewController] = BoardStyle.all.map { boardStyle in
+        let boardViewController = BoardSelectionViewController(boardStyle: boardStyle)
+        boardViewController.boardScramblingController = boardScramblingController
+        boardViewController.bestTimesController = bestTimesController
+        return boardViewController
     }
 
     var visibleBoardViewController: BoardSelectionViewController {
@@ -50,7 +53,11 @@ class MainViewController: UIViewController {
     // MARK: - Animation Management
 
     private let animator = GameBoardAnimator()
-    private var latestPressRecognizer: UIGestureRecognizer?
+
+    // MARK: - Controller Dependencies
+
+    var bestTimesController: BestTimesController!
+    var boardScramblingController: BoardScramblingController!
 
     // MARK: - UIViewController Method Overrides
 
@@ -165,11 +172,7 @@ class MainViewController: UIViewController {
         let boardViewController = pageViewController.viewControllers!.first as! BoardSelectionViewController
         let previousPage = boardViewControllers.index(of: boardViewController)!
         let viewController = boardViewControllers[currentPage]
-
-        let direction: UIPageViewControllerNavigationDirection = {
-            if previousPage < currentPage { return .forward }
-            return .reverse
-        }()
+        let direction: UIPageViewControllerNavigationDirection = previousPage < currentPage ? .forward : .reverse
 
         pageViewController.setViewControllers([viewController], direction: direction, animated: true) { _ in
             self.pageControl.updateCurrentPageDisplay()
@@ -231,10 +234,5 @@ extension MainViewController: UIPageViewControllerDataSource {
             pageControl.currentPage = index
             updateBoardNameLabel()
         }
-    }
-
-    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-        latestPressRecognizer?.isEnabled = false
-        latestPressRecognizer?.isEnabled = true
     }
 }
