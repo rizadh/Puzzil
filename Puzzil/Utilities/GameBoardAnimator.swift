@@ -68,7 +68,7 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     private func performMainOut(_ mainViewController: MainViewController, using boardTransform: CGAffineTransform) {
         mainViewController.boardView.transform = boardTransform
-        mainViewController.headerView.transform = GameBoardAnimator.slideUp
+        mainViewController.header.transform = GameBoardAnimator.slideUp
         mainViewController.boardNameLabel.transform = GameBoardAnimator.slideUp
         mainViewController.pageControl.transform = GameBoardAnimator.slideUp
         mainViewController.helpText.transform = GameBoardAnimator.slideDown
@@ -77,7 +77,7 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     private func performMainIn(_ mainViewController: MainViewController) {
         mainViewController.boardView.transform = .identity
-        mainViewController.headerView.transform = .identity
+        mainViewController.header.transform = .identity
         mainViewController.boardNameLabel.transform = .identity
         mainViewController.pageControl.transform = .identity
         mainViewController.helpText.transform = .identity

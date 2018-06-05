@@ -22,7 +22,7 @@ class MainViewController: UIViewController {
 
     // MARK: - Subviews
 
-    let headerView = UIView()
+    let header = UIView()
     let titleLabel = UILabel()
     let boardNameLabel = UILabel()
     let pageControl = UIPageControl()
@@ -61,9 +61,9 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = .themeHeader
-        view.addSubview(headerView)
+        header.translatesAutoresizingMaskIntoConstraints = false
+        header.backgroundColor = .themeHeader
+        view.addSubview(header)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = .themeHeaderText
@@ -76,7 +76,7 @@ class MainViewController: UIViewController {
                 return baseFont
             }
         }()
-        headerView.addSubview(titleLabel)
+        header.addSubview(titleLabel)
 
         boardNameLabel.translatesAutoresizingMaskIntoConstraints = false
         boardNameLabel.font = UIFont.systemFont(ofSize: UIFont.labelFontSize, weight: .medium)
@@ -132,13 +132,13 @@ class MainViewController: UIViewController {
             titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 8),
             titleLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
 
-            headerView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            headerView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            headerView.topAnchor.constraint(equalTo: view.topAnchor),
-            headerView.bottomAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            header.leftAnchor.constraint(equalTo: view.leftAnchor),
+            header.rightAnchor.constraint(equalTo: view.rightAnchor),
+            header.topAnchor.constraint(equalTo: view.topAnchor),
+            header.bottomAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
 
             boardNameLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            boardNameLabel.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 16),
+            boardNameLabel.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
 
             pageControl.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
             pageControl.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
