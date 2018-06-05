@@ -193,8 +193,8 @@ class GameViewController: UIViewController {
         buttons.spacing = 8
 
         progressBar.translatesAutoresizingMaskIntoConstraints = false
-        progressBar.trackTintColor = .themeProgressBarTrack
-        progressBar.progressTintColor = .themeProgressBarProgress
+        progressBar.trackTintColor = .themeSecondary
+        progressBar.progressTintColor = .themePrimary
         progressBar.subviews.forEach { $0.clipsToBounds = true; $0.layer.cornerRadius = 4 }
         progressBar.layer.cornerRadius = 4
         progressBar.clipsToBounds = true

@@ -13,7 +13,7 @@ class MainViewController: UIViewController {
     // MARK: UIViewController Property Overrides
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if UIColor.themeHeader.isLight {
+        if UIColor.themePrimary.isLight {
             return .default
         } else {
             return .lightContent
@@ -62,11 +62,11 @@ class MainViewController: UIViewController {
         super.viewDidLoad()
 
         header.translatesAutoresizingMaskIntoConstraints = false
-        header.backgroundColor = .themeHeader
+        header.backgroundColor = .themePrimary
         view.addSubview(header)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.textColor = .themeHeaderText
+        titleLabel.textColor = .themePrimaryTextOnPrimary
         titleLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
         titleLabel.font = {
             let baseFont = UIFont.systemFont(ofSize: 32, weight: .heavy)
@@ -80,7 +80,7 @@ class MainViewController: UIViewController {
 
         boardNameLabel.translatesAutoresizingMaskIntoConstraints = false
         boardNameLabel.font = UIFont.systemFont(ofSize: UIFont.labelFontSize, weight: .medium)
-        boardNameLabel.textColor = .themePrimaryText
+        boardNameLabel.textColor = .themePrimaryTextOnBackground
         view.addSubview(boardNameLabel)
 
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -95,14 +95,14 @@ class MainViewController: UIViewController {
         helpText.translatesAutoresizingMaskIntoConstraints = false
         helpText.numberOfLines = 2
         helpText.textAlignment = .center
-        helpText.textColor = .themeSecondaryText
+        helpText.textColor = .themeSecondaryTextOnBackground
         helpText.font = UIFont.systemFont(ofSize: UIFont.labelFontSize, weight: .medium)
         view.addSubview(helpText)
 
         pageControl.numberOfPages = boardViewControllers.count
         pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageControl.pageIndicatorTintColor = .themePageControlInactive
-        pageControl.currentPageIndicatorTintColor = .themePageControlActive
+        pageControl.pageIndicatorTintColor = .themeSecondary
+        pageControl.currentPageIndicatorTintColor = .themePrimary
         pageControl.addTarget(self, action: #selector(navigateToCurrentPage), for: .valueChanged)
         pageControl.defersCurrentPageDisplay = true
         view.addSubview(pageControl)

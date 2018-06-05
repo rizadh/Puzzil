@@ -9,22 +9,26 @@
 import UIKit
 
 extension UIColor {
-    private static let selectedColorTheme: ColorTheme = .original
+    private static let selectedColorTheme = ColorTheme.dark
 
+    // MARK: - Theme Colors
+
+    // MARK: - Background
     static let themeBackground = selectedColorTheme.background
-    static let themeTile = selectedColorTheme.tile
-    static let themeTileText = selectedColorTheme.tileText
-    static let themeHeader = selectedColorTheme.header
-    static let themeHeaderText = selectedColorTheme.headerText
-    static let themeBoard = selectedColorTheme.board
-    static let themeButton = selectedColorTheme.button
-    static let themeButtonText = selectedColorTheme.buttonText
-    static let themePageControlActive = selectedColorTheme.pageControlActive
-    static let themePageControlInactive = selectedColorTheme.pageControlInactive
-    static let themePrimaryText = selectedColorTheme.primaryText
-    static let themeSecondaryText = selectedColorTheme.secondaryText
-    static let themeProgressBarTrack = selectedColorTheme.progressBarTrack
-    static let themeProgressBarProgress = selectedColorTheme.progressBarProgress
+    static let themePrimaryTextOnBackground = selectedColorTheme.primaryTextOnBackground
+    static let themeSecondaryTextOnBackground = selectedColorTheme.secondaryTextOnBackground
+
+    // MARK: - Primary
+    static let themePrimary = selectedColorTheme.primary
+    static let
+    themePrimaryTextOnPrimary = selectedColorTheme.primaryTextOnPrimary
+
+    // MARK: - Secondary
+    static let themeSecondary = selectedColorTheme.secondary
+    static let themePrimaryTextOnSecondary = selectedColorTheme.primaryTextOnSecondary
+    static let themeSecondaryTextOnSecondary = selectedColorTheme.secondaryTextOnSecondary
+
+    // MARK: - Properties
 
     var isLight: Bool {
         var white: CGFloat = 0
@@ -36,53 +40,35 @@ extension UIColor {
 
 private struct ColorTheme {
     let background: UIColor
-    let tile: UIColor
-    let tileText: UIColor
-    let header: UIColor
-    let headerText: UIColor
-    let board: UIColor
-    let button: UIColor
-    let buttonText: UIColor
-    let pageControlActive: UIColor
-    let pageControlInactive: UIColor
-    let primaryText: UIColor
-    let secondaryText: UIColor
-    let progressBarTrack: UIColor
-    let progressBarProgress: UIColor
+    let primary: UIColor
+    let secondary: UIColor
+    let primaryTextOnBackground: UIColor
+    let secondaryTextOnBackground: UIColor
+    let primaryTextOnPrimary: UIColor
+    let primaryTextOnSecondary: UIColor
+    let secondaryTextOnSecondary: UIColor
 }
 
 extension ColorTheme {
-    static let original = ColorTheme(
-        background: UIColor(white: 0.95, alpha: 1),
-        tile: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1),
-        tileText: .white,
-        header: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1),
-        headerText: .white,
-        board: UIColor(hue: 345 / 360, saturation: 5 / 32, brightness: 1, alpha: 1),
-        button: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1),
-        buttonText: .white,
-        pageControlActive: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1),
-        pageControlInactive: UIColor(hue: 345 / 360, saturation: 5 / 32, brightness: 1, alpha: 1),
-        primaryText: .black,
-        secondaryText: UIColor(white: 0.5, alpha: 1),
-        progressBarTrack: UIColor(hue: 345 / 360, saturation: 5 / 32, brightness: 1, alpha: 1),
-        progressBarProgress: UIColor(hue: 345 / 360, saturation: 3 / 4, brightness: 1, alpha: 1)
+    static let light = ColorTheme(
+        background: UIColor(hue: 345 / 360, saturation: 0.05, brightness: 1, alpha: 1),
+        primary: UIColor(hue: 345 / 360, saturation: 0.75, brightness: 1, alpha: 1),
+        secondary: UIColor(hue: 345 / 360, saturation: 0.15, brightness: 1, alpha: 1),
+        primaryTextOnBackground: .black,
+        secondaryTextOnBackground: UIColor(white: 0.5, alpha: 1),
+        primaryTextOnPrimary: .white,
+        primaryTextOnSecondary: UIColor(hue: 345 / 360, saturation: 0.75, brightness: 0.9, alpha: 1),
+        secondaryTextOnSecondary: UIColor(hue: 345 / 360, saturation: 0.5, brightness: 0.8, alpha: 1)
     )
 
-    static let darkPurple = ColorTheme(
-        background: UIColor(red: 33 / 255, green: 33 / 255, blue: 33 / 255, alpha: 1),
-        tile: UIColor(red: 88 / 255, green: 86 / 255, blue: 214 / 255, alpha: 1),
-        tileText: .white,
-        header: UIColor(red: 88 / 255, green: 86 / 255, blue: 214 / 255, alpha: 1),
-        headerText: .white,
-        board: UIColor(hue: 241 / 360, saturation: 0.12, brightness: 1, alpha: 1),
-        button: UIColor(red: 88 / 255, green: 86 / 255, blue: 214 / 255, alpha: 1),
-        buttonText: .white,
-        pageControlActive: UIColor(red: 1, green: 204 / 255, blue: 0, alpha: 1),
-        pageControlInactive: UIColor(hue: 241 / 360, saturation: 0.12, brightness: 1, alpha: 1),
-        primaryText: .white,
-        secondaryText: UIColor(white: 0.5, alpha: 1),
-        progressBarTrack: UIColor(hue: 241 / 360, saturation: 0.12, brightness: 1, alpha: 1),
-        progressBarProgress: UIColor(red: 88 / 255, green: 86 / 255, blue: 214 / 255, alpha: 1)
+    static let dark = ColorTheme(
+        background: UIColor(hue: 345 / 360, saturation: 0.15, brightness: 0.2, alpha: 1),
+        primary: UIColor(hue: 345 / 360, saturation:  0.75, brightness: 0.75, alpha: 1),
+        secondary: UIColor(hue: 345 / 360, saturation: 0.15, brightness: 0.3, alpha: 1),
+        primaryTextOnBackground: .white,
+        secondaryTextOnBackground: UIColor(white: 0.5, alpha: 1),
+        primaryTextOnPrimary: .white,
+        primaryTextOnSecondary: .white,
+        secondaryTextOnSecondary: UIColor(hue: 345 / 360, saturation: 0.15, brightness: 0.75, alpha: 1)
     )
 }

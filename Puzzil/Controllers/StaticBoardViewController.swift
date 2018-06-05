@@ -67,7 +67,7 @@ class BoardSelectionViewController: UIViewController {
         boardView.delegate = self
 
         loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
-        loadingIndicator.color = .themeTile
+        loadingIndicator.color = .themePrimary
 
         view.addSubview(boardView)
         view.addSubview(loadingIndicator)

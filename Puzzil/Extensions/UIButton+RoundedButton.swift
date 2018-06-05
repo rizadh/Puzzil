@@ -13,9 +13,9 @@ extension UIButton {
         let button = UIButton()
 
         button.layer.cornerRadius = 16
-        button.backgroundColor = .themeButton
-        button.setTitleColor(.themeButtonText, for: .normal)
-        button.setTitleColor(UIColor.themeButtonText.withAlphaComponent(0.5), for: .disabled)
+        button.backgroundColor = .themePrimary
+        button.setTitleColor(.themePrimaryTextOnPrimary, for: .normal)
+        button.setTitleColor(UIColor.themePrimaryTextOnPrimary.withAlphaComponent(0.5), for: .disabled)
         button.titleLabel!.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         button.titleLabel!.allowsDefaultTighteningForTruncation = true
 

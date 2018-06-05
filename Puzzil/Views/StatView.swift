@@ -32,11 +32,11 @@ class StatView: UIView {
     func setupSubviews() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
-        titleLabel.textColor = .themePrimaryText
+        titleLabel.textColor = .themePrimaryTextOnBackground
 
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         valueLabel.font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
-        valueLabel.textColor = .themeSecondaryText
+        valueLabel.textColor = .themeSecondaryTextOnBackground
 
         addSubview(titleLabel)
         addSubview(valueLabel)
