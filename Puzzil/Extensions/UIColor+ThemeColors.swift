@@ -20,8 +20,7 @@ extension UIColor {
 
     // MARK: - Primary
     static let themePrimary = selectedColorTheme.primary
-    static let
-    themePrimaryTextOnPrimary = selectedColorTheme.primaryTextOnPrimary
+    static let themePrimaryTextOnPrimary = selectedColorTheme.primaryTextOnPrimary
 
     // MARK: - Secondary
     static let themeSecondary = selectedColorTheme.secondary
