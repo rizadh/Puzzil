@@ -147,15 +147,11 @@ class BoardView: UIView {
     private func animate(_ moveOperation: TileMoveOperation) {
         guard case let .possible(after: operations) = board.canPerform(moveOperation) else { return }
 
-        for operation in operations + [moveOperation] {
-            perform(operation)
-        }
-
         board.perform(moveOperation)
         delegate.boardDidChange(self)
 
         UIView.animate(withDuration: 0.125, delay: 0, options: .curveEaseOut, animations: {
-            self.layoutIfNeeded()
+            (operations + [moveOperation]).forEach(self.moveTile)
         })
     }
 
@@ -229,7 +225,7 @@ class BoardView: UIView {
         tileView.transform = transform
     }
 
-    private func perform(_ moveOperation: TileMoveOperation) {
+    private func moveTile(operation moveOperation: TileMoveOperation) {
         let tileView = tile(at: moveOperation.startPosition)
 
         place(tileView, at: moveOperation.targetPosition)
@@ -265,7 +261,7 @@ extension BoardView {
         board.begin(moveOperation)
 
         let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-            (operations + [moveOperation]).forEach(self.perform)
+            (operations + [moveOperation]).forEach(self.moveTile)
         }
 
         let originalFrame = tileView.frame
