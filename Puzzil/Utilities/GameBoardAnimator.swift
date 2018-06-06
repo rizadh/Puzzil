@@ -40,7 +40,7 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
             performGameOut(gameViewController, using: boardTransform)
 
             UIView.animate(
-                withDuration: duration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                withDuration: duration, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0,
                 options: [], animations: {
                     self.performMainOut(mainViewController, using: boardTransform)
                     self.performGameIn(gameViewController)
@@ -56,7 +56,7 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
             let boardTransform = mainViewController.boardView.transform
 
             UIView.animate(
-                withDuration: duration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                withDuration: duration, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0,
                 options: [], animations: {
                     self.performGameOut(gameViewController, using: boardTransform)
                     self.performMainIn(mainViewController)

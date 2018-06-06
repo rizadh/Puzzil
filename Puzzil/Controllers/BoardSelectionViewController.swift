@@ -155,12 +155,12 @@ class BoardSelectionViewController: UIViewController {
     @objc private func boardWasPressed(_ sender: UILongPressGestureRecognizer) {
         switch sender.state {
         case .began:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0,
                            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                                self.boardView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
         case .ended, .cancelled, .failed:
-            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0,
                            options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                                self.boardView.transform = .identity
             })

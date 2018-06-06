@@ -17,7 +17,7 @@ extension UIView {
             self.transform = .zero
         }, completion: reloadBlock)
 
-        UIView.animate(withDuration: popDuration, delay: exitDuration, usingSpringWithDamping: 1,
+        UIView.animate(withDuration: popDuration, delay: exitDuration, usingSpringWithDamping: 0.8,
                        initialSpringVelocity: 1, options: [.beginFromCurrentState],
                        animations: { self.transform = .identity },
                        completion: completion)
@@ -32,7 +32,7 @@ extension UIView {
         }
 
         incomingView.isHidden = false
-        UIView.animate(withDuration: 0.25, delay: 0.125, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+        UIView.animate(withDuration: 0.25, delay: 0.125, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [], animations: {
             incomingView.transform = .identity
         }) { _ in completion?() }
     }
