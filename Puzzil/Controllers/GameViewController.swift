@@ -417,7 +417,7 @@ extension GameViewController: BoardViewDelegate {
         guard gameIsRunning else { return }
 
         moves += 1
-        let mappedProgress = (boardView.board.progress - minProgress) * (1 - minProgress)
+        let mappedProgress = (boardView.board.progress - minProgress) / (1 - minProgress)
         progressBar.setProgress(Float(mappedProgress), animated: true)
         if boardView.board.isSolved { boardWasSolved() }
         else { updateMovesStat(animated: true) }
