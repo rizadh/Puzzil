@@ -15,15 +15,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var boardScramblingController = BoardScramblingController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: nil) { _ in
+            ColorTheme.loadFromUserDefaults()
+            self.loadMainViewController()
+        }
+
+        ColorTheme.loadFromUserDefaults()
+        loadMainViewController()
+
+        return true
+    }
+
+    private func loadMainViewController() {
         let mainViewController = MainViewController()
         mainViewController.boardScramblingController = boardScramblingController
         mainViewController.bestTimesController = bestTimesController
 
         window = UIWindow(frame: UIScreen.main.bounds)
-        window!.backgroundColor = .themeBackground
+        window!.backgroundColor = ColorTheme.selected.background
         window!.rootViewController = mainViewController
         window!.makeKeyAndVisible()
-
-        return true
     }
 }

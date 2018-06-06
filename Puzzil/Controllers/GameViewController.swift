@@ -13,7 +13,7 @@ class GameViewController: UIViewController {
     // MARK: UIViewController Property Overrides
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return UIColor.themeBackground.isLight ? .default : .lightContent
+        return ColorTheme.selected.background.isLight ? .default : .lightContent
     }
 
     // MARK: - Queues
@@ -195,8 +195,8 @@ class GameViewController: UIViewController {
         buttons.spacing = 8
 
         progressBar.translatesAutoresizingMaskIntoConstraints = false
-        progressBar.trackTintColor = .themeSecondary
-        progressBar.progressTintColor = .themePrimary
+        progressBar.trackTintColor = ColorTheme.selected.secondary
+        progressBar.progressTintColor = ColorTheme.selected.primary
         progressBar.subviews.forEach { $0.clipsToBounds = true; $0.layer.cornerRadius = 4 }
         progressBar.layer.cornerRadius = 4
         progressBar.clipsToBounds = true

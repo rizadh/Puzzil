@@ -53,7 +53,7 @@ class BoardView: UIView {
         super.init(frame: .zero)
 
         isOpaque = false
-        backgroundColor = .themeSecondary
+        backgroundColor = ColorTheme.selected.secondary
         layer.cornerRadius = BoardView.cornerRadius
     }
 

@@ -21,7 +21,7 @@ class ResultView: UIView {
     convenience init() {
         self.init(frame: .zero)
 
-        backgroundColor = .themeSecondary
+        backgroundColor = ColorTheme.selected.secondary
         layer.cornerRadius = 16
 
         setupSubviews()
@@ -30,19 +30,19 @@ class ResultView: UIView {
     private func setupSubviews() {
         messageText.translatesAutoresizingMaskIntoConstraints = false
         messageText.font = UIFont.systemFont(ofSize: UIFont.labelFontSize * 1.25, weight: .medium)
-        messageText.textColor = .themeSecondaryTextOnSecondary
+        messageText.textColor = ColorTheme.selected.secondaryTextOnSecondary
 
         timeText.translatesAutoresizingMaskIntoConstraints = false
         timeText.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize * 3)
-        timeText.textColor = .themePrimaryTextOnSecondary
+        timeText.textColor = ColorTheme.selected.primaryTextOnSecondary
 
         statusTag.translatesAutoresizingMaskIntoConstraints = false
         statusTag.layer.cornerRadius = 8
-        statusTag.backgroundColor = .themePrimary
+        statusTag.backgroundColor = ColorTheme.selected.primary
 
         statusText.translatesAutoresizingMaskIntoConstraints = false
         statusText.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
-        statusText.textColor = .themePrimaryTextOnPrimary
+        statusText.textColor = ColorTheme.selected.primaryTextOnPrimary
 
         statusTag.addSubview(statusText)
 

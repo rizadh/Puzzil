@@ -23,7 +23,7 @@ class TileView: UIView {
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = .themePrimary
+        backgroundColor = ColorTheme.selected.primary
 
         setupSubviews()
     }
@@ -56,7 +56,7 @@ class TileView: UIView {
     private func setupSubviews() {
         labelView.translatesAutoresizingMaskIntoConstraints = false
         labelView.textAlignment = .center
-        labelView.textColor = .themePrimaryTextOnPrimary
+        labelView.textColor = ColorTheme.selected.primaryTextOnPrimary
 
         darkeningLayer.backgroundColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5).cgColor
         darkeningLayer.isHidden = true
