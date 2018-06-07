@@ -1,22 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150">
-    <!-- BOARD: #FFD8E2 TILE: #FF668C BACKGROUND: #F2F2F2-->
-    <defs>
-        <linearGradient id="tileTrail">
-            <stop offset="0%" stop-color="rgb(255, 215, 225)" stop-opacity="0"/>
-            <stop offset="50%" stop-color="rgb(255, 215, 225)"/>
-        </linearGradient>
-    </defs>
-    <rect x="0" y="0" width="180" height="180" fill="rgb(242, 242, 242)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+    <rect x="0" y="0" width="80" height="80" fill="rgb(255, 242, 245)"/>
 
-    <rect x="20" y="20" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-    <rect x="60" y="20" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-    <rect x="100" y="20" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
+    <rect x="10" y="10" width="28" height="28" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
+    <rect x="42" y="10" width="28" height="28" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
 
-    <rect x="20" y="60" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-    <rect x="60" y="60" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-    <rect x="100" y="60" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-
-    <rect x="20" y="100" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-    <rect x="60" y="100" width="30" height="30" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
-    <rect x="100" y="100" width="30" height="30" fill="rgb(255, 215, 225)" rx="10" ry="10"/>
+    <rect x="10" y="42" width="28" height="28" fill="rgb(255, 64, 112)" rx="10" ry="10"/>
+    <rect x="42" y="42" width="28" height="28" fill="rgb(255, 217, 226)" rx="10" ry="10"/>
 </svg>
