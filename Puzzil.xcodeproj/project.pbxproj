@@ -19,7 +19,7 @@
 		4A502A5F20C83C6900609F93 /* ColorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A502A5E20C83C6900609F93 /* ColorTheme.swift */; };
 		4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */; };
 		4A6C28D41FF5AAD9007D2F80 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */; };
-		4A7341C21FFD4648003DB6C6 /* UIButton+RoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7341C11FFD4648003DB6C6 /* UIButton+RoundedButton.swift */; };
+		4A7341C21FFD4648003DB6C6 /* UIButton+ThemedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7341C11FFD4648003DB6C6 /* UIButton+ThemedButton.swift */; };
 		4A75ABC71FF0517000B0897F /* Tile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A75ABC61FF0517000B0897F /* Tile.swift */; };
 		4A79846020B65BDA00ADD49D /* QueuedGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A79845F20B65BDA00ADD49D /* QueuedGenerator.swift */; };
 		4AAA7070200AD9B700123A02 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAA706F200AD9B700123A02 /* MainViewController.swift */; };
@@ -48,7 +48,7 @@
 		4A502A5E20C83C6900609F93 /* ColorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTheme.swift; sourceTree = "<group>"; };
 		4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TilePosition.swift; sourceTree = "<group>"; };
 		4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
-		4A7341C11FFD4648003DB6C6 /* UIButton+RoundedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIButton+RoundedButton.swift"; sourceTree = "<group>"; };
+		4A7341C11FFD4648003DB6C6 /* UIButton+ThemedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIButton+ThemedButton.swift"; sourceTree = "<group>"; };
 		4A75ABC61FF0517000B0897F /* Tile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
 		4A79845F20B65BDA00ADD49D /* QueuedGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueuedGenerator.swift; sourceTree = "<group>"; };
 		4AAA706F200AD9B700123A02 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -150,7 +150,7 @@
 		4AB63DDC1FEDCE99003EBC29 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				4A7341C11FFD4648003DB6C6 /* UIButton+RoundedButton.swift */,
+				4A7341C11FFD4648003DB6C6 /* UIButton+ThemedButton.swift */,
 				4AB63DDA1FEDB34F003EBC29 /* UIColor+LightnessDetermination.swift */,
 				4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */,
 			);
@@ -247,7 +247,7 @@
 				4A18584B20BCBAF90079B604 /* ResultView.swift in Sources */,
 				4ABC2363200340A30042592B /* BoardScramblingController.swift in Sources */,
 				4A12B22F201DCC9D006B039F /* UIView+CustomAnimations.swift in Sources */,
-				4A7341C21FFD4648003DB6C6 /* UIButton+RoundedButton.swift in Sources */,
+				4A7341C21FFD4648003DB6C6 /* UIButton+ThemedButton.swift in Sources */,
 				4AAA7070200AD9B700123A02 /* MainViewController.swift in Sources */,
 				4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */,
 				4A79846020B65BDA00ADD49D /* QueuedGenerator.swift in Sources */,
