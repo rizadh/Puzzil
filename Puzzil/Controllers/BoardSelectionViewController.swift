@@ -17,7 +17,7 @@ class BoardSelectionViewController: UIViewController {
 
     // MARK: - Board Status
 
-    private let boardWaitingQueue: DispatchQueue
+    private lazy var boardWaitingQueue = DispatchQueue(label: "com.rizadh.Puzzil.StaticBoardViewController.boardWaitingQueue.\(boardStyle)", qos: .background)
     private let loadingIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
     private var boardIsReady = true {
         didSet {
@@ -35,7 +35,6 @@ class BoardSelectionViewController: UIViewController {
 
     init(boardStyle: BoardStyle) {
         self.boardStyle = boardStyle
-        boardWaitingQueue = DispatchQueue(label: "com.rizadh.Puzzil.StaticBoardViewController.boardWaitingQueue.\(boardStyle)", qos: .background)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -129,10 +128,8 @@ class BoardSelectionViewController: UIViewController {
     }
 
     private func waitForBoard() {
+        self.boardIsReady = false
         boardWaitingQueue.async {
-            DispatchQueue.main.async {
-                self.boardIsReady = false
-            }
             self.boardScramblingController.waitForBoard(style: self.boardStyle)
             DispatchQueue.main.async {
                 self.boardIsReady = true
