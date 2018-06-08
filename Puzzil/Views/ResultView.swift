@@ -18,13 +18,20 @@ class ResultView: UIView {
     let statusTag = UIView()
     let statusText = UILabel()
 
-    convenience init() {
-        self.init(frame: .zero)
+    var statusTagConstraint: NSLayoutConstraint!
+    var noStatusTagConstraint: NSLayoutConstraint!
+
+    init() {
+        super.init(frame: .zero)
 
         backgroundColor = ColorTheme.selected.secondary
         layer.cornerRadius = 16
 
         setupSubviews()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     private func setupSubviews() {
@@ -54,6 +61,9 @@ class ResultView: UIView {
         let padding: CGFloat = 32
         let tagPadding: CGFloat = 8
 
+        statusTagConstraint = bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: margin)
+        noStatusTagConstraint = bottomAnchor.constraint(equalTo: timeText.bottomAnchor, constant: margin)
+
         NSLayoutConstraint.activate([
             widthAnchor.constraint(greaterThanOrEqualTo: heightAnchor),
 
@@ -78,8 +88,6 @@ class ResultView: UIView {
             statusText.rightAnchor.constraint(equalTo: statusTag.rightAnchor, constant: -tagPadding),
             statusText.topAnchor.constraint(equalTo: statusTag.topAnchor, constant: tagPadding),
             statusText.bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: -tagPadding),
-
-            bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: margin),
         ])
     }
 
@@ -90,16 +98,23 @@ class ResultView: UIView {
         case let .created(time):
             messageText.text = MessageProvider.nextFirstSolveMessage()
             timeText.text = String(format: "%.1f s", time)
-            statusText.text = String(format: "New Best", time)
+            statusTag.isHidden = true
+            noStatusTagConstraint.isActive = true
+            statusTagConstraint.isActive = false
         case let .preserved(oldTime, newTime):
             messageText.text = MessageProvider.nextSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
-            statusText.text = String(format: "Best: %.1f s", oldTime)
+            statusText.text = String(format: "Current Best: %.1f s", oldTime)
+            statusTag.isHidden = false
+            noStatusTagConstraint.isActive = false
+            statusTagConstraint.isActive = true
         case let .replaced(oldTime, newTime):
             messageText.text = MessageProvider.nextBestSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
             statusText.text = String(format: "Previous Best: %.1f s", oldTime)
             statusTag.isHidden = false
+            noStatusTagConstraint.isActive = false
+            statusTagConstraint.isActive = true
         }
     }
 }
