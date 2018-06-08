@@ -16,11 +16,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: nil) { _ in
-            ColorTheme.loadFromUserDefaults()
-            self.loadMainViewController()
+            if ColorTheme.loadFromUserDefaults() {
+                self.loadMainViewController()
+            }
         }
 
-        ColorTheme.loadFromUserDefaults()
+        _ = ColorTheme.loadFromUserDefaults()
         loadMainViewController()
 
         return true
