@@ -208,14 +208,16 @@ extension Board: CustomStringConvertible {
     var description: String {
         var string = ""
 
-        for row in tiles {
+        for (rowIndex, row) in tiles.enumerated() {
             for _ in 0..<row.count * 4 + 1 {
                 string += "-"
             }
             string += "\n"
-            for elementOrNil in row {
+            for (elementIndex, elementOrNil) in row.enumerated() {
                 if let element = elementOrNil {
                     string += "| \(element) "
+                } else if reservationExists(at: TilePosition(row: rowIndex, column: elementIndex)) {
+                    string += "| X "
                 } else {
                     string += "|   "
                 }

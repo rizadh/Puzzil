@@ -24,28 +24,13 @@ class BoardView: UIView {
 
     weak var delegate: BoardViewDelegate!
     private var tilePositions = [TileView: TilePosition]()
+    private var dragOperations = [UIPanGestureRecognizer: DragOperation]()
     private var tileGuides = [[UILayoutGuide]]()
     private var tileSize: CGFloat = 0
     private var tileSizeGuide: UILayoutGuide?
-
-    // MARK: - Drag Operation Coordination
-
-    private var tileVelocities = [TileView: CGPoint]()
-    private var _currentDrags = [UIPanGestureRecognizer: Any]()
-    @available(iOS 10, *)
-    private var dragOperations: [UIPanGestureRecognizer: TileDragOperation] {
-        get {
-            return _currentDrags as! [UIPanGestureRecognizer: TileDragOperation]
-        }
-
-        set {
-            _currentDrags = newValue
-        }
+    private var dragDistance: CGFloat {
+        return tileSize + BoardView.boardPadding
     }
-
-    // MARK: - Move Operation Coordination
-
-    private var reservedPositions = Set<TilePosition>()
 
     // MARK: - Constructors
 
@@ -105,54 +90,12 @@ class BoardView: UIView {
 
     // MARK: - Event Handlers
 
-    @objc private func tileWasSwiped(_ sender: UISwipeGestureRecognizer) {
-        let tileView = sender.view as! TileView
-        let position = tilePositions[tileView]!
-        let direction: TileMoveDirection = {
-            switch sender.direction {
-            case .left:
-                return .left
-            case .right:
-                return .right
-            case .up:
-                return .up
-            case .down:
-                return .down
-            default:
-                fatalError("Invalid swipe direction.")
-            }
-        }()
-
-        let moveOperation = TileMoveOperation(position: position, direction: direction)
-
-        animate(moveOperation)
-    }
-
-    @available(iOS 10, *)
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
-        switch sender.state {
-        case .began, .changed:
-            if dragOperations[sender] == nil {
-                beginAnimation(sender: sender)
-            } else {
-                updateAnimation(sender: sender)
-            }
-        default:
-            completeAnimation(sender: sender)
+        if let drag = dragOperations[sender] {
+            _ = drag.update(with: sender)
+        } else {
+            dragOperations[sender] = DragOperation(boardView: self, sender: sender)
         }
-    }
-
-    // MARK: - Tile Animations
-
-    private func animate(_ moveOperation: TileMoveOperation) {
-        guard case let .possible(after: operations) = board.canPerform(moveOperation) else { return }
-
-        board.perform(moveOperation)
-        delegate.boardDidChange(self)
-
-        UIView.animate(withDuration: 0.125, delay: 0, options: .curveEaseOut, animations: {
-            (operations + [moveOperation]).forEach(self.moveTile)
-        })
     }
 
     // MARK: - Tile Layout
@@ -193,25 +136,9 @@ class BoardView: UIView {
     }
 
     private func attachGestureRecognizers(to tileView: TileView) {
-        if #available(iOS 10, *) {
-            let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
-            panGestureRecognizer.cancelsTouchesInView = false
-            tileView.addGestureRecognizer(panGestureRecognizer)
-        } else {
-            let rightSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-            rightSwipeGestureRecognizer.direction = .right
-            let leftSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-            leftSwipeGestureRecognizer.direction = .left
-            let upSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-            upSwipeGestureRecognizer.direction = .up
-            let downSwipeGestureRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(tileWasSwiped(_:)))
-            downSwipeGestureRecognizer.direction = .down
-
-            tileView.addGestureRecognizer(rightSwipeGestureRecognizer)
-            tileView.addGestureRecognizer(leftSwipeGestureRecognizer)
-            tileView.addGestureRecognizer(upSwipeGestureRecognizer)
-            tileView.addGestureRecognizer(downSwipeGestureRecognizer)
-        }
+        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
+        panGestureRecognizer.cancelsTouchesInView = false
+        tileView.addGestureRecognizer(panGestureRecognizer)
     }
 
     // MARK: Tile Placement
@@ -233,131 +160,206 @@ class BoardView: UIView {
     }
 }
 
-// MARK: - Interactive Drag Support
+// MARK: - DragOperation
 
-@available(iOS 10, *)
 extension BoardView {
-    private func beginAnimation(sender: UIPanGestureRecognizer) {
-        let tileView = sender.view as! TileView
-        let velocity = sender.velocity(in: self)
-        let direction: TileMoveDirection
-        let position = tilePositions[tileView]!
-        if abs(velocity.x) > abs(velocity.y) {
-            if velocity.x < 0 { direction = .left }
-            else { direction = .right }
-        } else {
-            if velocity.y < 0 { direction = .up }
-            else { direction = .down }
-        }
+    private class DragOperation {
+        var isComplete = false
+        let boardView: BoardView
+        var direction: TileMoveDirection
+        var keyMoveOperation: TileMoveOperation
+        var moveOperations = [TileMoveOperation]()
+        var tileViews = [TileView]()
 
-        let moveOperation = TileMoveOperation(position: position, direction: direction)
+        init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
+            self.boardView = boardView
+            let tileView = sender.view as! TileView
+            let position = boardView.tilePositions[tileView]!
 
-        guard case let .possible(after: operations) = board.canPerform(moveOperation),
-            dragOperations[sender] == nil else {
-            sender.setTranslation(.zero, in: self)
-            return
-        }
-
-        board.begin(moveOperation)
-
-        let animator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
-            (operations + [moveOperation]).forEach(self.moveTile)
-        }
-
-        let originalFrame = tileView.frame
-        animator.pauseAnimation()
-        let targetFrame = tileView.frame
-        let dragOperation = TileDragOperation(direction: moveOperation.direction, originalFrame: originalFrame,
-                                              targetFrame: targetFrame, animator: animator,
-                                              keyMoveOperation: moveOperation,
-                                              moveOperations: operations)
-
-        updateVelocity(for: tileView, with: velocity)
-        dragOperations[sender] = dragOperation
-    }
-
-    private func updateAnimation(sender: UIPanGestureRecognizer) {
-        guard let dragOperation = dragOperations[sender] else { return }
-
-        let tileView = sender.view as! TileView
-        let velocity = sender.velocity(in: self)
-        let translation = sender.translation(in: self)
-        dragOperation.setTranslation(translation)
-        let fractionComplete = dragOperation.fractionComplete
-        updateVelocity(for: tileView, with: velocity)
-
-        if fractionComplete <= 0 {
-            cancelDrag(dragOperation)
-            dragOperation.finish(at: .start, animated: false)
-            sender.setTranslation(.zero, in: self)
-            dragOperations[sender] = nil
-            beginAnimation(sender: sender)
-        } else if fractionComplete >= 1 {
-            board.complete(dragOperation.keyMoveOperation)
-            delegate.boardDidChange(self)
-            let dragDistance = tileSize + BoardView.boardPadding
-            let newTranslationX: CGFloat
-            let newTranslationY: CGFloat
-            switch dragOperation.direction {
-            case .left:
-                newTranslationX = translation.x + dragDistance
-                newTranslationY = 0
-            case .right:
-                newTranslationX = translation.x - dragDistance
-                newTranslationY = 0
-            case .up:
-                newTranslationX = 0
-                newTranslationY = translation.y + dragDistance
-            case .down:
-                newTranslationX = 0
-                newTranslationY = translation.y - dragDistance
+            let translation = sender.translation(in: boardView)
+            let possibleDirections = TileMoveDirection.allCases.filter { direction in
+                let moveOperation = TileMoveOperation(position: position, direction: direction)
+                if case .possible = boardView.board.canPerform(moveOperation) {
+                    return true
+                } else {
+                    return false
+                }
             }
-            sender.setTranslation(CGPoint(x: newTranslationX, y: newTranslationY), in: self)
-            dragOperation.finish(at: .end, animated: false)
-            dragOperations[sender] = nil
-            beginAnimation(sender: sender)
-        }
-    }
 
-    private func completeAnimation(sender: UIPanGestureRecognizer) {
-        guard let dragOperation = dragOperations[sender] else { return }
+            guard let direction = DragOperation.dragDirection(from: translation, given: Set(possibleDirections)) else {
+                return nil
+            }
 
-        let tileView = sender.view as! TileView
-        let velocity = sender.velocity(in: self)
-        let translation = sender.translation(in: self)
-        dragOperation.setTranslation(translation)
-        let fractionComplete = dragOperation.fractionComplete
-        updateVelocity(for: tileView, with: velocity)
-        let velocityAdjustment = dragOperation.calculateFractionComplete(with: tileVelocities[tileView]!) / 4
-        let moveShouldBeCancelled = fractionComplete + velocityAdjustment < 0.5
+            let moveOperation = TileMoveOperation(position: position, direction: direction)
+            guard case let .possible(after: resultingMoveOperations) =
+                boardView.board.canPerform(moveOperation)
+            else { fatalError() }
 
-        if moveShouldBeCancelled {
-            dragOperation.finish(at: .start, animated: true)
-            cancelDrag(dragOperation)
-        } else {
-            dragOperation.finish(at: .end, animated: true)
-            board.complete(dragOperation.keyMoveOperation)
-            delegate.boardDidChange(self)
+            self.direction = direction
+            keyMoveOperation = moveOperation
+            moveOperations.append(moveOperation)
+            moveOperations.append(contentsOf: resultingMoveOperations)
+            tileViews.append(tileView)
+            tileViews.append(contentsOf: resultingMoveOperations.map { boardView.tile(at: $0.startPosition) })
+
+            boardView.board.begin(keyMoveOperation)
+
+            if update(with: sender) == 0 { return nil }
         }
 
-        tileVelocities[tileView] = nil
-        dragOperations[sender] = nil
-    }
+        func update(with sender: UIPanGestureRecognizer) -> CGFloat {
+            if isComplete { fatalError() }
 
-    private func updateVelocity(for tileView: TileView, with velocity: CGPoint) {
-        let currentVelocity = tileVelocities[tileView] ?? CGPoint(x: 0, y: 0)
-        let bias: CGFloat = 0.8
-        let newVelocityX = currentVelocity.x * bias + velocity.x * (1 - bias)
-        let newVelocityY = currentVelocity.y * bias + velocity.y * (1 - bias)
-        tileVelocities[tileView] = CGPoint(x: newVelocityX, y: newVelocityY)
-    }
+            let translation = sender.translation(in: boardView)
+            let velocity = sender.velocity(in: boardView)
+            let clippedTranslation = DragOperation.clipTranslation(translation, to: boardView.dragDistance, towards: direction)
+            let projectedTranslation = DragOperation.projectTranslation(translation: translation, velocity: velocity)
+            let transform = CGAffineTransform(translationX: clippedTranslation.x, y: clippedTranslation.y)
+            let progress = DragOperation.dragProgress(with: translation, towards: direction, dragDistance: boardView.dragDistance)
+            let projectedProgress = DragOperation.dragProgress(with: projectedTranslation, towards: direction, dragDistance: boardView.dragDistance)
 
-    private func cancelDrag(_ dragOperation: TileDragOperation) {
-        dragOperation.allMoveOperations.reversed().forEach { moveOperation in
-            let tileView = tile(at: moveOperation.targetPosition)
-            tilePositions[tileView] = moveOperation.startPosition
+            tileViews.forEach { $0.transform = transform }
+
+            if sender.state == .ended || sender.state == .cancelled {
+                if projectedProgress > 0.5 {
+                    isComplete = true
+                    boardView.board.complete(keyMoveOperation)
+                    boardView.delegate.boardDidChange(boardView)
+                    boardView.dragOperations.removeValue(forKey: sender)
+                    for (tileView, moveOperation) in zip(tileViews, moveOperations) {
+                        tileView.transform = .identity
+                        tileView.frame = tileView.frame.applying(transform)
+                        boardView.tilePositions[tileView] = moveOperation.targetPosition
+                    }
+
+                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+                        for (tileView, moveOperation) in zip(self.tileViews, self.moveOperations) {
+                            self.boardView.place(tileView, at: moveOperation.targetPosition)
+                        }
+                    })
+                } else {
+                    isComplete = true
+                    boardView.board.cancel(keyMoveOperation)
+                    boardView.dragOperations.removeValue(forKey: sender)
+                    for tileView in tileViews {
+                        tileView.transform = .identity
+                        tileView.frame = tileView.frame.applying(transform)
+                    }
+
+                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
+                        for (tileView, moveOperation) in zip(self.tileViews, self.moveOperations) {
+                            self.boardView.place(tileView, at: moveOperation.startPosition)
+                        }
+                    })
+                }
+
+                return projectedProgress > 0.5 ? 1 : 0
+            } else {
+                if progress == 1 {
+                    isComplete = true
+                    sender.setTranslation(.zero, in: boardView)
+                    boardView.board.complete(keyMoveOperation)
+                    boardView.delegate.boardDidChange(boardView)
+                    boardView.dragOperations.removeValue(forKey: sender)
+                    for (tileView, moveOperation) in zip(tileViews, moveOperations) {
+                        tileView.transform = .identity
+                        tileView.frame = tileView.frame.applying(transform)
+                        boardView.tilePositions[tileView] = moveOperation.targetPosition
+                    }
+                } else if progress == 0 {
+                    isComplete = true
+                    boardView.board.cancel(keyMoveOperation)
+                    boardView.dragOperations.removeValue(forKey: sender)
+                }
+
+                return progress
+            }
         }
-        board.cancel(dragOperation.keyMoveOperation)
+
+        private static func dragDirection(from translation: CGPoint, given possibleDirections: Set<TileMoveDirection>) -> TileMoveDirection? {
+            let leftDraggable = possibleDirections.contains(.left)
+            let rightDraggable = possibleDirections.contains(.right)
+            let upDraggable = possibleDirections.contains(.up)
+            let downDraggable = possibleDirections.contains(.down)
+
+            switch (leftDraggable, rightDraggable, upDraggable, downDraggable) {
+            case (true, true, true, true):
+                if abs(translation.x) > abs(translation.y) {
+                    if translation.x < 0 { return .left }
+                    else { return .right }
+                } else {
+                    if translation.y < 0 { return .up }
+                    else { return .down }
+                }
+            case (true, true, false, false):
+                return translation.x < 0 ? .left : .right
+            case (false, false, true, true):
+                return translation.y < 0 ? .up : .down
+            case (true, false, true, false):
+                return abs(translation.x) > abs(translation.y) ? .left : .up
+            case (false, true, false, true):
+                return abs(translation.x) > abs(translation.y) ? .right : .down
+            case (true, false, false, true):
+                return abs(translation.x) > abs(translation.y) ? .left : .down
+            case (false, true, true, false):
+                return abs(translation.x) > abs(translation.y) ? .right : .up
+            case (true, true, true, false):
+                return abs(translation.x) > abs(translation.y) ? (translation.x < 0 ? .left : .right) : .up
+            case (true, true, false, true):
+                return abs(translation.x) > abs(translation.y) ? (translation.x < 0 ? .left : .right) : .down
+            case (true, false, true, true):
+                return abs(translation.x) > abs(translation.y) ? .left : (translation.y < 0 ? .up : .down)
+            case (false, true, true, true):
+                return abs(translation.x) > abs(translation.y) ? .right : (translation.y < 0 ? .up : .down)
+            case (true, false, false, false):
+                return .left
+            case (false, true, false, false):
+                return .right
+            case (false, false, true, false):
+                return .up
+            case (false, false, false, true):
+                return .down
+            case (false, false, false, false):
+                return nil
+            }
+        }
+
+        private static func clipTranslation(_ translation: CGPoint, to distance: CGFloat, towards direction: TileMoveDirection) -> CGPoint {
+            switch direction {
+            case .left:
+                return CGPoint(x: max(-distance, min(translation.x, 0)), y: 0)
+            case .right:
+                return CGPoint(x: min(distance, max(translation.x, 0)), y: 0)
+            case .up:
+                return CGPoint(x: 0, y: max(-distance, min(translation.y, 0)))
+            case .down:
+                return CGPoint(x: 0, y: min(distance, max(translation.y, 0)))
+            }
+        }
+
+        private static func projectTranslation(translation: CGPoint, velocity: CGPoint) -> CGPoint {
+            return CGPoint(
+                x: projectTranslation(translation: translation.x, velocity: velocity.x),
+                y: projectTranslation(translation: translation.y, velocity: velocity.y)
+            )
+        }
+
+        private static func projectTranslation(translation: CGFloat, velocity: CGFloat) -> CGFloat {
+            let deceleration: CGFloat = 10000
+
+            switch velocity.sign {
+            case .minus:
+                return translation - pow(velocity, 2) / deceleration
+            case .plus:
+                return translation + pow(velocity, 2) / deceleration
+            }
+        }
+
+        private static func dragProgress(with translation: CGPoint, towards direction: TileMoveDirection, dragDistance: CGFloat) -> CGFloat {
+            let clippedTranslation = clipTranslation(translation, to: dragDistance, towards: direction)
+
+            return abs(clippedTranslation.x + clippedTranslation.y) / dragDistance
+        }
     }
 }
 

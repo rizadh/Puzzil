@@ -11,6 +11,8 @@ import UIKit
 enum TileMoveDirection {
     case up, down, right, left
 
+    static let allCases = [up, down, right, left]
+
     var opposite: TileMoveDirection {
         switch self {
         case .up:
