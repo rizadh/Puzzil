@@ -91,10 +91,12 @@ class BoardView: UIView {
     // MARK: - Event Handlers
 
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
-        if let drag = dragOperations[sender] {
-            _ = drag.update(with: sender)
+        if let dragOperation = dragOperations[sender] {
+            _ = dragOperation.update(with: sender)
+        } else if let dragOperation = DragOperation(boardView: self, sender: sender) {
+            dragOperations[sender] = dragOperation
         } else {
-            dragOperations[sender] = DragOperation(boardView: self, sender: sender)
+            sender.setTranslation(.zero, in: self)
         }
     }
 
