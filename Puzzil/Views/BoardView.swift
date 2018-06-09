@@ -213,16 +213,18 @@ extension BoardView {
             if isComplete { fatalError() }
 
             let translation = sender.translation(in: boardView)
-            let velocity = sender.velocity(in: boardView)
             let clippedTranslation = DragOperation.clipTranslation(translation, to: boardView.dragDistance, towards: direction)
-            let projectedTranslation = DragOperation.projectTranslation(translation: translation, velocity: velocity)
             let transform = CGAffineTransform(translationX: clippedTranslation.x, y: clippedTranslation.y)
-            let progress = DragOperation.dragProgress(with: translation, towards: direction, dragDistance: boardView.dragDistance)
-            let projectedProgress = DragOperation.dragProgress(with: projectedTranslation, towards: direction, dragDistance: boardView.dragDistance)
 
-            tileViews.forEach { $0.transform = transform }
+            switch sender.state {
+            case .ended, .cancelled, .failed:
+                let velocity = sender.velocity(in: boardView)
+                let projectedTranslation = DragOperation.projectTranslation(translation: translation,
+                                                                            velocity: velocity)
+                let projectedProgress = DragOperation.dragProgress(with: projectedTranslation,
+                                                                   towards: direction,
+                                                                   dragDistance: boardView.dragDistance)
 
-            if sender.state == .ended || sender.state == .cancelled {
                 if projectedProgress > 0.5 {
                     isComplete = true
                     boardView.board.complete(keyMoveOperation)
@@ -234,10 +236,11 @@ extension BoardView {
                         boardView.tilePositions[tileView] = moveOperation.targetPosition
                     }
 
-                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-                        for (tileView, moveOperation) in zip(self.tileViews, self.moveOperations) {
-                            self.boardView.place(tileView, at: moveOperation.targetPosition)
-                        }
+                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                                   options: [], animations: {
+                                       zip(self.tileViews, self.moveOperations).forEach {
+                                           self.boardView.place($0, at: $1.targetPosition)
+                                       }
                     })
                 } else {
                     isComplete = true
@@ -256,7 +259,10 @@ extension BoardView {
                 }
 
                 return projectedProgress > 0.5 ? 1 : 0
-            } else {
+            default:
+                let progress = DragOperation.dragProgress(with: translation, towards: direction,
+                                                          dragDistance: boardView.dragDistance)
+
                 if progress == 1 {
                     isComplete = true
                     sender.setTranslation(.zero, in: boardView)
@@ -272,6 +278,8 @@ extension BoardView {
                     isComplete = true
                     boardView.board.cancel(keyMoveOperation)
                     boardView.dragOperations.removeValue(forKey: sender)
+                } else {
+                    tileViews.forEach { $0.transform = transform }
                 }
 
                 return progress
