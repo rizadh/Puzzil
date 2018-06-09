@@ -287,7 +287,7 @@ class GameViewController: UIViewController {
     }
 
     private func waitForBoard() {
-        self.nextBoardIsReady = false
+        nextBoardIsReady = false
         boardWaitingQueue.async {
             self.boardScramblingController.waitForBoard(style: self.boardStyle)
             DispatchQueue.main.async {

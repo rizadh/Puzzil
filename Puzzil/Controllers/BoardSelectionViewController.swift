@@ -128,7 +128,7 @@ class BoardSelectionViewController: UIViewController {
     }
 
     private func waitForBoard() {
-        self.boardIsReady = false
+        boardIsReady = false
         boardWaitingQueue.async {
             self.boardScramblingController.waitForBoard(style: self.boardStyle)
             DispatchQueue.main.async {
