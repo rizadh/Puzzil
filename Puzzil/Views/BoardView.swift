@@ -276,6 +276,7 @@ extension BoardView {
                     }
                 } else if progress == 0 {
                     isComplete = true
+                    sender.setTranslation(.zero, in: boardView)
                     boardView.board.cancel(keyMoveOperation)
                     boardView.dragOperations.removeValue(forKey: sender)
                 } else {
