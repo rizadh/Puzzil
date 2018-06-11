@@ -167,12 +167,13 @@ class BoardView: UIView {
 // MARK: - DragOperation
 
 extension BoardView {
+    private static var tileShadowRadius: CGFloat = 5
     private static var tileShadowOpacity: Float {
         switch ColorTheme.selected {
         case .light:
             return 0.2
         case .dark:
-            return 0.5
+            return 0.2
         }
     }
 
@@ -302,24 +303,26 @@ extension BoardView {
         }
 
         private static func raise(_ views: [UIView]) {
-            let animation = CABasicAnimation()
-            animation.duration = 0.25
-            animation.fromValue = 0
-            animation.toValue = tileShadowOpacity
             views.forEach {
+                let animation = CABasicAnimation()
+                animation.duration = 0.25
+                animation.fromValue = $0.layer.shadowOpacity
+                animation.toValue = tileShadowOpacity
+
                 $0.layer.shadowOffset = .zero
-                $0.layer.shadowRadius = 4
+                $0.layer.shadowRadius = tileShadowRadius
                 $0.layer.shadowOpacity = tileShadowOpacity
                 $0.layer.add(animation, forKey: "shadowOpacity")
             }
         }
 
         private static func lower(_ views: [UIView]) {
-            let animation = CABasicAnimation()
-            animation.duration = 0.25
-            animation.fromValue = tileShadowOpacity
-            animation.toValue = 0
             views.forEach {
+                let animation = CABasicAnimation()
+                animation.duration = 0.25
+                animation.fromValue = $0.layer.shadowOpacity
+                animation.toValue = 0
+
                 $0.layer.shadowOpacity = 0
                 $0.layer.add(animation, forKey: "shadowOpacity")
             }
