@@ -92,11 +92,13 @@ class BoardView: UIView {
 
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
         if let dragOperation = dragOperations[sender] {
-            _ = dragOperation.update(with: sender)
-        } else if let dragOperation = DragOperation(boardView: self, sender: sender) {
-            dragOperations[sender] = dragOperation
+            dragOperation.update(with: sender)
+
+            if dragOperation.isComplete {
+                dragOperations.removeValue(forKey: sender)
+            }
         } else {
-            sender.setTranslation(.zero, in: self)
+            dragOperations[sender] = DragOperation(boardView: self, sender: sender)
         }
     }
 
@@ -165,6 +167,15 @@ class BoardView: UIView {
 // MARK: - DragOperation
 
 extension BoardView {
+    private static var tileShadowOpacity: Float {
+        switch ColorTheme.selected {
+        case .light:
+            return 0.2
+        case .dark:
+            return 0.5
+        }
+    }
+
     private class DragOperation {
         var isComplete = false
         let boardView: BoardView
@@ -189,12 +200,12 @@ extension BoardView {
             }
 
             guard let direction = DragOperation.dragDirection(from: translation, given: Set(possibleDirections)) else {
+                sender.setTranslation(.zero, in: boardView)
                 return nil
             }
 
             let moveOperation = TileMoveOperation(position: position, direction: direction)
-            guard case let .possible(after: resultingMoveOperations) =
-                boardView.board.canPerform(moveOperation)
+            guard case let .possible(after: resultingMoveOperations) = boardView.board.canPerform(moveOperation)
             else { fatalError() }
 
             self.direction = direction
@@ -206,14 +217,19 @@ extension BoardView {
 
             boardView.board.begin(keyMoveOperation)
 
-            if update(with: sender) == 0 { return nil }
+            DragOperation.raise(tileViews)
+
+            update(with: sender)
+
+            if isComplete { return nil }
         }
 
-        func update(with sender: UIPanGestureRecognizer) -> CGFloat {
+        func update(with sender: UIPanGestureRecognizer) {
             if isComplete { fatalError() }
 
             let translation = sender.translation(in: boardView)
-            let clippedTranslation = DragOperation.clipTranslation(translation, to: boardView.dragDistance, towards: direction)
+            let clippedTranslation = DragOperation.clipTranslation(translation, to: boardView.dragDistance,
+                                                                   towards: direction)
             let transform = CGAffineTransform(translationX: clippedTranslation.x, y: clippedTranslation.y)
 
             switch sender.state {
@@ -226,10 +242,8 @@ extension BoardView {
                                                                    dragDistance: boardView.dragDistance)
 
                 if projectedProgress > 0.5 {
-                    isComplete = true
                     boardView.board.complete(keyMoveOperation)
                     boardView.delegate.boardDidChange(boardView)
-                    boardView.dragOperations.removeValue(forKey: sender)
                     for (tileView, moveOperation) in zip(tileViews, moveOperations) {
                         tileView.transform = .identity
                         tileView.frame = tileView.frame.applying(transform)
@@ -237,57 +251,82 @@ extension BoardView {
                     }
 
                     UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-                                   options: [], animations: {
+                                   options: [.allowUserInteraction], animations: {
                                        zip(self.tileViews, self.moveOperations).forEach {
                                            self.boardView.place($0, at: $1.targetPosition)
                                        }
                     })
                 } else {
-                    isComplete = true
                     boardView.board.cancel(keyMoveOperation)
-                    boardView.dragOperations.removeValue(forKey: sender)
                     for tileView in tileViews {
                         tileView.transform = .identity
                         tileView.frame = tileView.frame.applying(transform)
                     }
 
-                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [], animations: {
-                        for (tileView, moveOperation) in zip(self.tileViews, self.moveOperations) {
-                            self.boardView.place(tileView, at: moveOperation.startPosition)
-                        }
+                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
+                                   options: [.allowUserInteraction], animations: {
+                                       for (tileView, moveOperation) in zip(self.tileViews, self.moveOperations) {
+                                           self.boardView.place(tileView, at: moveOperation.startPosition)
+                                       }
                     })
                 }
 
-                return projectedProgress > 0.5 ? 1 : 0
+                isComplete = true
+                DragOperation.lower(tileViews)
             default:
                 let progress = DragOperation.dragProgress(with: translation, towards: direction,
                                                           dragDistance: boardView.dragDistance)
 
-                if progress == 1 {
+                if progress >= 1 {
                     isComplete = true
+                    DragOperation.lower(tileViews)
                     sender.setTranslation(.zero, in: boardView)
+
                     boardView.board.complete(keyMoveOperation)
                     boardView.delegate.boardDidChange(boardView)
-                    boardView.dragOperations.removeValue(forKey: sender)
                     for (tileView, moveOperation) in zip(tileViews, moveOperations) {
                         tileView.transform = .identity
                         tileView.frame = tileView.frame.applying(transform)
                         boardView.tilePositions[tileView] = moveOperation.targetPosition
                     }
-                } else if progress == 0 {
+                } else if progress <= 0 {
                     isComplete = true
+                    DragOperation.lower(tileViews)
                     sender.setTranslation(.zero, in: boardView)
+
                     boardView.board.cancel(keyMoveOperation)
-                    boardView.dragOperations.removeValue(forKey: sender)
                 } else {
                     tileViews.forEach { $0.transform = transform }
                 }
-
-                return progress
             }
         }
 
-        private static func dragDirection(from translation: CGPoint, given possibleDirections: Set<TileMoveDirection>) -> TileMoveDirection? {
+        private static func raise(_ views: [UIView]) {
+            let animation = CABasicAnimation()
+            animation.duration = 0.25
+            animation.fromValue = 0
+            animation.toValue = tileShadowOpacity
+            views.forEach {
+                $0.layer.shadowOffset = .zero
+                $0.layer.shadowRadius = 4
+                $0.layer.shadowOpacity = tileShadowOpacity
+                $0.layer.add(animation, forKey: "shadowOpacity")
+            }
+        }
+
+        private static func lower(_ views: [UIView]) {
+            let animation = CABasicAnimation()
+            animation.duration = 0.25
+            animation.fromValue = tileShadowOpacity
+            animation.toValue = 0
+            views.forEach {
+                $0.layer.shadowOpacity = 0
+                $0.layer.add(animation, forKey: "shadowOpacity")
+            }
+        }
+
+        private static func dragDirection(from translation: CGPoint,
+                                          given possibleDirections: Set<TileMoveDirection>) -> TileMoveDirection? {
             let leftDraggable = possibleDirections.contains(.left)
             let rightDraggable = possibleDirections.contains(.right)
             let upDraggable = possibleDirections.contains(.up)
@@ -335,7 +374,8 @@ extension BoardView {
             }
         }
 
-        private static func clipTranslation(_ translation: CGPoint, to distance: CGFloat, towards direction: TileMoveDirection) -> CGPoint {
+        private static func clipTranslation(_ translation: CGPoint, to distance: CGFloat,
+                                            towards direction: TileMoveDirection) -> CGPoint {
             switch direction {
             case .left:
                 return CGPoint(x: max(-distance, min(translation.x, 0)), y: 0)
@@ -356,7 +396,7 @@ extension BoardView {
         }
 
         private static func projectTranslation(translation: CGFloat, velocity: CGFloat) -> CGFloat {
-            let deceleration: CGFloat = 10000
+            let deceleration: CGFloat = 2000
 
             switch velocity.sign {
             case .minus:
@@ -366,10 +406,18 @@ extension BoardView {
             }
         }
 
-        private static func dragProgress(with translation: CGPoint, towards direction: TileMoveDirection, dragDistance: CGFloat) -> CGFloat {
-            let clippedTranslation = clipTranslation(translation, to: dragDistance, towards: direction)
-
-            return abs(clippedTranslation.x + clippedTranslation.y) / dragDistance
+        private static func dragProgress(with translation: CGPoint, towards direction: TileMoveDirection,
+                                         dragDistance: CGFloat) -> CGFloat {
+            switch direction {
+            case .left:
+                return -translation.x / dragDistance
+            case .right:
+                return translation.x / dragDistance
+            case .up:
+                return -translation.y / dragDistance
+            case .down:
+                return translation.y / dragDistance
+            }
         }
     }
 }

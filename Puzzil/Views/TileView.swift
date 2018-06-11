@@ -65,8 +65,6 @@ class TileView: UIView {
             highlightLayer.backgroundColor = UIColor.white.withAlphaComponent(0.2).cgColor
         }
 
-        layer.masksToBounds = true
-
         addSubview(labelView)
         layer.addSublayer(highlightLayer)
 
@@ -79,7 +77,9 @@ class TileView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        layer.cornerRadius = min(2 * TileView.maxCornerRadius, frame.width, frame.height) / 2
+        let cornerRadius = min(2 * TileView.maxCornerRadius, frame.width, frame.height) / 2
+        layer.cornerRadius = cornerRadius
+        highlightLayer.cornerRadius = cornerRadius
         highlightLayer.frame = layer.bounds
         labelView.font = UIFont.systemFont(ofSize: frame.height / 2, weight: .bold)
     }
