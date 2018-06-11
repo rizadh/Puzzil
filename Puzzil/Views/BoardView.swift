@@ -84,8 +84,8 @@ class BoardView: UIView {
 
     // MARK: - Private Helpers
 
-    private func tile(at position: TilePosition) -> TileView {
-        return tilePositions.first { $0.value == position }!.key
+    private func tile(at position: TilePosition) -> TileView? {
+        return tilePositions.first { $0.value == position }.flatMap { $0.key }
     }
 
     // MARK: - Event Handlers
@@ -157,7 +157,7 @@ class BoardView: UIView {
     }
 
     private func moveTile(operation moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.startPosition)
+        let tileView = tile(at: moveOperation.startPosition)!
 
         place(tileView, at: moveOperation.targetPosition)
         tilePositions[tileView] = moveOperation.targetPosition
