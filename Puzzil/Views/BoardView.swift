@@ -168,17 +168,17 @@ class BoardView: UIView {
 // MARK: - DragOperation
 
 extension BoardView {
-    private static var tileShadowRadius: CGFloat = 5
-    private static var tileShadowOpacity: Float {
-        switch ColorTheme.selected {
-        case .light:
-            return 0.2
-        case .dark:
-            return 0.2
-        }
-    }
-
     private class DragOperation {
+        private static var tileShadowRadius: CGFloat = 5
+        private static var tileShadowOpacity: Float {
+            switch ColorTheme.selected {
+            case .light:
+                return 0.2
+            case .dark:
+                return 0.2
+            }
+        }
+
         var isComplete = false
         let boardView: BoardView
         let direction: TileMoveDirection
@@ -351,15 +351,17 @@ extension BoardView {
             guard !tilesAreRaised else { return }
 
             AudioServicesPlaySystemSound(1520)
-            tileViews.forEach {
-                let animation = CABasicAnimation()
-                animation.duration = 0.25
-                animation.fromValue = $0.layer.shadowOpacity
-                animation.toValue = tileShadowOpacity
 
+            let animation = CABasicAnimation()
+            animation.duration = 0.25
+            animation.fromValue = 0
+            animation.toValue = DragOperation.tileShadowOpacity
+
+            tileViews.forEach {
                 $0.layer.shadowOffset = .zero
-                $0.layer.shadowRadius = tileShadowRadius
-                $0.layer.shadowOpacity = tileShadowOpacity
+                $0.layer.shadowRadius = DragOperation.tileShadowRadius
+
+                $0.layer.shadowOpacity = DragOperation.tileShadowOpacity
                 $0.layer.add(animation, forKey: "shadowOpacity")
             }
 
@@ -370,12 +372,13 @@ extension BoardView {
             guard tilesAreRaised else { return }
 
             AudioServicesPlaySystemSound(1520)
-            tileViews.forEach {
-                let animation = CABasicAnimation()
-                animation.duration = 0.25
-                animation.fromValue = $0.layer.shadowOpacity
-                animation.toValue = 0
 
+            let animation = CABasicAnimation()
+            animation.duration = 0.25
+            animation.fromValue = DragOperation.tileShadowOpacity
+            animation.toValue = 0
+
+            tileViews.forEach {
                 $0.layer.shadowOpacity = 0
                 $0.layer.add(animation, forKey: "shadowOpacity")
             }
