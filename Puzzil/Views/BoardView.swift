@@ -279,35 +279,40 @@ extension BoardView {
                         tileView.frame = tileView.frame.applying(transform)
                     }
 
+                    var tilesToAnimate = [TileView: TilePosition]()
+                    zip(tileViews, moveOperations).forEach { tileView, moveOperation in
+                        tilesToAnimate[tileView] = moveOperation.startPosition
+                    }
+
+                    var finalMoveOperationsOrNil: [TileMoveOperation]?
+                    var nextKeyMoveOperation = keyMoveOperation.reversed.nextOperation
+
+                    var traversedProgress: CGFloat = -1
+                    while case let .possible(after: operations) = boardView.board.canPerform(nextKeyMoveOperation),
+                        projectedProgress < 0.5 + traversedProgress {
+                        boardView.board.perform(nextKeyMoveOperation)
+                        finalMoveOperationsOrNil = [nextKeyMoveOperation] + operations
+                        nextKeyMoveOperation = nextKeyMoveOperation.nextOperation
+                        traversedProgress -= 1
+                    }
+
+                    if let finalMoveOperations = finalMoveOperationsOrNil {
+                        let finalTileViews = finalMoveOperations.map { self.boardView.tile(at: $0.startPosition)! }
+
+                        zip(finalTileViews, finalMoveOperations).forEach {
+                            tilesToAnimate[$0] = $1.targetPosition
+                            self.boardView.tilePositions[$0] = $1.targetPosition
+                        }
+
+                        self.boardView.delegate.boardDidChange(boardView)
+                    }
+
                     UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                                    options: [.allowUserInteraction], animations: {
-                                    zip(self.tileViews, self.moveOperations).forEach {
-                                        self.boardView.place($0, at: $1.startPosition)
-                                    }
+                                       tilesToAnimate.forEach {
+                                           self.boardView.place($0, at: $1)
+                                       }
                     })
-
-//                    var finalMoveOperationsOrNil: [TileMoveOperation]?
-//                    var nextKeyMoveOperation = keyMoveOperation.reversed.nextOperation
-//
-//                    var traversedProgress: CGFloat = -1
-//                    while case let .possible(after: operations) = boardView.board.canPerform(nextKeyMoveOperation),
-//                        projectedProgress < 0.5 + traversedProgress {
-//                            boardView.board.perform(nextKeyMoveOperation)
-//                            finalMoveOperationsOrNil = [nextKeyMoveOperation] + operations
-//                            nextKeyMoveOperation = nextKeyMoveOperation.nextOperation
-//                            traversedProgress -= 1
-//                    }
-//
-//                    guard let finalMoveOperations = finalMoveOperationsOrNil else { break }
-//
-//                    let finalTileViews = finalMoveOperations.map { self.boardView.tile(at: $0.startPosition)! }
-//
-//                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-//                                   options: [.beginFromCurrentState,.allowUserInteraction], animations: {
-//                                    zip(finalTileViews, finalMoveOperations).forEach {
-//                                        self.boardView.place($0, at: $1.targetPosition)
-//                                    }
-//                    })
                 }
 
                 isComplete = true
