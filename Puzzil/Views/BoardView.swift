@@ -6,6 +6,7 @@
 //  Copyright © 2017 Rizadh Nizam. All rights reserved.
 //
 
+import AudioToolbox
 import UIKit
 
 class BoardView: UIView {
@@ -184,7 +185,7 @@ extension BoardView {
         let keyMoveOperation: TileMoveOperation
         let moveOperations: [TileMoveOperation]
         let tileViews: [TileView]
-        var previousVelocities = [CGPoint]()
+        var tilesAreRaised = false
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
             self.boardView = boardView
@@ -219,23 +220,21 @@ extension BoardView {
 
             update(with: sender)
 
-            if isComplete { return nil } else {
-                DragOperation.raise(tileViews)
-            }
+            if isComplete { return nil }
+            else { raiseTiles() }
         }
 
         func update(with sender: UIPanGestureRecognizer) {
             if isComplete { fatalError() }
 
             let translation = sender.translation(in: boardView)
-            let velocity = sender.velocity(in: boardView)
-            previousVelocities.append(velocity)
             let clippedTranslation = DragOperation.clipTranslation(translation, to: boardView.dragDistance,
                                                                    towards: direction)
             let transform = CGAffineTransform(translationX: clippedTranslation.x, y: clippedTranslation.y)
 
             switch sender.state {
             case .ended, .cancelled, .failed:
+                let velocity = sender.velocity(in: boardView)
                 let projectedTranslation = DragOperation.projectTranslation(translation: translation,
                                                                             velocity: velocity)
                 let projectedProgress = DragOperation.dragProgress(with: projectedTranslation,
@@ -268,7 +267,9 @@ extension BoardView {
                                        zip(self.tileViews, finalMoveOperations).forEach {
                                            self.boardView.place($0, at: $1.targetPosition)
                                        }
-                    })
+                    }) { _ in
+                        self.lowerTiles()
+                    }
 
                     boardView.delegate.boardDidChange(boardView)
                 } else {
@@ -304,7 +305,7 @@ extension BoardView {
                             self.boardView.tilePositions[$0] = $1.targetPosition
                         }
 
-                        self.boardView.delegate.boardDidChange(boardView)
+                        boardView.delegate.boardDidChange(boardView)
                     }
 
                     UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
@@ -312,18 +313,19 @@ extension BoardView {
                                        tilesToAnimate.forEach {
                                            self.boardView.place($0, at: $1)
                                        }
-                    })
+                    }) { _ in
+                        self.lowerTiles()
+                    }
                 }
 
                 isComplete = true
-                DragOperation.lower(tileViews)
             default:
                 let progress = DragOperation.dragProgress(with: translation, towards: direction,
                                                           dragDistance: boardView.dragDistance)
 
                 if progress >= 1 {
                     isComplete = true
-                    DragOperation.lower(tileViews)
+                    lowerTiles()
                     sender.setTranslation(.zero, in: boardView)
 
                     boardView.board.complete(keyMoveOperation)
@@ -335,7 +337,7 @@ extension BoardView {
                     }
                 } else if progress <= 0 {
                     isComplete = true
-                    DragOperation.lower(tileViews)
+                    lowerTiles()
                     sender.setTranslation(.zero, in: boardView)
 
                     boardView.board.cancel(keyMoveOperation)
@@ -345,8 +347,11 @@ extension BoardView {
             }
         }
 
-        private static func raise(_ views: [UIView]) {
-            views.forEach {
+        private func raiseTiles() {
+            guard !tilesAreRaised else { return }
+
+            AudioServicesPlaySystemSound(1520)
+            tileViews.forEach {
                 let animation = CABasicAnimation()
                 animation.duration = 0.25
                 animation.fromValue = $0.layer.shadowOpacity
@@ -357,10 +362,15 @@ extension BoardView {
                 $0.layer.shadowOpacity = tileShadowOpacity
                 $0.layer.add(animation, forKey: "shadowOpacity")
             }
+
+            tilesAreRaised = true
         }
 
-        private static func lower(_ views: [UIView]) {
-            views.forEach {
+        private func lowerTiles() {
+            guard tilesAreRaised else { return }
+
+            AudioServicesPlaySystemSound(1520)
+            tileViews.forEach {
                 let animation = CABasicAnimation()
                 animation.duration = 0.25
                 animation.fromValue = $0.layer.shadowOpacity
@@ -369,6 +379,8 @@ extension BoardView {
                 $0.layer.shadowOpacity = 0
                 $0.layer.add(animation, forKey: "shadowOpacity")
             }
+
+            tilesAreRaised = false
         }
 
         private static func dragDirection(from translation: CGPoint,
