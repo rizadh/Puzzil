@@ -168,15 +168,14 @@ class BoardView: UIView {
 
 extension BoardView {
     private class DragOperation {
+        private static var tileShadowRadius: CGFloat = 4
+        private static var tileShadowColor: CGColor {
+            let (hue, saturation, brightness, _) = ColorTheme.selected.secondary.hsba!
 
-        private static var tileShadowRadius: CGFloat = 5
+            return UIColor(hue: hue, saturation: saturation, brightness: brightness * 0.8, alpha: 1).cgColor
+        }
         private static var tileShadowOpacity: Float {
-            switch ColorTheme.selected {
-            case .light:
-                return 0.2
-            case .dark:
-                return 0.2
-            }
+            return 1
         }
 
         var isComplete = false
@@ -267,9 +266,9 @@ extension BoardView {
                                        zip(self.tileViews, finalMoveOperations).forEach {
                                            self.boardView.place($0, at: $1.targetPosition)
                                        }
-                    }) { [weak self] _ in
-                        self?.lowerTiles()
-                    }
+                    })
+
+                    lowerTiles()
 
                     boardView.delegate.boardDidChange(boardView)
                 } else {
@@ -313,9 +312,9 @@ extension BoardView {
                                        tilesToAnimate.forEach {
                                            self.boardView.place($0, at: $1)
                                        }
-                    }) { [weak self] _ in
-                        self?.lowerTiles()
-                    }
+                    })
+
+                    lowerTiles()
                 }
 
                 isComplete = true
@@ -348,7 +347,7 @@ extension BoardView {
         }
 
         private func raiseTiles() {
-            guard !tilesAreRaised else { return }
+            if tilesAreRaised { return }
 
             let animation = CABasicAnimation()
             animation.duration = 0.25
@@ -357,6 +356,7 @@ extension BoardView {
 
             tileViews.forEach {
                 $0.layer.shadowOffset = .zero
+                $0.layer.shadowColor = DragOperation.tileShadowColor
                 $0.layer.shadowRadius = DragOperation.tileShadowRadius
 
                 $0.layer.shadowOpacity = DragOperation.tileShadowOpacity
@@ -367,7 +367,7 @@ extension BoardView {
         }
 
         private func lowerTiles() {
-            guard tilesAreRaised else { return }
+            if !tilesAreRaised { return }
 
             let animation = CABasicAnimation()
             animation.duration = 0.25
