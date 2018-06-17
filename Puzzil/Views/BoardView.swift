@@ -6,7 +6,6 @@
 //  Copyright © 2017 Rizadh Nizam. All rights reserved.
 //
 
-import AudioToolbox
 import UIKit
 
 class BoardView: UIView {
@@ -169,6 +168,7 @@ class BoardView: UIView {
 
 extension BoardView {
     private class DragOperation {
+
         private static var tileShadowRadius: CGFloat = 5
         private static var tileShadowOpacity: Float {
             switch ColorTheme.selected {
@@ -350,8 +350,6 @@ extension BoardView {
         private func raiseTiles() {
             guard !tilesAreRaised else { return }
 
-            AudioServicesPlaySystemSound(1520)
-
             let animation = CABasicAnimation()
             animation.duration = 0.25
             animation.fromValue = 0
@@ -370,8 +368,6 @@ extension BoardView {
 
         private func lowerTiles() {
             guard tilesAreRaised else { return }
-
-            AudioServicesPlaySystemSound(1520)
 
             let animation = CABasicAnimation()
             animation.duration = 0.25
