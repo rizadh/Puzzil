@@ -267,8 +267,8 @@ extension BoardView {
                                        zip(self.tileViews, finalMoveOperations).forEach {
                                            self.boardView.place($0, at: $1.targetPosition)
                                        }
-                    }) { _ in
-                        self.lowerTiles()
+                    }) { [weak self] _ in
+                        self?.lowerTiles()
                     }
 
                     boardView.delegate.boardDidChange(boardView)
@@ -313,8 +313,8 @@ extension BoardView {
                                        tilesToAnimate.forEach {
                                            self.boardView.place($0, at: $1)
                                        }
-                    }) { _ in
-                        self.lowerTiles()
+                    }) { [weak self] _ in
+                        self?.lowerTiles()
                     }
                 }
 
