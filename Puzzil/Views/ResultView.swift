@@ -24,9 +24,6 @@ class ResultView: UIView {
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = ColorTheme.selected.secondary
-        layer.cornerRadius = 16
-
         setupSubviews()
     }
 
@@ -37,11 +34,11 @@ class ResultView: UIView {
     private func setupSubviews() {
         messageText.translatesAutoresizingMaskIntoConstraints = false
         messageText.font = UIFont.systemFont(ofSize: UIFont.labelFontSize * 1.25, weight: .medium)
-        messageText.textColor = ColorTheme.selected.secondaryTextOnSecondary
+        messageText.textColor = ColorTheme.selected.secondaryTextOnBackground
 
         timeText.translatesAutoresizingMaskIntoConstraints = false
         timeText.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize * 3)
-        timeText.textColor = ColorTheme.selected.primaryTextOnSecondary
+        timeText.textColor = ColorTheme.selected.primaryTextOnBackground
 
         statusTag.translatesAutoresizingMaskIntoConstraints = false
         statusTag.layer.cornerRadius = 8
@@ -57,28 +54,27 @@ class ResultView: UIView {
         addSubview(timeText)
         addSubview(statusTag)
 
-        let margin: CGFloat = 32
         let padding: CGFloat = 32
         let tagPadding: CGFloat = 8
 
-        statusTagConstraint = bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: margin)
-        noStatusTagConstraint = bottomAnchor.constraint(equalTo: timeText.bottomAnchor, constant: margin)
+        statusTagConstraint = bottomAnchor.constraint(equalTo: statusTag.bottomAnchor)
+        noStatusTagConstraint = bottomAnchor.constraint(equalTo: timeText.bottomAnchor)
 
         NSLayoutConstraint.activate([
             widthAnchor.constraint(greaterThanOrEqualTo: heightAnchor),
 
-            messageText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
-            messageText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: margin),
+            messageText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
+            messageText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor),
             messageText.centerXAnchor.constraint(equalTo: centerXAnchor),
-            messageText.topAnchor.constraint(equalTo: topAnchor, constant: margin),
+            messageText.topAnchor.constraint(equalTo: topAnchor),
 
-            timeText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
-            timeText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: margin),
+            timeText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
+            timeText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor),
             timeText.centerXAnchor.constraint(equalTo: centerXAnchor),
             timeText.topAnchor.constraint(equalTo: messageText.bottomAnchor, constant: padding),
 
-            statusTag.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
-            statusTag.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: margin),
+            statusTag.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
+            statusTag.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor),
             statusTag.centerXAnchor.constraint(equalTo: centerXAnchor),
             statusTag.topAnchor.constraint(equalTo: timeText.bottomAnchor, constant: padding),
 
