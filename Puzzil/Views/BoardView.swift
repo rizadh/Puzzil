@@ -41,7 +41,7 @@ class BoardView: UIView {
         backgroundColor = ColorTheme.selected.secondary
         layer.cornerRadius = BoardView.cornerRadius
 
-        applyMotionEffect(distance: 8)
+        applyMotionEffect(distance: 16)
     }
 
     required init?(coder aDecoder: NSCoder) {
