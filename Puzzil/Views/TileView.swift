@@ -26,6 +26,7 @@ class TileView: UIView {
         backgroundColor = ColorTheme.selected.primary
 
         setupSubviews()
+        applyMotionEffect(distance: 8)
     }
 
     required init?(coder aDecoder: NSCoder) {

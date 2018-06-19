@@ -36,6 +36,21 @@ extension UIView {
             incomingView.transform = .identity
         }) { _ in completion?() }
     }
+
+    func applyMotionEffect(distance: CGFloat) {
+        let xMotion = UIInterpolatingMotionEffect(keyPath: "layer.transform.translation.x", type: .tiltAlongHorizontalAxis)
+        xMotion.minimumRelativeValue = -distance
+        xMotion.maximumRelativeValue = distance
+
+        let yMotion = UIInterpolatingMotionEffect(keyPath: "layer.transform.translation.y", type: .tiltAlongVerticalAxis)
+        yMotion.minimumRelativeValue = -distance
+        yMotion.maximumRelativeValue = distance
+
+        let motionEffectGroup = UIMotionEffectGroup()
+        motionEffectGroup.motionEffects = [xMotion,yMotion]
+
+        self.addMotionEffect(motionEffectGroup)
+    }
 }
 
 extension CGAffineTransform {

@@ -40,6 +40,8 @@ class BoardView: UIView {
         isOpaque = false
         backgroundColor = ColorTheme.selected.secondary
         layer.cornerRadius = BoardView.cornerRadius
+
+        applyMotionEffect(distance: 8)
     }
 
     required init?(coder aDecoder: NSCoder) {
