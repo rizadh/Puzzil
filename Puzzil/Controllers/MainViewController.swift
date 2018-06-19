@@ -159,8 +159,13 @@ class MainViewController: UIViewController {
             helpText.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
             safeArea.rightAnchor.constraint(greaterThanOrEqualTo: helpText.rightAnchor, constant: 16),
             helpText.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 16),
-            safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor, constant: 16),
-        ])
+            view.bottomAnchor.constraint(greaterThanOrEqualTo: helpText.bottomAnchor, constant: 16),
+        ] + [
+            safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor),
+        ].map({
+            $0.priority = .defaultHigh
+            return $0
+        }))
     }
 }
 

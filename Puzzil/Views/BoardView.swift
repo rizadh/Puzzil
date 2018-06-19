@@ -176,6 +176,7 @@ extension BoardView {
 
             return UIColor(hue: hue, saturation: saturation, brightness: brightness * 0.8, alpha: 1).cgColor
         }
+
         private static var tileShadowOpacity: Float {
             return 1
         }

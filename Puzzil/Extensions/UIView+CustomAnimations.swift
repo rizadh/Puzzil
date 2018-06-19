@@ -47,9 +47,9 @@ extension UIView {
         yMotion.maximumRelativeValue = distance
 
         let motionEffectGroup = UIMotionEffectGroup()
-        motionEffectGroup.motionEffects = [xMotion,yMotion]
+        motionEffectGroup.motionEffects = [xMotion, yMotion]
 
-        self.addMotionEffect(motionEffectGroup)
+        addMotionEffect(motionEffectGroup)
     }
 }
 
