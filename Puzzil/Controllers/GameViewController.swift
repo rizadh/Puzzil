@@ -16,32 +16,19 @@ class GameViewController: UIViewController {
         return ColorTheme.selected.background.isLight ? .default : .lightContent
     }
 
-    // MARK: - Queues
-
-    private lazy var boardWaitingQueue = DispatchQueue(
-        label: "com.rizadh.Puzzil.GameViewController.boardWaitQueue.\(boardStyle.rawValue)", qos: .utility)
-
     // MARK: - Board Management
 
     private let boardStyle: BoardStyle
-    private lazy var originalBoard = boardStyle.board
     private var minProgress: Double!
-    private var boardIsScrambling = false
     private var gameIsRunning = false {
         didSet {
-            restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
+            restartButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
 
     private var resultsAreVisible = false {
         didSet {
-            restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
-        }
-    }
-
-    private var nextBoardIsReady = false {
-        didSet {
-            restartButton.isEnabled = (gameIsRunning || resultsAreVisible) && nextBoardIsReady
+            restartButton.isEnabled = gameIsRunning || resultsAreVisible
         }
     }
 
@@ -79,7 +66,6 @@ class GameViewController: UIViewController {
     // MARK: - Controller Dependencies
 
     var bestTimesController: BestTimesController!
-    var boardScramblingController: BoardScramblingController!
 
     // MARK: - Constructors
 
@@ -132,7 +118,6 @@ class GameViewController: UIViewController {
         boardView.reloadBoard()
         progressBar.progress = 0
         resetStats()
-        waitForBoard()
     }
 
     // MARK: - Private Methods
@@ -185,7 +170,6 @@ class GameViewController: UIViewController {
 
         restartButton = UIButton.createThemedButton()
         restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
-        restartButton.isEnabled = false
         restartButton.setTitle("Restart", for: .normal)
 
         buttons.addArrangedSubview(endButton)
@@ -277,23 +261,11 @@ class GameViewController: UIViewController {
         gameIsRunning = false
 
         resultView.result = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
-        resultView.transform = .zero
-        resultView.isHidden = false
 
         resetStats()
 
         UIView.animatedSwap(outgoingView: boardView, incomingView: resultView) {
             self.resultsAreVisible = true
-        }
-    }
-
-    private func waitForBoard() {
-        nextBoardIsReady = false
-        boardWaitingQueue.async {
-            self.boardScramblingController.waitForBoard(style: self.boardStyle)
-            DispatchQueue.main.async {
-                self.nextBoardIsReady = true
-            }
         }
     }
 
@@ -404,7 +376,8 @@ class GameViewController: UIViewController {
 extension GameViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
         if gameIsRunning {
-            let board = boardScramblingController.nextBoard(style: boardStyle)
+            var board = boardStyle.board
+            board.shuffle()
             minProgress = board.progress
             return board
         } else {
@@ -416,7 +389,9 @@ extension GameViewController: BoardViewDelegate {
         guard gameIsRunning else { return }
 
         moves += 1
-        let mappedProgress = (boardView.board.progress - minProgress) / (1 - minProgress)
+        let progress = boardView.board.progress
+        minProgress = min(progress, minProgress)
+        let mappedProgress = (progress - minProgress) / (1 - minProgress)
         progressBar.setProgress(Float(mappedProgress), animated: true)
         if boardView.board.isSolved { boardWasSolved() }
         else { updateMovesStat(animated: false) }

@@ -16,8 +16,9 @@ struct Board {
 
     let rowCount: Int
     let columnCount: Int
-    private var tiles: [Tile?] = []
+    private var tiles = [Tile?]()
     private var reservedPositions = [TilePosition: TileMoveOperation]()
+    private let emptyPositions: Int
 
     // MARK: - Board Status
 
@@ -41,19 +42,6 @@ struct Board {
         }.reduce(0, +)
     }
 
-    private func calculateMaxDistance() -> Int {
-        return indices.compactMap { position in
-            self[position].flatMap({ _ in
-                let oppositePosition = TilePosition(
-                    row: rowCount - 1 - position.row,
-                    column: columnCount - 1 - position.column
-                )
-
-                return position.distance(to: oppositePosition)
-            })
-        }.reduce(0, +)
-    }
-
     private var maxDistanceRemaining: Int!
 
     // MARK: - Constructors
@@ -69,6 +57,7 @@ struct Board {
 
         var tilePositions = [String: [TilePosition]]()
         var tileTexts = [[String?]]()
+        var emptyPositions = 0
 
         for (rowIndex, row) in matrix.enumerated() {
             guard columnCount == row.count else { fatalError("Provided matrix does not have a consistent row length") }
@@ -86,6 +75,8 @@ struct Board {
                     let previousPositions = tilePositions[text!] ?? []
                     let updatedPositions = previousPositions + [position]
                     tilePositions[text!] = updatedPositions
+                } else {
+                    emptyPositions += 1
                 }
 
                 tileRow.append(text)
@@ -93,6 +84,8 @@ struct Board {
 
             tileTexts.append(tileRow)
         }
+
+        self.emptyPositions = emptyPositions
 
         tiles = tileTexts.flatMap { $0.map {
             guard let text = $0 else { return nil }
@@ -105,6 +98,19 @@ struct Board {
     }
 
     // MARK: - Private Methods
+
+    private func calculateMaxDistance() -> Int {
+        return indices.compactMap { position in
+            self[position].flatMap({ _ in
+                let oppositePosition = TilePosition(
+                    row: rowCount - 1 - position.row,
+                    column: columnCount - 1 - position.column
+                )
+
+                return position.distance(to: oppositePosition)
+            })
+        }.reduce(0, +)
+    }
 
     private func boardContains(_ position: TilePosition) -> Bool {
         return position.row >= 0 && position.row < rowCount &&
@@ -182,9 +188,39 @@ struct Board {
                 self[operation.targetPosition] = self[operation.startPosition]
                 self[operation.startPosition] = nil
             }
+
+            print(countTotalInversions())
         case .notPossible:
             fatalError("Cannot perform an impossible move operation")
         }
+    }
+
+    mutating func shuffle() {
+        tiles.shuffle()
+
+        if emptyPositions == 1 {
+            while countTotalInversions() % 2 == 1 {
+                tiles.shuffle()
+            }
+        }
+    }
+
+    func countInversions(at position: TilePosition) -> Int {
+        var inversions = 0
+
+        if let target = self[position]?.targets.first {
+            self[index(after: position)...].forEach { tile in
+                if let currentTarget = tile?.targets.first, currentTarget < target {
+                    inversions += 1
+                }
+            }
+        }
+
+        return inversions
+    }
+
+    func countTotalInversions() -> Int {
+        return indices.map(countInversions).reduce(0, +)
     }
 
     func clearingAllTiles() -> Board {

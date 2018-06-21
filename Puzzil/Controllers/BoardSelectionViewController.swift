@@ -15,21 +15,9 @@ class BoardSelectionViewController: UIViewController {
     let boardStyle: BoardStyle
     let boardView = BoardView()
 
-    // MARK: - Board Status
-
-    private lazy var boardWaitingQueue = DispatchQueue(label: "com.rizadh.Puzzil.StaticBoardViewController.boardWaitingQueue.\(boardStyle)", qos: .background)
-    private let loadingIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-    private var boardIsReady = true {
-        didSet {
-            if boardIsReady { hideLoadingIndicator() }
-            else { showLoadingIndicator() }
-        }
-    }
-
     // MARK: - Controller Dependencies
 
     var bestTimesController: BestTimesController!
-    var boardScramblingController: BoardScramblingController!
 
     // MARK: - Constructors
 
@@ -44,12 +32,6 @@ class BoardSelectionViewController: UIViewController {
     }
 
     // MARK: - UIViewController Method Overrides
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        waitForBoard()
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,11 +48,7 @@ class BoardSelectionViewController: UIViewController {
         boardView.isDynamic = false
         boardView.delegate = self
 
-        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
-        loadingIndicator.color = ColorTheme.selected.primary
-
         view.addSubview(boardView)
-        view.addSubview(loadingIndicator)
 
         let safeArea: UILayoutGuide = {
             if #available(iOS 11.0, *) {
@@ -101,9 +79,6 @@ class BoardSelectionViewController: UIViewController {
             boardView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.7),
             boardView.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
             boardView.bottomAnchor.constraint(lessThanOrEqualTo: safeArea.bottomAnchor, constant: -16),
-
-            loadingIndicator.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
         ] + [
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.7),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
@@ -115,36 +90,11 @@ class BoardSelectionViewController: UIViewController {
         boardView.reloadBoard()
     }
 
-    // MARK: - Private Methods
-
-    private func showLoadingIndicator() {
-        boardView.isHidden = true
-        loadingIndicator.startAnimating()
-    }
-
-    private func hideLoadingIndicator() {
-        boardView.isHidden = false
-        loadingIndicator.stopAnimating()
-    }
-
-    private func waitForBoard() {
-        boardIsReady = false
-        boardWaitingQueue.async {
-            self.boardScramblingController.waitForBoard(style: self.boardStyle)
-            DispatchQueue.main.async {
-                self.boardIsReady = true
-            }
-        }
-    }
-
     // MARK: - Event Handlers
 
     @objc private func boardWasTapped(_ sender: UITapGestureRecognizer) {
-        guard boardIsReady else { return }
-
         let gameViewController = GameViewController(boardStyle: boardStyle)
         gameViewController.transitioningDelegate = parent?.parent as! MainViewController
-        gameViewController.boardScramblingController = boardScramblingController
         gameViewController.bestTimesController = bestTimesController
         present(gameViewController, animated: true)
     }

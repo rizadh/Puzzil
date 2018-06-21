@@ -31,7 +31,6 @@ class MainViewController: UIViewController {
     let helpText = UILabel()
     private lazy var boardViewControllers: [BoardSelectionViewController] = BoardStyle.all.map { boardStyle in
         let boardViewController = BoardSelectionViewController(boardStyle: boardStyle)
-        boardViewController.boardScramblingController = boardScramblingController
         boardViewController.bestTimesController = bestTimesController
         return boardViewController
     }
@@ -57,7 +56,6 @@ class MainViewController: UIViewController {
     // MARK: - Controller Dependencies
 
     var bestTimesController: BestTimesController!
-    var boardScramblingController: BoardScramblingController!
 
     // MARK: - UIViewController Method Overrides
 

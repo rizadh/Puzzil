@@ -12,7 +12,6 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     var bestTimesController = BestTimesController()
-    var boardScramblingController = BoardScramblingController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: nil) { _ in
@@ -29,7 +28,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func loadMainViewController() {
         let mainViewController = MainViewController()
-        mainViewController.boardScramblingController = boardScramblingController
         mainViewController.bestTimesController = bestTimesController
 
         window = UIWindow(frame: UIScreen.main.bounds)
