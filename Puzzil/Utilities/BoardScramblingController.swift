@@ -70,7 +70,7 @@ class BoardScramblingController {
     }
 
     private static func possibleMoveOperations(for board: Board) -> [TileMoveOperation] {
-        return TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount).flatMap { position in
+        return board.indices.flatMap { position in
             [.left, .right, .up, .down]
                 .map { direction in TileMoveOperation(position: position, direction: direction) }
                 .filter { moveOperation in

@@ -25,10 +25,6 @@ struct TilePosition: Equatable, Hashable {
         return abs(a.row - b.row) + abs(a.column - b.column)
     }
 
-    static func traversePositions(rows: Int, columns: Int) -> TilePositionIterator {
-        return TilePositionIterator(rows: rows, columns: columns)
-    }
-
     func distance(to otherPosition: TilePosition) -> Int {
         return TilePosition.distanceBetween(self, otherPosition)
     }
@@ -48,6 +44,16 @@ struct TilePosition: Equatable, Hashable {
         case .down:
             return TilePosition(row: row + stride, column: column)
         }
+    }
+}
+
+extension TilePosition: Comparable {
+    static func < (lhs: TilePosition, rhs: TilePosition) -> Bool {
+        if lhs.row != rhs.row {
+            return lhs.row < rhs.row
+        }
+
+        return lhs.column < rhs.column
     }
 }
 

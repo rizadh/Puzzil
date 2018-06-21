@@ -11,20 +11,19 @@ import Foundation
 typealias BoardElement = CustomStringConvertible?
 
 struct Board {
-    private typealias TileMatrix = [[Tile?]]
 
     // MARK: - Board Properties
 
     let rowCount: Int
     let columnCount: Int
-    private var tiles: TileMatrix = []
+    private var tiles: [Tile?] = []
     private var reservedPositions = [TilePosition: TileMoveOperation]()
 
     // MARK: - Board Status
 
     var isSolved: Bool {
-        for position in TilePosition.traversePositions(rows: rowCount, columns: columnCount) {
-            if let tile = tiles[position], !tile.targets.contains(position) {
+        for position in indices {
+            if self[position].flatMap({ !$0.targets.contains(position) }) ?? false {
                 return false
             }
         }
@@ -37,31 +36,25 @@ struct Board {
     }
 
     private var distanceLeft: Int {
-        var distance = 0
-
-        for position in TilePosition.traversePositions(rows: rowCount, columns: columnCount) {
-            if let tile = tiles[position], !tile.targets.contains(position) {
-                distance += tile.targets.map(position.distance(to:)).min()!
-            }
-        }
-
-        return distance
+        return indices.compactMap { position in
+            self[position].flatMap({ $0.targets.map(position.distance).min()! })
+        }.reduce(0, +)
     }
 
-    private let maxDistanceRemaining: Int
+    private func calculateMaxDistance() -> Int {
+        return indices.compactMap { position in
+            self[position].flatMap({ _ in
+                let oppositePosition = TilePosition(
+                    row: rowCount - 1 - position.row,
+                    column: columnCount - 1 - position.column
+                )
 
-    private static func calculateMaxDistance(for tiles: TileMatrix, rows: Int, columns: Int) -> Int {
-        var maxDistance = 0
-
-        for position in TilePosition.traversePositions(rows: rows, columns: columns) {
-            if tiles[position] != nil {
-                let oppositePosition = TilePosition(row: rows - 1 - position.row, column: columns - 1 - position.column)
-                maxDistance += position.distance(to: oppositePosition)
-            }
-        }
-
-        return maxDistance
+                return position.distance(to: oppositePosition)
+            })
+        }.reduce(0, +)
     }
+
+    private var maxDistanceRemaining: Int!
 
     // MARK: - Constructors
 
@@ -101,14 +94,14 @@ struct Board {
             tileTexts.append(tileRow)
         }
 
-        tiles = tileTexts.map { $0.map {
+        tiles = tileTexts.flatMap { $0.map {
             guard let text = $0 else { return nil }
 
             let positions = tilePositions[text]!
             return Tile(targets: positions, text: text)
         } }
 
-        maxDistanceRemaining = Board.calculateMaxDistance(for: tiles, rows: rowCount, columns: columnCount)
+        maxDistanceRemaining = calculateMaxDistance()
     }
 
     // MARK: - Private Methods
@@ -121,7 +114,7 @@ struct Board {
     private func tileIsPresent(at position: TilePosition) -> Bool {
         guard boardContains(position) else { return false }
 
-        return tiles[position] != nil
+        return self[position] != nil
     }
 
     private func reservationExists(at position: TilePosition) -> Bool {
@@ -154,7 +147,7 @@ struct Board {
     func tileText(at position: TilePosition) -> String? {
         precondition(boardContains(position))
 
-        return tiles[position]?.text
+        return self[position]?.text
     }
 
     mutating func begin(_ moveOperation: TileMoveOperation) {
@@ -186,8 +179,8 @@ struct Board {
         switch canPerform(moveOperation) {
         case let .possible(after: operations):
             for operation in operations + [moveOperation] {
-                tiles[operation.targetPosition] = tiles[operation.startPosition]
-                tiles[operation.startPosition] = nil
+                self[operation.targetPosition] = self[operation.startPosition]
+                self[operation.startPosition] = nil
             }
         case .notPossible:
             fatalError("Cannot perform an impossible move operation")
@@ -196,6 +189,47 @@ struct Board {
 
     func clearingAllTiles() -> Board {
         return Board(matrix: Array(repeating: Array(repeating: nil, count: columnCount), count: rowCount))
+    }
+}
+
+extension Board: BidirectionalCollection {
+    var startIndex: TilePosition {
+        return TilePosition(row: 0, column: 0)
+    }
+
+    var endIndex: TilePosition {
+        return TilePosition(row: rowCount, column: 0)
+    }
+
+    func index(after position: TilePosition) -> TilePosition {
+        let index = calculateIndex(for: position)
+        return calculatePosition(for: index + 1)
+    }
+
+    func index(before position: TilePosition) -> TilePosition {
+        let index = calculateIndex(for: position)
+        return calculatePosition(for: index - 1)
+    }
+
+    private(set) subscript(_ position: TilePosition) -> Tile? {
+        get {
+            return tiles[calculateIndex(for: position)]
+        }
+
+        set {
+            tiles[calculateIndex(for: position)] = newValue
+        }
+    }
+
+    private func calculateIndex(for position: TilePosition) -> Int {
+        return position.row * columnCount + position.column
+    }
+
+    private func calculatePosition(for index: Int) -> TilePosition {
+        return TilePosition(
+            row: index / columnCount,
+            column: index % columnCount
+        )
     }
 }
 
@@ -208,40 +242,30 @@ extension Board: CustomStringConvertible {
     var description: String {
         var string = ""
 
-        for (rowIndex, row) in tiles.enumerated() {
-            for _ in 0..<row.count * 4 + 1 {
-                string += "-"
+        for (index, elementOrNil) in tiles.enumerated() {
+            let rowIndex = index / columnCount
+            let columnIndex = index % columnCount
+
+            if columnIndex == 0 {
+                string += Array(repeating: "-", count: columnCount * 4 + 1).joined()
+                string += "\n"
             }
-            string += "\n"
-            for (elementIndex, elementOrNil) in row.enumerated() {
-                if let element = elementOrNil {
-                    string += "| \(element) "
-                } else if reservationExists(at: TilePosition(row: rowIndex, column: elementIndex)) {
-                    string += "| X "
-                } else {
-                    string += "|   "
-                }
+
+            if let element = elementOrNil {
+                string += "| \(element) "
+            } else if reservationExists(at: TilePosition(row: rowIndex, column: columnIndex)) {
+                string += "| X "
+            } else {
+                string += "|   "
             }
-            string += "|\n"
+
+            if columnIndex == columnCount - 1 {
+                string += "|\n"
+            }
         }
 
-        for _ in 0..<tiles.first!.count * 4 + 1 {
-            string += "-"
-        }
+        string += Array(repeating: "-", count: columnCount * 4 + 1).joined()
 
         return string
-    }
-}
-
-// Facilitate retrieving tiles from a TileMatrix
-extension Array where Element == [Tile?] {
-    subscript(_ position: TilePosition) -> Tile? {
-        get {
-            return self[position.row][position.column]
-        }
-
-        set {
-            self[position.row][position.column] = newValue
-        }
     }
 }

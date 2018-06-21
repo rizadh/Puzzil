@@ -126,7 +126,7 @@ class BoardView: UIView {
     // MARK: Tile Creation
 
     private func generateTiles() {
-        for position in TilePosition.traversePositions(rows: board.rowCount, columns: board.columnCount) {
+        for position in board.indices {
             guard let text = board.tileText(at: position) else { continue }
 
             let tileView = TileView()
