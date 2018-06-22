@@ -164,11 +164,11 @@ class GameViewController: UIViewController {
         resultView.translatesAutoresizingMaskIntoConstraints = false
         resultView.isHidden = true
 
-        endButton = UIButton.createThemedButton()
+        endButton = ThemedButton()
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
         endButton.setTitle("End", for: .normal)
 
-        restartButton = UIButton.createThemedButton()
+        restartButton = ThemedButton()
         restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
         restartButton.setTitle("Restart", for: .normal)
 

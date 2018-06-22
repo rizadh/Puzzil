@@ -249,7 +249,7 @@ extension BoardView {
                         boardView.tilePositions[tileView] = moveOperation.targetPosition
                     }
 
-                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0,
+                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                                    options: [.allowUserInteraction], animations: {
                                        zip(self.tileViews, finalMoveOperations).forEach {
                                            self.boardView.place($0, at: $1.targetPosition)
@@ -293,7 +293,7 @@ extension BoardView {
                         boardView.delegate.boardDidChange(boardView)
                     }
 
-                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0,
+                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
                                    options: [.allowUserInteraction], animations: {
                                        tilesToAnimate.forEach {
                                            self.boardView.place($0, at: $1)
