@@ -14,15 +14,6 @@ enum BoardStyle: String, CaseIterable {
     case arrows
     case vortex
 
-    var targetScrambleProgress: Double {
-        switch self {
-        case .original, .telephone, .arrows:
-            return 0
-        case .vortex:
-            return 0.5
-        }
-    }
-
     var board: Board {
         switch self {
         case .original:
