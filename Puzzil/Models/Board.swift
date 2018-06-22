@@ -18,9 +18,29 @@ struct Board {
     let columnCount: Int
     private var tiles = [Tile?]()
     private var reservedPositions = [TilePosition: TileMoveOperation]()
-    private let emptyPositions: Int
+    private let singleEmptyPosition: TilePosition?
 
     // MARK: - Board Status
+
+    private var isSolvable: Bool {
+        guard let emptyPosition = singleEmptyPosition else { return true }
+
+
+        let currentEmptyPositionIsEven = currentEmptyPosition.row % 2 == 0
+        let emptyPositionIsEven = emptyPosition.row % 2 == 0
+        let polarityIsEven = countTotalInversions() % 2 == 0
+        let widthIsEven = columnCount % 2 == 0
+
+        if widthIsEven {
+            return polarityIsEven == (currentEmptyPositionIsEven == emptyPositionIsEven)
+        } else {
+            return polarityIsEven
+        }
+    }
+
+    private var currentEmptyPosition: TilePosition {
+        return indices.first { self[$0] == nil }!
+    }
 
     var isSolved: Bool {
         for position in indices {
@@ -57,7 +77,6 @@ struct Board {
 
         var tilePositions = [String: [TilePosition]]()
         var tileTexts = [[String?]]()
-        var emptyPositions = 0
 
         for (rowIndex, row) in matrix.enumerated() {
             guard columnCount == row.count else { fatalError("Provided matrix does not have a consistent row length") }
@@ -75,8 +94,6 @@ struct Board {
                     let previousPositions = tilePositions[text!] ?? []
                     let updatedPositions = previousPositions + [position]
                     tilePositions[text!] = updatedPositions
-                } else {
-                    emptyPositions += 1
                 }
 
                 tileRow.append(text)
@@ -85,7 +102,17 @@ struct Board {
             tileTexts.append(tileRow)
         }
 
-        self.emptyPositions = emptyPositions
+        let emptyPositions: [TilePosition] = matrix.enumerated().flatMap({ (rowIndex, row) in
+            row.enumerated().compactMap({ (columnIndex, element) in
+                if element == nil {
+                    return TilePosition(row: rowIndex, column: columnIndex)
+                }
+
+                return nil
+            })
+        })
+
+        singleEmptyPosition = emptyPositions.count == 1 ? emptyPositions.first! : nil
 
         tiles = tileTexts.flatMap { $0.map {
             guard let text = $0 else { return nil }
@@ -196,10 +223,8 @@ struct Board {
     mutating func shuffle() {
         tiles.shuffle()
 
-        if emptyPositions == 1 {
-            while countTotalInversions() % 2 == 1 {
-                tiles.shuffle()
-            }
+        while !isSolvable {
+            tiles.shuffle()
         }
     }
 
