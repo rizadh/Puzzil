@@ -188,8 +188,6 @@ struct Board {
                 self[operation.targetPosition] = self[operation.startPosition]
                 self[operation.startPosition] = nil
             }
-
-            print(countTotalInversions())
         case .notPossible:
             fatalError("Cannot perform an impossible move operation")
         }
