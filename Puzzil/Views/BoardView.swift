@@ -40,8 +40,6 @@ class BoardView: UIView {
         isOpaque = false
         backgroundColor = ColorTheme.selected.secondary
         layer.cornerRadius = BoardView.cornerRadius
-
-        applyMotionEffect(distance: 8)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -170,24 +168,12 @@ class BoardView: UIView {
 
 extension BoardView {
     private class DragOperation {
-        private static var tileShadowRadius: CGFloat = 4
-        private static var tileShadowColor: CGColor {
-            let (hue, saturation, brightness, _) = ColorTheme.selected.secondary.hsba!
-
-            return UIColor(hue: hue, saturation: saturation, brightness: brightness * 0.8, alpha: 1).cgColor
-        }
-
-        private static var tileShadowOpacity: Float {
-            return 1
-        }
-
         var isComplete = false
-        let boardView: BoardView
-        let direction: TileMoveDirection
-        let keyMoveOperation: TileMoveOperation
-        let moveOperations: [TileMoveOperation]
-        let tileViews: [TileView]
-        var tilesAreRaised = false
+        private let boardView: BoardView
+        private let direction: TileMoveDirection
+        private let keyMoveOperation: TileMoveOperation
+        private let moveOperations: [TileMoveOperation]
+        private let tileViews: [TileView]
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
             self.boardView = boardView
@@ -223,7 +209,6 @@ extension BoardView {
             update(with: sender)
 
             if isComplete { return nil }
-            else { raiseTiles() }
         }
 
         func update(with sender: UIPanGestureRecognizer) {
@@ -271,8 +256,6 @@ extension BoardView {
                                        }
                     })
 
-                    lowerTiles()
-
                     boardView.delegate.boardDidChange(boardView)
                 } else {
                     boardView.board.cancel(keyMoveOperation)
@@ -316,8 +299,6 @@ extension BoardView {
                                            self.boardView.place($0, at: $1)
                                        }
                     })
-
-                    lowerTiles()
                 }
 
                 isComplete = true
@@ -327,7 +308,6 @@ extension BoardView {
 
                 if progress >= 1 {
                     isComplete = true
-                    lowerTiles()
                     sender.setTranslation(.zero, in: boardView)
 
                     boardView.board.complete(keyMoveOperation)
@@ -339,7 +319,6 @@ extension BoardView {
                     }
                 } else if progress <= 0 {
                     isComplete = true
-                    lowerTiles()
                     sender.setTranslation(.zero, in: boardView)
 
                     boardView.board.cancel(keyMoveOperation)
@@ -347,42 +326,6 @@ extension BoardView {
                     tileViews.forEach { $0.transform = transform }
                 }
             }
-        }
-
-        private func raiseTiles() {
-            if tilesAreRaised { return }
-
-            let animation = CABasicAnimation()
-            animation.duration = 0.25
-            animation.fromValue = 0
-            animation.toValue = DragOperation.tileShadowOpacity
-
-            tileViews.forEach {
-                $0.layer.shadowOffset = .zero
-                $0.layer.shadowColor = DragOperation.tileShadowColor
-                $0.layer.shadowRadius = DragOperation.tileShadowRadius
-
-                $0.layer.shadowOpacity = DragOperation.tileShadowOpacity
-                $0.layer.add(animation, forKey: "shadowOpacity")
-            }
-
-            tilesAreRaised = true
-        }
-
-        private func lowerTiles() {
-            if !tilesAreRaised { return }
-
-            let animation = CABasicAnimation()
-            animation.duration = 0.25
-            animation.fromValue = DragOperation.tileShadowOpacity
-            animation.toValue = 0
-
-            tileViews.forEach {
-                $0.layer.shadowOpacity = 0
-                $0.layer.add(animation, forKey: "shadowOpacity")
-            }
-
-            tilesAreRaised = false
         }
 
         private static func dragDirection(from translation: CGPoint,

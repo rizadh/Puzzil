@@ -26,7 +26,6 @@ class TileView: UIView {
         backgroundColor = ColorTheme.selected.primary
 
         setupSubviews()
-        applyMotionEffect(distance: 8)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -34,22 +33,30 @@ class TileView: UIView {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        highlightLayer.isHidden = false
-        CATransaction.commit()
+        highlight()
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        UIView.animate(withDuration: 0.25, delay: 0, options: [.curveLinear], animations: {
-            self.highlightLayer.isHidden = true
-        })
+        unhighlight()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        UIView.animate(withDuration: 0.25, delay: 0, options: [.curveLinear], animations: {
-            self.highlightLayer.isHidden = true
-        })
+        unhighlight()
+    }
+
+    private func highlight() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        highlightLayer.opacity = 1
+        CATransaction.commit()
+    }
+
+    private func unhighlight() {
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.25)
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear))
+        highlightLayer.opacity = 0
+        CATransaction.commit()
     }
 
     private func setupSubviews() {
@@ -57,7 +64,7 @@ class TileView: UIView {
         labelView.textAlignment = .center
         labelView.textColor = ColorTheme.selected.primaryTextOnPrimary
 
-        highlightLayer.isHidden = true
+        highlightLayer.opacity = 0
 
         switch ColorTheme.selected {
         case .light:

@@ -25,7 +25,6 @@ struct Board {
     private var isSolvable: Bool {
         guard let emptyPosition = singleEmptyPosition else { return true }
 
-
         let currentEmptyPositionIsEven = currentEmptyPosition.row % 2 == 0
         let emptyPositionIsEven = emptyPosition.row % 2 == 0
         let polarityIsEven = countTotalInversions() % 2 == 0
@@ -102,8 +101,8 @@ struct Board {
             tileTexts.append(tileRow)
         }
 
-        let emptyPositions: [TilePosition] = matrix.enumerated().flatMap({ (rowIndex, row) in
-            row.enumerated().compactMap({ (columnIndex, element) in
+        let emptyPositions: [TilePosition] = matrix.enumerated().flatMap({ rowIndex, row in
+            row.enumerated().compactMap({ columnIndex, element in
                 if element == nil {
                     return TilePosition(row: rowIndex, column: columnIndex)
                 }
