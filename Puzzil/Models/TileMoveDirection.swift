@@ -8,10 +8,8 @@
 
 import UIKit
 
-enum TileMoveDirection {
+enum TileMoveDirection: CaseIterable {
     case up, down, right, left
-
-    static let allCases = [up, down, right, left]
 
     var opposite: TileMoveDirection {
         switch self {

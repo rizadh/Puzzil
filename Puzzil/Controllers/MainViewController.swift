@@ -29,7 +29,7 @@ class MainViewController: UIViewController {
     let pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal,
                                                   options: nil)
     let helpText = UILabel()
-    private lazy var boardViewControllers: [BoardSelectionViewController] = BoardStyle.all.map { boardStyle in
+    private lazy var boardViewControllers: [BoardSelectionViewController] = BoardStyle.allCases.map { boardStyle in
         let boardViewController = BoardSelectionViewController(boardStyle: boardStyle)
         boardViewController.bestTimesController = bestTimesController
         return boardViewController

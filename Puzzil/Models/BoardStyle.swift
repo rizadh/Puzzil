@@ -8,13 +8,11 @@
 
 import Foundation
 
-enum BoardStyle: String {
+enum BoardStyle: String, CaseIterable {
     case original
     case telephone
     case arrows
     case vortex
-
-    static var all = [original, telephone, arrows, vortex]
 
     var targetScrambleProgress: Double {
         switch self {
