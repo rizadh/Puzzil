@@ -8,8 +8,11 @@
 
 import UIKit
 
-enum TileMoveDirection: CaseIterable {
+enum TileMoveDirection {
     case up, down, right, left
+
+    // TODO: Replace with Swift 4.2 CaseIterable conformance when possible
+    static let allCases = [up, down, right, left]
 
     var opposite: TileMoveDirection {
         switch self {
