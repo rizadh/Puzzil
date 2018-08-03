@@ -9,7 +9,6 @@
 import UIKit
 
 class BoardView: UIView {
-
     // MARK: - Dimension Constants
 
     private static let maxTileSize: CGFloat = 96

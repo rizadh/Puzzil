@@ -9,7 +9,6 @@
 import UIKit
 
 class GameViewController: UIViewController {
-
     // MARK: UIViewController Property Overrides
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -137,11 +136,7 @@ class GameViewController: UIViewController {
 
     private func setupSubviews() {
         timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStatWithoutAnimation))
-        if #available(iOS 10.0, *) {
-            timeStatRefresher.preferredFramesPerSecond = 10
-        } else {
-            timeStatRefresher.frameInterval = 60 / 10
-        }
+        timeStatRefresher.preferredFramesPerSecond = 10
         timeStatRefresher.isPaused = true
         timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
 
@@ -193,39 +188,20 @@ class GameViewController: UIViewController {
     }
 
     private func setupConstraints() {
-        let safeArea: UILayoutGuide = {
-            if #available(iOS 11.0, *) {
-                return view.safeAreaLayoutGuide
-            } else {
-                let safeAreaLayoutGuide = UILayoutGuide()
-
-                view.addLayoutGuide(safeAreaLayoutGuide)
-
-                NSLayoutConstraint.activate([
-                    safeAreaLayoutGuide.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
-                    safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
-                    safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.leftAnchor),
-                    safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.rightAnchor),
-                ])
-
-                return safeAreaLayoutGuide
-            }
-        }()
-
         let statsLayoutGuide = UILayoutGuide()
         view.addLayoutGuide(statsLayoutGuide)
 
         NSLayoutConstraint.activate([
-            statsLayoutGuide.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 16),
+            statsLayoutGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
 
             stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
             stats.heightAnchor.constraint(lessThanOrEqualTo: statsLayoutGuide.heightAnchor),
 
-            boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
-            boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
-            boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
+            boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
+            boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
 
             resultView.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
@@ -242,8 +218,8 @@ class GameViewController: UIViewController {
             progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -16),
             progressBar.heightAnchor.constraint(equalToConstant: 8),
         ] + [
-            progressBar.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
+            progressBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            boardView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
         ].map {

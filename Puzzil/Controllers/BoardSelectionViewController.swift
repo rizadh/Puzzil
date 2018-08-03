@@ -9,7 +9,6 @@
 import UIKit
 
 class BoardSelectionViewController: UIViewController {
-
     // MARK: - Subviews
 
     let boardStyle: BoardStyle
@@ -50,38 +49,21 @@ class BoardSelectionViewController: UIViewController {
 
         view.addSubview(boardView)
 
-        let safeArea: UILayoutGuide = {
-            if #available(iOS 11.0, *) {
-                return view.safeAreaLayoutGuide
-            } else {
-                let safeAreaLayoutGuide = UILayoutGuide()
-
-                view.addLayoutGuide(safeAreaLayoutGuide)
-
-                NSLayoutConstraint.activate([
-                    safeAreaLayoutGuide.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
-                    safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
-                    safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.leftAnchor),
-                    safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.rightAnchor),
-                ])
-
-                return safeAreaLayoutGuide
-            }
-        }()
+        let boardScale: CGFloat = 0.7
 
         NSLayoutConstraint.activate([
-            boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            boardView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.7),
-            boardView.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
-            boardView.rightAnchor.constraint(lessThanOrEqualTo: safeArea.rightAnchor, constant: -16),
+            boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            boardView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: boardScale),
+            boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
+            boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
 
-            boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
-            boardView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.7),
-            boardView.topAnchor.constraint(greaterThanOrEqualTo: safeArea.topAnchor, constant: 16),
-            boardView.bottomAnchor.constraint(lessThanOrEqualTo: safeArea.bottomAnchor, constant: -16),
+            boardView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            boardView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: boardScale),
+            boardView.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            boardView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
         ] + [
-            boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.7),
-            boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
+            boardView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: boardScale),
+            boardView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: boardScale),
         ].map {
             $0.priority = .defaultLow
             return $0

@@ -11,7 +11,6 @@ import Foundation
 typealias BoardElement = CustomStringConvertible?
 
 struct Board {
-
     // MARK: - Board Properties
 
     let rowCount: Int

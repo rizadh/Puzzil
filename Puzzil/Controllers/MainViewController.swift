@@ -9,7 +9,6 @@
 import UIKit
 
 class MainViewController: UIViewController {
-
     // MARK: UIViewController Property Overrides
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -73,14 +72,7 @@ class MainViewController: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = ColorTheme.selected.primaryTextOnPrimary
         titleLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
-        titleLabel.font = {
-            let baseFont = UIFont.systemFont(ofSize: 32, weight: .heavy)
-            if #available(iOS 11.0, *) {
-                return UIFontMetrics(forTextStyle: .headline).scaledFont(for: baseFont)
-            } else {
-                return baseFont
-            }
-        }()
+        titleLabel.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: .systemFont(ofSize: 32, weight: .heavy))
         header.addSubview(titleLabel)
 
         boardNameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -114,52 +106,33 @@ class MainViewController: UIViewController {
 
         updateBoardNameLabel()
 
-        let safeArea: UILayoutGuide = {
-            if #available(iOS 11.0, *) {
-                return view.safeAreaLayoutGuide
-            } else {
-                let safeAreaLayoutGuide = UILayoutGuide()
-
-                view.addLayoutGuide(safeAreaLayoutGuide)
-
-                NSLayoutConstraint.activate([
-                    safeAreaLayoutGuide.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor),
-                    safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor),
-                    safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.leftAnchor),
-                    safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.rightAnchor),
-                ])
-
-                return safeAreaLayoutGuide
-            }
-        }()
-
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 8),
-            titleLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleLabel.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
 
             header.leftAnchor.constraint(equalTo: view.leftAnchor),
             header.rightAnchor.constraint(equalTo: view.rightAnchor),
             header.topAnchor.constraint(equalTo: view.topAnchor),
             header.bottomAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
 
-            boardNameLabel.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            boardNameLabel.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             boardNameLabel.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
 
-            pageControl.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
-            pageControl.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
+            pageControl.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor),
+            pageControl.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
             pageControl.topAnchor.constraint(equalTo: boardNameLabel.lastBaselineAnchor),
 
-            pageViewController.view.leftAnchor.constraint(equalTo: safeArea.leftAnchor),
-            pageViewController.view.rightAnchor.constraint(equalTo: safeArea.rightAnchor),
+            pageViewController.view.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor),
+            pageViewController.view.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
             pageViewController.view.topAnchor.constraint(equalTo: pageControl.bottomAnchor, constant: 16),
 
-            helpText.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            helpText.leftAnchor.constraint(greaterThanOrEqualTo: safeArea.leftAnchor, constant: 16),
-            safeArea.rightAnchor.constraint(greaterThanOrEqualTo: helpText.rightAnchor, constant: 16),
+            helpText.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            helpText.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
+            view.safeAreaLayoutGuide.rightAnchor.constraint(greaterThanOrEqualTo: helpText.rightAnchor, constant: 16),
             helpText.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 16),
             view.bottomAnchor.constraint(greaterThanOrEqualTo: helpText.bottomAnchor, constant: 16),
         ] + [
-            safeArea.bottomAnchor.constraint(equalTo: helpText.bottomAnchor),
+            view.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: helpText.bottomAnchor),
         ].map({
             $0.priority = .defaultHigh
             return $0
