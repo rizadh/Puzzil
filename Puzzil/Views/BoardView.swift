@@ -329,51 +329,17 @@ extension BoardView {
 
         private static func dragDirection(from translation: CGPoint,
                                           given possibleDirections: Set<TileMoveDirection>) -> TileMoveDirection? {
-            let leftDraggable = possibleDirections.contains(.left)
-            let rightDraggable = possibleDirections.contains(.right)
-            let upDraggable = possibleDirections.contains(.up)
-            let downDraggable = possibleDirections.contains(.down)
+            let horizontalDirection: TileMoveDirection = translation.x < 0 ? .left : .right
+            let verticalDirection: TileMoveDirection = translation.y < 0 ? .up : .down
+            let translationIsHorizontal = abs(translation.x) > abs(translation.y)
 
-            switch (leftDraggable, rightDraggable, upDraggable, downDraggable) {
-            case (true, true, true, true):
-                if abs(translation.x) > abs(translation.y) {
-                    if translation.x < 0 { return .left }
-                    else { return .right }
-                } else {
-                    if translation.y < 0 { return .up }
-                    else { return .down }
-                }
-            case (true, true, false, false):
-                return translation.x < 0 ? .left : .right
-            case (false, false, true, true):
-                return translation.y < 0 ? .up : .down
-            case (true, false, true, false):
-                return abs(translation.x) > abs(translation.y) ? .left : .up
-            case (false, true, false, true):
-                return abs(translation.x) > abs(translation.y) ? .right : .down
-            case (true, false, false, true):
-                return abs(translation.x) > abs(translation.y) ? .left : .down
-            case (false, true, true, false):
-                return abs(translation.x) > abs(translation.y) ? .right : .up
-            case (true, true, true, false):
-                return abs(translation.x) > abs(translation.y) ? (translation.x < 0 ? .left : .right) : .up
-            case (true, true, false, true):
-                return abs(translation.x) > abs(translation.y) ? (translation.x < 0 ? .left : .right) : .down
-            case (true, false, true, true):
-                return abs(translation.x) > abs(translation.y) ? .left : (translation.y < 0 ? .up : .down)
-            case (false, true, true, true):
-                return abs(translation.x) > abs(translation.y) ? .right : (translation.y < 0 ? .up : .down)
-            case (true, false, false, false):
-                return .left
-            case (false, true, false, false):
-                return .right
-            case (false, false, true, false):
-                return .up
-            case (false, false, false, true):
-                return .down
-            case (false, false, false, false):
-                return nil
+            if possibleDirections.contains(horizontalDirection) && translationIsHorizontal {
+                return horizontalDirection
+            } else if possibleDirections.contains(verticalDirection) {
+                return verticalDirection
             }
+
+            return nil
         }
 
         private static func clipTranslation(_ translation: CGPoint, to distance: CGFloat,
