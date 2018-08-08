@@ -160,16 +160,18 @@ class BoardView: UIView {
 
 extension BoardView {
     private class DragOperation {
+        private static let velocityBias: CGFloat = 0.9
+
         private let boardView: BoardView
         private let direction: TileMoveDirection
         private let keyMoveOperation: TileMoveOperation
         private let targetPositions: [(TileView, TilePosition)]
         private let animator: UIViewPropertyAnimator
+        private var averageVelocity: CGFloat = 0
+
         private var dragDistance: CGFloat {
             return boardView.dragDistance
         }
-
-        private var averageVelocity: CGFloat = 0
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
             self.boardView = boardView
@@ -223,8 +225,6 @@ extension BoardView {
             let progress = clippedTranslation / dragDistance
             animator.fractionComplete = progress
 
-            averageVelocity = (averageVelocity + clippedVelocity) / 2
-
             switch sender.state {
             case .ended, .cancelled, .failed:
                 let velocity = sender.velocity(in: boardView)
@@ -267,6 +267,13 @@ extension BoardView {
                 boardView.tilePositions[tileView] = position
             }
             boardView.delegate.boardDidChange(boardView)
+        }
+
+        private func updateAverageVelocity(with currentVelocity: CGFloat) {
+            let biasedAverageVelocity = averageVelocity * DragOperation.velocityBias
+            let biasedCurrentVelocity = currentVelocity * (1 - DragOperation.velocityBias)
+
+            averageVelocity = biasedAverageVelocity + biasedCurrentVelocity
         }
 
         private static func dragDirection(from translation: CGPoint,
