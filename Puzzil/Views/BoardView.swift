@@ -220,15 +220,13 @@ extension BoardView {
         func update(with sender: UIPanGestureRecognizer) {
             let translation = sender.translation(in: boardView)
             let velocity = sender.velocity(in: boardView)
-            let clippedVelocity = DragOperation.clipTranslation(velocity, to: .infinity, towards: direction)
-            let clippedTranslation = DragOperation.clipTranslation(translation, to: dragDistance, towards: direction)
+            let clippedVelocity = velocity.magnitude(towards: direction)
+            let clippedTranslation = translation.magnitude(towards: direction, lowerBound: 0, upperBound: dragDistance)
             let progress = clippedTranslation / dragDistance
             animator.fractionComplete = progress
 
             switch sender.state {
             case .ended, .cancelled, .failed:
-                let velocity = sender.velocity(in: boardView)
-                let clippedVelocity = DragOperation.clipTranslation(velocity, to: .infinity, towards: direction)
                 let projectedTranslation = DragOperation.projectTranslation(translation: clippedTranslation, velocity: clippedVelocity)
                 let projectedProgress = projectedTranslation / dragDistance
 
@@ -291,20 +289,6 @@ extension BoardView {
             return nil
         }
 
-        private static func clipTranslation(_ translation: CGPoint, to distance: CGFloat,
-                                            towards direction: TileMoveDirection) -> CGFloat {
-            switch direction {
-            case .left:
-                return min(distance, max(-translation.x, 0))
-            case .right:
-                return min(distance, max(translation.x, 0))
-            case .up:
-                return min(distance, max(-translation.y, 0))
-            case .down:
-                return min(distance, max(translation.y, 0))
-            }
-        }
-
         private static func projectTranslation(translation: CGFloat, velocity: CGFloat) -> CGFloat {
             let deceleration: CGFloat = 10000
 
@@ -324,5 +308,26 @@ extension BoardView: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return gestureRecognizer is UILongPressGestureRecognizer
+    }
+}
+
+private extension CGPoint {
+    func magnitude(towards direction: TileMoveDirection, lowerBound: CGFloat = -.infinity, upperBound: CGFloat = .infinity) -> CGFloat {
+        let rawMagnitude: CGFloat
+
+        switch direction {
+        case .left:
+            rawMagnitude = -x
+        case .right:
+            rawMagnitude = x
+        case .up:
+            rawMagnitude = -y
+        case .down:
+            rawMagnitude = y
+        }
+
+        if rawMagnitude < lowerBound { return lowerBound }
+        if rawMagnitude > upperBound { return upperBound }
+        return rawMagnitude
     }
 }
