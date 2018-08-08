@@ -265,7 +265,6 @@ extension BoardView {
                     boardView.place(tileView, at: moveOperation.targetPosition)
                 }
             }
-            animator.isUserInteractionEnabled = false
 
             self.animator = animator
             self.direction = direction
