@@ -8,16 +8,13 @@
 
 import Foundation
 
-enum BoardStyle: String {
+enum BoardStyle: String, CaseIterable {
     case original
     case telephone
     case compass
     case vortex
     case fifteen
     case cyclone
-
-    // TODO: Replace with Swift 4.2 CaseIterable conformance when possible
-    static let allCases = [original, telephone, compass, vortex, fifteen, cyclone]
 
     var board: Board {
         switch self {

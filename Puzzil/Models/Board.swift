@@ -326,16 +326,3 @@ extension Board: CustomStringConvertible {
         return string
     }
 }
-
-// TODO: Use Swift 4.2 shuffle() method when available
-extension MutableCollection {
-    mutating func shuffle() {
-        guard count > 1 else { return }
-
-        for (i, indexA) in indices.dropLast().enumerated() {
-            let j = Int(arc4random_uniform(UInt32(count - i)))
-            let indexB = index(indexA, offsetBy: j)
-            swapAt(indexA, indexB)
-        }
-    }
-}
