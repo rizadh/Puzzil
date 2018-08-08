@@ -93,8 +93,11 @@ class BoardView: UIView {
         if let dragOperation = dragOperations[sender] {
             dragOperation.update(with: sender)
 
-            if dragOperation.isComplete {
-                dragOperations.removeValue(forKey: sender)
+            switch sender.state {
+            case .cancelled, .ended, .failed:
+                dragOperations[sender] = nil
+            default:
+                break
             }
         } else {
             dragOperations[sender] = DragOperation(boardView: self, sender: sender)
@@ -149,17 +152,7 @@ class BoardView: UIView {
     private func place(_ tileView: TileView, at position: TilePosition) {
         let x = BoardView.boardMargins + CGFloat(position.column) * (tileSize + BoardView.boardPadding)
         let y = BoardView.boardMargins + CGFloat(position.row) * (tileSize + BoardView.boardPadding)
-        let transform = tileView.transform
-        tileView.transform = .identity
         tileView.frame = CGRect(x: x, y: y, width: tileSize, height: tileSize)
-        tileView.transform = transform
-    }
-
-    private func moveTile(operation moveOperation: TileMoveOperation) {
-        let tileView = tile(at: moveOperation.startPosition)!
-
-        place(tileView, at: moveOperation.targetPosition)
-        tilePositions[tileView] = moveOperation.targetPosition
     }
 }
 
@@ -167,12 +160,15 @@ class BoardView: UIView {
 
 extension BoardView {
     private class DragOperation {
-        var isComplete = false
         private let boardView: BoardView
         private let direction: TileMoveDirection
         private let keyMoveOperation: TileMoveOperation
-        private let moveOperations: [TileMoveOperation]
-        private let tileViews: [TileView]
+        private let targetPositions: [(TileView, TilePosition)]
+        private let animator: UIViewPropertyAnimator
+        private var dragDistance: CGFloat {
+            return boardView.dragDistance
+        }
+        private var averageVelocity: CGFloat = 0
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
             self.boardView = boardView
@@ -194,137 +190,82 @@ extension BoardView {
                 return nil
             }
 
-            let moveOperation = TileMoveOperation(position: position, direction: direction)
-            guard case let .possible(after: resultingMoveOperations) = boardView.board.canPerform(moveOperation)
+            let keyMoveOperation = TileMoveOperation(position: position, direction: direction)
+            guard case let .possible(after: resultingMoveOperations) = boardView.board.canPerform(keyMoveOperation)
             else { fatalError() }
+            let moveOperations = [keyMoveOperation] + resultingMoveOperations
+            let tileViews = moveOperations.map { boardView.tile(at: $0.startPosition)! }
+            let targetPositions = moveOperations.map { $0.targetPosition }
 
             self.direction = direction
-            keyMoveOperation = moveOperation
-            moveOperations = [moveOperation] + resultingMoveOperations
-            tileViews = [tileView] + resultingMoveOperations.map { boardView.tile(at: $0.startPosition)! }
+            self.keyMoveOperation = keyMoveOperation
+            self.targetPositions = Array(zip(tileViews, targetPositions))
 
             boardView.board.begin(keyMoveOperation)
 
-            update(with: sender)
+            animator = UIViewPropertyAnimator(duration: 0.25, curve: .linear) {
+                for moveOperation in moveOperations {
+                    let tileView = boardView.tile(at: moveOperation.startPosition)!
+                    boardView.place(tileView, at: moveOperation.targetPosition)
+                }
+            }
+            animator.isUserInteractionEnabled = false
 
-            if isComplete { return nil }
+            update(with: sender)
         }
 
         func update(with sender: UIPanGestureRecognizer) {
-            if isComplete { fatalError() }
-
             let translation = sender.translation(in: boardView)
-            let clippedTranslation = DragOperation.clipTranslation(translation, to: boardView.dragDistance,
-                                                                   towards: direction)
-            let transform = CGAffineTransform(translationX: clippedTranslation.x, y: clippedTranslation.y)
+            let velocity = sender.velocity(in: boardView)
+            let clippedVelocity = DragOperation.clipTranslation(velocity, to: .infinity, towards: direction)
+            let clippedTranslation = DragOperation.clipTranslation(translation, to: dragDistance, towards: direction)
+            let progress = clippedTranslation / dragDistance
+            animator.fractionComplete = progress
+
+            averageVelocity = (averageVelocity + clippedVelocity) / 2
 
             switch sender.state {
             case .ended, .cancelled, .failed:
                 let velocity = sender.velocity(in: boardView)
-                let projectedTranslation = DragOperation.projectTranslation(translation: translation,
-                                                                            velocity: velocity)
-                let projectedProgress = DragOperation.dragProgress(with: projectedTranslation,
-                                                                   towards: direction,
-                                                                   dragDistance: boardView.dragDistance)
+                let clippedVelocity = DragOperation.clipTranslation(velocity, to: .infinity, towards: direction)
+                let projectedTranslation = DragOperation.projectTranslation(translation: clippedTranslation, velocity: clippedVelocity)
+                let projectedProgress = projectedTranslation / dragDistance
 
-                if projectedProgress > 0.5 {
-                    boardView.board.complete(keyMoveOperation)
-
-                    var finalMoveOperations = moveOperations
-                    var nextKeyMoveOperation = keyMoveOperation.nextOperation
-
-                    var traversedProgress: CGFloat = 1
-                    while case let .possible(after: operations) = boardView.board.canPerform(nextKeyMoveOperation),
-                        projectedProgress > 0.5 + traversedProgress {
-                        boardView.board.perform(nextKeyMoveOperation)
-                        finalMoveOperations = [nextKeyMoveOperation] + operations
-                        nextKeyMoveOperation = nextKeyMoveOperation.nextOperation
-                        traversedProgress += 1
-                    }
-
-                    for (tileView, moveOperation) in zip(tileViews, finalMoveOperations) {
-                        tileView.transform = .identity
-                        tileView.frame = tileView.frame.applying(transform)
-                        boardView.tilePositions[tileView] = moveOperation.targetPosition
-                    }
-
-                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-                                   options: [.allowUserInteraction], animations: {
-                                       zip(self.tileViews, finalMoveOperations).forEach {
-                                           self.boardView.place($0, at: $1.targetPosition)
-                                       }
-                    })
-
-                    boardView.delegate.boardDidChange(boardView)
+                if projectedProgress == 0 {
+                    cancelDragOperation()
+                    animator.stopAnimation(false)
+                    animator.finishAnimation(at: .start)
+                } else if projectedProgress < 0.5 {
+                    cancelDragOperation()
+                    animator.isReversed = true
+                    let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
+                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                } else if projectedProgress < 1 {
+                    completeDragOperation()
+                    let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
+                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
                 } else {
-                    boardView.board.cancel(keyMoveOperation)
-
-                    for tileView in tileViews {
-                        tileView.transform = .identity
-                        tileView.frame = tileView.frame.applying(transform)
-                    }
-
-                    var tilesToAnimate = [TileView: TilePosition]()
-                    zip(tileViews, moveOperations).forEach { tileView, moveOperation in
-                        tilesToAnimate[tileView] = moveOperation.startPosition
-                    }
-
-                    var finalMoveOperationsOrNil: [TileMoveOperation]?
-                    var nextKeyMoveOperation = keyMoveOperation.reversed.nextOperation
-
-                    var traversedProgress: CGFloat = -1
-                    while case let .possible(after: operations) = boardView.board.canPerform(nextKeyMoveOperation),
-                        projectedProgress < 0.5 + traversedProgress {
-                        boardView.board.perform(nextKeyMoveOperation)
-                        finalMoveOperationsOrNil = [nextKeyMoveOperation] + operations
-                        nextKeyMoveOperation = nextKeyMoveOperation.nextOperation
-                        traversedProgress -= 1
-                    }
-
-                    if let finalMoveOperations = finalMoveOperationsOrNil {
-                        let finalTileViews = finalMoveOperations.map { self.boardView.tile(at: $0.startPosition)! }
-
-                        zip(finalTileViews, finalMoveOperations).forEach {
-                            tilesToAnimate[$0] = $1.targetPosition
-                            self.boardView.tilePositions[$0] = $1.targetPosition
-                        }
-
-                        boardView.delegate.boardDidChange(boardView)
-                    }
-
-                    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0,
-                                   options: [.allowUserInteraction], animations: {
-                                       tilesToAnimate.forEach {
-                                           self.boardView.place($0, at: $1)
-                                       }
-                    })
+                    completeDragOperation()
+                    animator.stopAnimation(false)
+                    animator.finishAnimation(at: .end)
                 }
-
-                isComplete = true
             default:
-                let progress = DragOperation.dragProgress(with: translation, towards: direction,
-                                                          dragDistance: boardView.dragDistance)
-
-                if progress >= 1 {
-                    isComplete = true
-                    sender.setTranslation(.zero, in: boardView)
-
-                    boardView.board.complete(keyMoveOperation)
-                    boardView.delegate.boardDidChange(boardView)
-                    for (tileView, moveOperation) in zip(tileViews, moveOperations) {
-                        tileView.transform = .identity
-                        tileView.frame = tileView.frame.applying(transform)
-                        boardView.tilePositions[tileView] = moveOperation.targetPosition
-                    }
-                } else if progress <= 0 {
-                    isComplete = true
-                    sender.setTranslation(.zero, in: boardView)
-
-                    boardView.board.cancel(keyMoveOperation)
-                } else {
-                    tileViews.forEach { $0.transform = transform }
-                }
+                break
             }
+        }
+
+        private func cancelDragOperation() {
+            boardView.board.cancel(keyMoveOperation)
+        }
+
+        private func completeDragOperation() {
+            boardView.board.complete(keyMoveOperation)
+            for (tileView, position) in targetPositions {
+                boardView.tilePositions[tileView] = position
+            }
+            boardView.delegate.boardDidChange(boardView)
         }
 
         private static func dragDirection(from translation: CGPoint,
@@ -343,24 +284,17 @@ extension BoardView {
         }
 
         private static func clipTranslation(_ translation: CGPoint, to distance: CGFloat,
-                                            towards direction: TileMoveDirection) -> CGPoint {
+                                            towards direction: TileMoveDirection) -> CGFloat {
             switch direction {
             case .left:
-                return CGPoint(x: max(-distance, min(translation.x, 0)), y: 0)
+                return min(distance, max(-translation.x, 0))
             case .right:
-                return CGPoint(x: min(distance, max(translation.x, 0)), y: 0)
+                return min(distance, max(translation.x, 0))
             case .up:
-                return CGPoint(x: 0, y: max(-distance, min(translation.y, 0)))
+                return min(distance, max(-translation.y, 0))
             case .down:
-                return CGPoint(x: 0, y: min(distance, max(translation.y, 0)))
+                return min(distance, max(translation.y, 0))
             }
-        }
-
-        private static func projectTranslation(translation: CGPoint, velocity: CGPoint) -> CGPoint {
-            return CGPoint(
-                x: projectTranslation(translation: translation.x, velocity: velocity.x),
-                y: projectTranslation(translation: translation.y, velocity: velocity.y)
-            )
         }
 
         private static func projectTranslation(translation: CGFloat, velocity: CGFloat) -> CGFloat {
@@ -371,20 +305,6 @@ extension BoardView {
                 return translation - pow(velocity, 2) / deceleration
             case .plus:
                 return translation + pow(velocity, 2) / deceleration
-            }
-        }
-
-        private static func dragProgress(with translation: CGPoint, towards direction: TileMoveDirection,
-                                         dragDistance: CGFloat) -> CGFloat {
-            switch direction {
-            case .left:
-                return -translation.x / dragDistance
-            case .right:
-                return translation.x / dragDistance
-            case .up:
-                return -translation.y / dragDistance
-            case .down:
-                return translation.y / dragDistance
             }
         }
     }
