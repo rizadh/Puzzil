@@ -160,7 +160,7 @@ class BoardView: UIView {
 
 extension BoardView {
     private class DragOperation {
-        private static let velocityBias: CGFloat = 0.9
+        private static let velocityBias: CGFloat = 0.5
 
         private let boardView: BoardView
         private let direction: TileMoveDirection
@@ -225,46 +225,44 @@ extension BoardView {
             let progress = clippedTranslation / dragDistance
             animator.fractionComplete = progress
 
+            updateAverageVelocity(with: clippedVelocity)
+
             switch sender.state {
             case .ended, .cancelled, .failed:
-                let projectedTranslation = DragOperation.projectTranslation(translation: clippedTranslation, velocity: clippedVelocity)
+                let projectedTranslation = DragOperation.projectTranslation(translation: clippedTranslation, velocity: averageVelocity)
                 let projectedProgress = projectedTranslation / dragDistance
 
-                if projectedProgress == 0 {
-                    cancelDragOperation()
-                    animator.stopAnimation(false)
-                    animator.finishAnimation(at: .start)
-                } else if projectedProgress < 0.5 {
-                    cancelDragOperation()
-                    animator.isReversed = true
-                    let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
-                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
-                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-                } else if projectedProgress < 1 {
-                    completeDragOperation()
-                    let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
-                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
-                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                if projectedProgress < 0.5 {
+                    boardView.board.cancel(keyMoveOperation)
+
+                    if progress == 0 {
+                        animator.stopAnimation(false)
+                        animator.finishAnimation(at: .start)
+                    } else {
+                        animator.isReversed = true
+                        let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
+                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                    }
                 } else {
-                    completeDragOperation()
-                    animator.stopAnimation(false)
-                    animator.finishAnimation(at: .end)
+                    boardView.board.complete(keyMoveOperation)
+                    for (tileView, position) in targetPositions {
+                        boardView.tilePositions[tileView] = position
+                    }
+                    boardView.delegate.boardDidChange(boardView)
+
+                    if progress == 1 {
+                        animator.stopAnimation(false)
+                        animator.finishAnimation(at: .end)
+                    } else {
+                        let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
+                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                    }
                 }
             default:
                 break
             }
-        }
-
-        private func cancelDragOperation() {
-            boardView.board.cancel(keyMoveOperation)
-        }
-
-        private func completeDragOperation() {
-            boardView.board.complete(keyMoveOperation)
-            for (tileView, position) in targetPositions {
-                boardView.tilePositions[tileView] = position
-            }
-            boardView.delegate.boardDidChange(boardView)
         }
 
         private func updateAverageVelocity(with currentVelocity: CGFloat) {
@@ -290,7 +288,7 @@ extension BoardView {
         }
 
         private static func projectTranslation(translation: CGFloat, velocity: CGFloat) -> CGFloat {
-            let deceleration: CGFloat = 10000
+            let deceleration: CGFloat = 1000
 
             switch velocity.sign {
             case .minus:
