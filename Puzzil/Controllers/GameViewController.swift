@@ -365,11 +365,15 @@ extension GameViewController: BoardViewDelegate {
         guard gameIsRunning else { return }
 
         moves += 1
-        let progress = boardView.board.progress
-        minProgress = min(progress, minProgress)
-        let mappedProgress = (progress - minProgress) / (1 - minProgress)
-        progressBar.setProgress(Float(mappedProgress), animated: true)
+
         if boardView.board.isSolved { boardWasSolved() }
         else { updateMovesStat(animated: false) }
+    }
+
+    func progressDidChange(_ boardView: BoardView) {
+        let progress = boardView.progress
+        minProgress = min(progress, minProgress)
+        let mappedProgress = (progress - minProgress) / (1 - minProgress)
+        progressBar.setProgress(Float(mappedProgress), animated: false)
     }
 }

@@ -109,6 +109,10 @@ extension BoardSelectionViewController: BoardViewDelegate {
     func boardDidChange(_ boardView: BoardView) {
         fatalError("Static board cannot change")
     }
+
+    func progressDidChange(_ boardView: BoardView) {
+        fatalError("Static board cannot change")
+    }
 }
 
 // MARK: - UIGestureRecognizerDelegate

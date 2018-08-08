@@ -20,10 +20,13 @@ class BoardView: UIView {
 
     private(set) var board: Board!
     var isDynamic = true
+    var progress: Double {
+        return board.progress + dragCoordinators.map { $0.value.boardProgressChange }.reduce(0, +)
+    }
 
     weak var delegate: BoardViewDelegate!
     private var tilePositions = [TileView: TilePosition]()
-    private var dragOperations = [UIPanGestureRecognizer: DragOperation]()
+    private var dragCoordinators = [UIPanGestureRecognizer: DragCoordinator]()
     private var tileGuides = [[UILayoutGuide]]()
     private var tileSize: CGFloat = 0
     private var tileSizeGuide: UILayoutGuide?
@@ -90,17 +93,20 @@ class BoardView: UIView {
     // MARK: - Event Handlers
 
     @objc private func tileWasDragged(_ sender: UIPanGestureRecognizer) {
-        if let dragOperation = dragOperations[sender] {
-            dragOperation.update(with: sender)
+        if let dragCoordinator = dragCoordinators[sender] {
+            dragCoordinator.update(with: sender)
+
+            delegate.progressDidChange(self)
 
             switch sender.state {
             case .cancelled, .ended, .failed:
-                dragOperations[sender] = nil
+                dragCoordinators[sender] = nil
+                if dragCoordinator.tileWasMoved { delegate.boardDidChange(self) }
             default:
                 break
             }
         } else {
-            dragOperations[sender] = DragOperation(boardView: self, sender: sender)
+            dragCoordinators[sender] = DragCoordinator(boardView: self, sender: sender)
         }
     }
 
@@ -159,8 +165,53 @@ class BoardView: UIView {
 // MARK: - DragOperation
 
 extension BoardView {
+    private class DragCoordinator {
+        private var dragOperation: DragOperation?
+        private let boardView: BoardView
+        private(set) var tileWasMoved = false
+        var boardProgressChange: Double {
+            return dragOperation?.boardProgressChange ?? 0
+        }
+
+        init(boardView: BoardView, sender: UIPanGestureRecognizer) {
+            self.boardView = boardView
+
+            update(with: sender)
+        }
+
+        func update(with sender: UIPanGestureRecognizer) {
+            if let dragOperation = dragOperation {
+                dragOperation.update(with: sender)
+                checkDragOperationState()
+            } else if let dragOperation = DragOperation(boardView: boardView, sender: sender) {
+                self.dragOperation = dragOperation
+                checkDragOperationState()
+            }
+        }
+
+        func checkDragOperationState() {
+            guard let dragOperation = dragOperation else { return }
+
+            switch dragOperation.state {
+            case .completed:
+                tileWasMoved = true
+                fallthrough
+            case .cancelled:
+                self.dragOperation = nil
+            case .active(progress: _):
+                break
+            }
+        }
+    }
+
     private class DragOperation {
         private static let velocityBias: CGFloat = 0.5
+
+        enum State {
+            case active(progress: CGFloat)
+            case cancelled
+            case completed
+        }
 
         private let boardView: BoardView
         private let direction: TileMoveDirection
@@ -169,8 +220,15 @@ extension BoardView {
         private let animator: UIViewPropertyAnimator
         private var averageVelocity: CGFloat = 0
 
-        private var dragDistance: CGFloat {
-            return boardView.dragDistance
+        private(set) var state: State = .active(progress: 0)
+        private var dragDistance: CGFloat { return boardView.dragDistance }
+        var boardProgressChange: Double {
+            var board = self.boardView.board!
+            let startProgress = board.progress
+            board.complete(keyMoveOperation)
+            let endProgress = board.progress
+
+            return (endProgress - startProgress) * Double(animator.fractionComplete)
         }
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
@@ -200,13 +258,9 @@ extension BoardView {
             let tileViews = moveOperations.map { boardView.tile(at: $0.startPosition)! }
             let targetPositions = moveOperations.map { $0.targetPosition }
 
-            self.direction = direction
-            self.keyMoveOperation = keyMoveOperation
-            self.targetPositions = Array(zip(tileViews, targetPositions))
-
             boardView.board.begin(keyMoveOperation)
 
-            animator = UIViewPropertyAnimator(duration: 0.25, curve: .linear) {
+            let animator = UIViewPropertyAnimator(duration: 0.25, curve: .linear) {
                 for moveOperation in moveOperations {
                     let tileView = boardView.tile(at: moveOperation.startPosition)!
                     boardView.place(tileView, at: moveOperation.targetPosition)
@@ -214,18 +268,41 @@ extension BoardView {
             }
             animator.isUserInteractionEnabled = false
 
+            self.animator = animator
+            self.direction = direction
+            self.keyMoveOperation = keyMoveOperation
+            self.targetPositions = Array(zip(tileViews, targetPositions))
+
             update(with: sender)
         }
 
         func update(with sender: UIPanGestureRecognizer) {
+            switch state {
+            case .completed, .cancelled:
+                fatalError("Cannot update inactive drag operation")
+            default:
+                break
+            }
+
             let translation = sender.translation(in: boardView)
             let velocity = sender.velocity(in: boardView)
             let clippedVelocity = velocity.magnitude(towards: direction)
             let clippedTranslation = translation.magnitude(towards: direction, lowerBound: 0, upperBound: dragDistance)
             let progress = clippedTranslation / dragDistance
             animator.fractionComplete = progress
+            state = .active(progress: progress)
 
             updateAverageVelocity(with: clippedVelocity)
+
+            if progress == 0 {
+                cancelOperation()
+                animator.stopAnimation(false)
+                animator.finishAnimation(at: .start)
+            } else if progress == 1 {
+                completeOperation()
+                animator.stopAnimation(false)
+                animator.finishAnimation(at: .end)
+            }
 
             switch sender.state {
             case .ended, .cancelled, .failed:
@@ -233,36 +310,33 @@ extension BoardView {
                 let projectedProgress = projectedTranslation / dragDistance
 
                 if projectedProgress < 0.5 {
-                    boardView.board.cancel(keyMoveOperation)
-
-                    if progress == 0 {
-                        animator.stopAnimation(false)
-                        animator.finishAnimation(at: .start)
-                    } else {
-                        animator.isReversed = true
-                        let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
-                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
-                        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-                    }
+                    cancelOperation()
+                    let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
+                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                    animator.isReversed = true
+                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
                 } else {
-                    boardView.board.complete(keyMoveOperation)
-                    for (tileView, position) in targetPositions {
-                        boardView.tilePositions[tileView] = position
-                    }
-                    boardView.delegate.boardDidChange(boardView)
-
-                    if progress == 1 {
-                        animator.stopAnimation(false)
-                        animator.finishAnimation(at: .end)
-                    } else {
-                        let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
-                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
-                        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-                    }
+                    completeOperation()
+                    let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
+                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
                 }
             default:
                 break
             }
+        }
+
+        private func completeOperation() {
+            state = .completed
+            boardView.board.complete(keyMoveOperation)
+            for (tileView, position) in targetPositions {
+                boardView.tilePositions[tileView] = position
+            }
+        }
+
+        private func cancelOperation() {
+            state = .cancelled
+            boardView.board.cancel(keyMoveOperation)
         }
 
         private func updateAverageVelocity(with currentVelocity: CGFloat) {
@@ -277,10 +351,11 @@ extension BoardView {
             let horizontalDirection: TileMoveDirection = translation.x < 0 ? .left : .right
             let verticalDirection: TileMoveDirection = translation.y < 0 ? .up : .down
             let translationIsHorizontal = abs(translation.x) > abs(translation.y)
+            let translationIsVertical = abs(translation.y) > abs(translation.x)
 
             if possibleDirections.contains(horizontalDirection) && translationIsHorizontal {
                 return horizontalDirection
-            } else if possibleDirections.contains(verticalDirection) {
+            } else if possibleDirections.contains(verticalDirection) && translationIsVertical {
                 return verticalDirection
             }
 

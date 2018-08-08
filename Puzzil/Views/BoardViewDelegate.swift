@@ -11,4 +11,5 @@ import Foundation
 protocol BoardViewDelegate: NSObjectProtocol {
     func newBoard(for boardView: BoardView) -> Board
     func boardDidChange(_ boardView: BoardView)
+    func progressDidChange(_ boardView: BoardView)
 }
