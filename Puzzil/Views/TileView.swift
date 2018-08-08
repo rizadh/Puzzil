@@ -54,7 +54,7 @@ class TileView: UIView {
     private func unhighlight() {
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.25)
-        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear))
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear))
         highlightLayer.opacity = 0
         CATransaction.commit()
     }

@@ -138,7 +138,7 @@ class GameViewController: UIViewController {
         timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStatWithoutAnimation))
         timeStatRefresher.preferredFramesPerSecond = 10
         timeStatRefresher.isPaused = true
-        timeStatRefresher.add(to: .main, forMode: .defaultRunLoopMode)
+        timeStatRefresher.add(to: .main, forMode: RunLoop.Mode.default)
 
         let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
         bestTimeStat.addGestureRecognizer(resetRecognizer)

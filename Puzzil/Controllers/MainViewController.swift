@@ -84,8 +84,8 @@ class MainViewController: UIViewController {
         pageViewController.dataSource = self
         pageViewController.delegate = self
         pageViewController.setViewControllers([boardViewControllers.first!], direction: .forward, animated: false)
-        addChildViewController(pageViewController)
-        pageViewController.didMove(toParentViewController: self)
+        addChild(pageViewController)
+        pageViewController.didMove(toParent: self)
         view.addSubview(pageViewController.view)
 
         helpText.text = "Select a board to begin"
@@ -148,7 +148,7 @@ class MainViewController: UIViewController {
         let boardViewController = pageViewController.viewControllers!.first as! BoardSelectionViewController
         let previousPage = boardViewControllers.index(of: boardViewController)!
         let viewController = boardViewControllers[currentPage]
-        let direction: UIPageViewControllerNavigationDirection = previousPage < currentPage ? .forward : .reverse
+        let direction: UIPageViewController.NavigationDirection = previousPage < currentPage ? .forward : .reverse
 
         pageViewController.setViewControllers([viewController], direction: direction, animated: true) { _ in
             self.pageControl.updateCurrentPageDisplay()
