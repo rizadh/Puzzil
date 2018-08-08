@@ -44,7 +44,8 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
                 options: [], animations: {
                     self.performMainOut(mainViewController, using: boardTransform)
                     self.performGameIn(gameViewController)
-            }) { _ in
+                }
+            ) { _ in
                 transitionContext.completeTransition(true)
                 gameViewController.beginGame()
             }
@@ -60,7 +61,8 @@ class GameBoardAnimator: NSObject, UIViewControllerAnimatedTransitioning {
                 options: [], animations: {
                     self.performGameOut(gameViewController, using: boardTransform)
                     self.performMainIn(mainViewController)
-            }) { _ in
+                }
+            ) { _ in
                 transitionContext.completeTransition(true)
             }
         }

@@ -168,6 +168,7 @@ extension BoardView {
         private var dragDistance: CGFloat {
             return boardView.dragDistance
         }
+
         private var averageVelocity: CGFloat = 0
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
