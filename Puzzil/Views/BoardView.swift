@@ -180,26 +180,25 @@ extension BoardView {
         }
 
         func update(with sender: UIPanGestureRecognizer) {
-            if let dragOperation = dragOperation {
-                dragOperation.update(with: sender)
-                checkDragOperationState()
-            } else if let dragOperation = DragOperation(boardView: boardView, sender: sender) {
-                self.dragOperation = dragOperation
-                checkDragOperationState()
-            }
-        }
+            if let dragOperation = dragOperation ?? DragOperation(boardView: boardView, sender: sender) {
+                if self.dragOperation === dragOperation {
+                    dragOperation.update(with: sender)
+                } else {
+                    self.dragOperation = dragOperation
+                }
 
-        func checkDragOperationState() {
-            guard let dragOperation = dragOperation else { return }
-
-            switch dragOperation.state {
-            case .completed:
-                tileWasMoved = true
-                fallthrough
-            case .cancelled:
-                self.dragOperation = nil
-            case .active(progress: _):
-                break
+                switch dragOperation.state {
+                case .completed:
+                    tileWasMoved = true
+                    fallthrough
+                case .cancelled:
+                    self.dragOperation = nil
+                    sender.setTranslation(.zero, in: boardView)
+                case .active:
+                    break
+                }
+            } else {
+                sender.setTranslation(.zero, in: boardView)
             }
         }
     }
