@@ -222,7 +222,7 @@ extension BoardView {
         private(set) var state: State = .active(progress: 0)
         private var dragDistance: CGFloat { return boardView.dragDistance }
         var boardProgressChange: Double {
-            var board = self.boardView.board!
+            var board = boardView.board!
             let startProgress = board.progress
             board.complete(keyMoveOperation)
             let endProgress = board.progress
