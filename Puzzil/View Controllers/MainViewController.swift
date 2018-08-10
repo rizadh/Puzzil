@@ -67,7 +67,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         let startButton = UIButton()
         startButton.translatesAutoresizingMaskIntoConstraints = false
         startButton.backgroundColor = ColorTheme.selected.primary
-        startButton.layer.cornerRadius = 24
+        startButton.layer.cornerRadius = 16
         startButton.setTitle("Start", for: .normal)
         startButton.setTitleColor(.white, for: .normal)
         startButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
@@ -88,8 +88,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
             startButton.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 8),
             startButton.heightAnchor.constraint(equalToConstant: 48),
-            startButton.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
-            startButton.widthAnchor.constraint(equalToConstant: 200),
+            startButton.leftAnchor.constraint(equalTo: footerView.leftAnchor, constant: 8),
+            startButton.rightAnchor.constraint(equalTo: footerView.rightAnchor, constant: -8),
 
             footerBorder.heightAnchor.constraint(equalToConstant: 1),
             footerBorder.topAnchor.constraint(equalTo: footerView.topAnchor),
