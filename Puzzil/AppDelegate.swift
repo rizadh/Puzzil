@@ -27,12 +27,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func loadMainViewController() {
-        let mainViewController = MainViewController()
-        mainViewController.bestTimesController = bestTimesController
-
         window = UIWindow(frame: UIScreen.main.bounds)
         window!.backgroundColor = ColorTheme.selected.background
-        window!.rootViewController = mainViewController
+        window!.rootViewController = MainViewController()
         window!.makeKeyAndVisible()
     }
 }

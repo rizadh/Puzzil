@@ -9,12 +9,6 @@
 import UIKit
 
 class GameViewController: UIViewController {
-    // MARK: UIViewController Property Overrides
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ColorTheme.selected.background.isLight ? .default : .lightContent
-    }
-
     // MARK: - Board Management
 
     private let boardStyle: BoardStyle
