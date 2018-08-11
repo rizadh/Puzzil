@@ -57,6 +57,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(BoardCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.contentInsetAdjustmentBehavior = .always
 
         footerView = UIView()
         footerView.translatesAutoresizingMaskIntoConstraints = false
@@ -129,9 +130,5 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         cell.boardStyle = BoardStyle.allCases[indexPath.item]
 
         return cell
-    }
-
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        print(scrollView.contentOffset)
     }
 }
