@@ -20,7 +20,7 @@ class StaticBoardView: BoardView, BoardViewDelegate {
 
         super.init()
 
-        isDynamic = false
+        isUserInteractionEnabled = false
         delegate = self
         reloadBoard()
     }
