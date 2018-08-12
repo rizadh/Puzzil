@@ -15,7 +15,7 @@ class BoardCell: UICollectionViewCell {
 
     private let staticBoardView = StaticBoardView(board: BoardStyle.original.board)
     let titleLabel = UILabel()
-    var boardStyle = BoardStyle.original {
+    var boardStyle: BoardStyle! {
         didSet {
             staticBoardView.staticBoard = boardStyle.board
             titleLabel.text = boardStyle.rawValue.capitalized

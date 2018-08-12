@@ -8,9 +8,9 @@
 
 import UIKit
 
-let minimumBoardWidth: CGFloat = 120
-let maximumBoardWidth: CGFloat = 160
-let minimumSpacing: CGFloat = 16
+private let minimumBoardWidth: CGFloat = 120
+private let maximumBoardWidth: CGFloat = 160
+private let minimumSpacing: CGFloat = 16
 
 class BoardBrowserLayout: UICollectionViewLayout {
     var selectedIndexPath: IndexPath?
@@ -152,7 +152,7 @@ class BoardBrowserLayout: UICollectionViewLayout {
             attributes.transform = CGAffineTransform(scaleX: scaleFactor, y: scaleFactor)
         } else {
             attributes.frame = calculateFrame(for: indexPath.item)
-            attributes.alpha = 0
+            attributes.alpha = 0.5
             let scaleFactor: CGFloat = 0.9
             attributes.transform = CGAffineTransform(translationX: translation.x, y: translation.y).scaledBy(x: scaleFactor, y: scaleFactor)
         }

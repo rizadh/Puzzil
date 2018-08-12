@@ -77,6 +77,8 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.backgroundColor = ColorTheme.selected.background
+
         setupSubviews()
         setupConstraints()
 
