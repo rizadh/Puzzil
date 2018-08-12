@@ -69,6 +69,28 @@ class BoardBrowserLayout: UICollectionViewLayout {
         }
     }
 
+    private func calculateLayoutDimensions(availableWidth: CGFloat) ->
+        (numberOfColumns: Int, columnWidth: CGFloat, spacing: CGFloat) {
+            let numberOfColumns = ((availableWidth - minimumSpacing) / (minimumBoardWidth + minimumSpacing)).rounded(.down)
+            let minimumTotalSpacing = minimumSpacing * (1 + numberOfColumns)
+            let totalBoardWidth = min(maximumBoardWidth * numberOfColumns, availableWidth - minimumTotalSpacing)
+            let columnWidth = totalBoardWidth / numberOfColumns
+            let totalSpacing = availableWidth - totalBoardWidth
+            let spacing = totalSpacing / (numberOfColumns + 1)
+            return (Int(numberOfColumns), columnWidth, spacing)
+    }
+
+    private func calculateContentSize(numberOfItems: Int) -> CGSize {
+        let numberOfRows = Int((CGFloat(numberOfItems) / CGFloat(numberOfColumns)).rounded(.up))
+        let bottomRightItem = numberOfRows * numberOfColumns - 1
+        let outermostFrame = calculateFrame(for: bottomRightItem)
+        let x = outermostFrame.maxX + horizontalSpacing
+        let y = outermostFrame.maxY + verticalSpacing
+        let contentsSize = CGSize(width: x, height: y)
+
+        return contentsSize
+    }
+
     private func calculateFrame(for item: Int) -> CGRect {
         let row = item / numberOfColumns
         let column = item % numberOfColumns
@@ -79,21 +101,27 @@ class BoardBrowserLayout: UICollectionViewLayout {
         return CGRect(x: x, y: y, width: boardWidth, height: boardHeight)
     }
 
-    private func calculateSelectedFrame() -> CGRect {
-        let center = CGPoint(x: contentsSize.width / 2, y: contentsSize.height / 2)
-        let size = CGSize(width: boardWidth, height: boardHeight)
-        return CGRect(center: center, size: size)
+    private func generateLayoutAttributes(for indexPath: IndexPath) -> UICollectionViewLayoutAttributes {
+        let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+
+        let frame = calculateFrame(for: indexPath.item)
+        let progress = calculateTransitionProgress(for: frame, in: effectiveBounds)
+
+        attributes.frame = frame
+        attributes.alpha = 1 - abs(progress)
+        attributes.transform = generateTransform(for: progress)
+
+        return attributes
     }
 
-    private func calculateLayoutDimensions(availableWidth: CGFloat) ->
-        (numberOfColumns: Int, columnWidth: CGFloat, spacing: CGFloat) {
-        let numberOfColumns = ((availableWidth - minimumSpacing) / (minimumBoardWidth + minimumSpacing)).rounded(.down)
-        let minimumTotalSpacing = minimumSpacing * (1 + numberOfColumns)
-        let totalBoardWidth = min(maximumBoardWidth * numberOfColumns, availableWidth - minimumTotalSpacing)
-        let columnWidth = totalBoardWidth / numberOfColumns
-        let totalSpacing = availableWidth - totalBoardWidth
-        let spacing = totalSpacing / (numberOfColumns + 1)
-        return (Int(numberOfColumns), columnWidth, spacing)
+    private func generateTransform(for progress: CGFloat) -> CGAffineTransform {
+        let maxRotationAngle: CGFloat = .pi / 2
+        let rotationAngle = maxRotationAngle * progress
+        let scaleFactor = cos(rotationAngle)
+        let requiredTranslation = (progress < 0 ? -1 : 1) * boardHeight / 2 * (1 - scaleFactor)
+        let transform = CGAffineTransform(translationX: 0, y: requiredTranslation).scaledBy(x: 1, y: scaleFactor)
+
+        return transform
     }
 
     private func calculateTransitionProgress(for frame: CGRect, in bounds: CGRect) -> CGFloat {
@@ -109,40 +137,6 @@ class BoardBrowserLayout: UICollectionViewLayout {
         let transitionProgress = 2 * asin(rawTransitionProgress) / .pi
 
         return transitionProgress
-    }
-
-    private func generateTransform(for progress: CGFloat) -> CGAffineTransform {
-        let maxRotationAngle: CGFloat = .pi / 2
-        let rotationAngle = maxRotationAngle * progress
-        let scaleFactor = cos(rotationAngle)
-        let requiredTranslation = (progress < 0 ? -1 : 1) * boardHeight / 2 * (1 - scaleFactor)
-        let transform = CGAffineTransform(translationX: 0, y: requiredTranslation).scaledBy(x: 1, y: scaleFactor)
-
-        return transform
-    }
-
-    private func calculateContentSize(numberOfItems: Int) -> CGSize {
-        let numberOfRows = Int((CGFloat(numberOfItems) / CGFloat(numberOfColumns)).rounded(.up))
-        let bottomRightItem = numberOfRows * numberOfColumns - 1
-        let outermostFrame = calculateFrame(for: bottomRightItem)
-        let x = outermostFrame.maxX + horizontalSpacing
-        let y = outermostFrame.maxY + verticalSpacing
-        let contentsSize = CGSize(width: x, height: y)
-
-        return contentsSize
-    }
-
-    private func generateLayoutAttributes(for indexPath: IndexPath) -> UICollectionViewLayoutAttributes {
-        let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
-
-        let frame = calculateFrame(for: indexPath.item)
-        let progress = calculateTransitionProgress(for: frame, in: effectiveBounds)
-
-        attributes.frame = frame
-        attributes.alpha = 1 - abs(progress)
-        attributes.transform = generateTransform(for: progress)
-
-        return attributes
     }
 
     private func generateSelectedLayoutAttributes(for indexPath: IndexPath) -> UICollectionViewLayoutAttributes {
@@ -165,5 +159,12 @@ class BoardBrowserLayout: UICollectionViewLayout {
         }
 
         return attributes
+    }
+
+    private func calculateSelectedFrame() -> CGRect {
+        let center = CGPoint(x: contentsSize.width / 2, y: contentsSize.height / 2)
+        let size = CGSize(width: boardWidth, height: boardHeight)
+
+        return CGRect(center: center, size: size)
     }
 }
