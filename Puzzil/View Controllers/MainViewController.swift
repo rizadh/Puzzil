@@ -10,7 +10,8 @@ import UIKit
 
 private let cellIdentifier = "BoardCell"
 private let headerHeight: CGFloat = 64
-private let footerHeight: CGFloat = 64
+private let regularFooterHeight: CGFloat = 64
+private let expandedFooterHeight: CGFloat = 160
 
 class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -18,11 +19,14 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     var collectionView: UICollectionView!
+    var collectionViewLayout: BoardBrowserLayout!
     var headerView: UIView!
     var footerView: UIView!
 
+    private var footerIsExpanded = false
+
     override func viewDidLoad() {
-        additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: footerHeight, right: 0)
+        additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: regularFooterHeight, right: 0)
 
         headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -50,7 +54,9 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             headerBorder.leftAnchor.constraint(equalTo: headerView.leftAnchor),
             headerBorder.rightAnchor.constraint(equalTo: headerView.rightAnchor),
         ])
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: BoardBrowserLayout())
+
+        collectionViewLayout = BoardBrowserLayout()
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = ColorTheme.selected.background
         collectionView.showsVerticalScrollIndicator = false
@@ -65,20 +71,17 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         let effectView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
         effectView.translatesAutoresizingMaskIntoConstraints = false
 
-        let startButton = UIButton()
-        startButton.translatesAutoresizingMaskIntoConstraints = false
-        startButton.backgroundColor = ColorTheme.selected.primary
-        startButton.layer.cornerRadius = 16
-        startButton.setTitle("Start", for: .normal)
-        startButton.setTitleColor(.white, for: .normal)
-        startButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        let footerLabel = UILabel()
+        footerLabel.translatesAutoresizingMaskIntoConstraints = false
+        footerLabel.text = "Select a board above to begin"
+        footerLabel.textColor = UIColor.black.withAlphaComponent(0.5)
 
         let footerBorder = UIView()
         footerBorder.translatesAutoresizingMaskIntoConstraints = false
         footerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.1)
 
         footerView.addSubview(effectView)
-        footerView.addSubview(startButton)
+        footerView.addSubview(footerLabel)
         footerView.addSubview(footerBorder)
 
         NSLayoutConstraint.activate([
@@ -87,10 +90,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             effectView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
             effectView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
 
-            startButton.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 8),
-            startButton.heightAnchor.constraint(equalToConstant: 48),
-            startButton.leftAnchor.constraint(equalTo: footerView.leftAnchor, constant: 8),
-            startButton.rightAnchor.constraint(equalTo: footerView.rightAnchor, constant: -8),
+            footerLabel.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
+            footerLabel.centerYAnchor.constraint(equalTo: footerView.topAnchor, constant: regularFooterHeight / 2),
 
             footerBorder.heightAnchor.constraint(equalToConstant: 1),
             footerBorder.topAnchor.constraint(equalTo: footerView.topAnchor),
@@ -130,5 +131,28 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         cell.boardStyle = BoardStyle.allCases[indexPath.item]
 
         return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        footerIsExpanded.toggle()
+
+        if footerIsExpanded {
+            additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: expandedFooterHeight, right: 0)
+            collectionViewLayout.selectedIndexPath = indexPath
+        } else {
+            additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: regularFooterHeight, right: 0)
+            collectionViewLayout.selectedIndexPath = nil
+        }
+
+        let boardCell = collectionView.cellForItem(at: indexPath) as! BoardCell
+        print(boardCell.boardStyle.rawValue.capitalized)
+
+        UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.8) {
+            self.view.layoutIfNeeded()
+        }.startAnimation()
+    }
+
+    func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
+        return true
     }
 }

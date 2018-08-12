@@ -13,6 +13,8 @@ let maximumBoardWidth: CGFloat = 160
 let minimumSpacing: CGFloat = 16
 
 class BoardBrowserLayout: UICollectionViewLayout {
+    var selectedIndexPath: IndexPath?
+
     var numberOfColumns = 0
     var contentsSize: CGSize = .zero
     var attributes = [UICollectionViewLayoutAttributes]()
@@ -25,6 +27,10 @@ class BoardBrowserLayout: UICollectionViewLayout {
     var horizontalSpacing: CGFloat = 0
     var verticalSpacing: CGFloat {
         return horizontalSpacing + 16
+    }
+
+    var effectiveBounds: CGRect {
+        return collectionView!.bounds.inset(by: collectionView!.safeAreaInsets)
     }
 
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
@@ -48,26 +54,22 @@ class BoardBrowserLayout: UICollectionViewLayout {
 
         guard let collectionView = collectionView else { return }
 
-        let effectiveBounds = collectionView.bounds.inset(by: collectionView.safeAreaInsets)
-
         (numberOfColumns, boardWidth, horizontalSpacing) = calculateLayoutDimensions(availableWidth: effectiveBounds.width)
         let numberOfItems = collectionView.numberOfItems(inSection: 0)
-        attributes = (0..<numberOfItems).map {
-            let attributes = UICollectionViewLayoutAttributes(forCellWith: [0, $0])
-
-            let frame = calculateRect(for: $0)
-            let progress = calculateTransitionProgress(for: frame, in: effectiveBounds)
-
-            attributes.frame = frame
-            attributes.alpha = 1 - abs(progress)
-            attributes.transform = generateTransform(for: progress)
-
-            return attributes
+        if selectedIndexPath != nil {
+            contentsSize = effectiveBounds.size
+            attributes = (0..<numberOfItems).map {
+                generateSelectedLayoutAttributes(for: IndexPath(item: $0, section: 0))
+            }
+        } else {
+            contentsSize = calculateContentSize(numberOfItems: numberOfItems)
+            attributes = (0..<numberOfItems).map {
+                generateLayoutAttributes(for: IndexPath(item: $0, section: 0))
+            }
         }
-        contentsSize = calculateContentSize(numberOfItems: numberOfItems)
     }
 
-    private func calculateRect(for item: Int) -> CGRect {
+    private func calculateFrame(for item: Int) -> CGRect {
         let row = item / numberOfColumns
         let column = item % numberOfColumns
 
@@ -75,6 +77,12 @@ class BoardBrowserLayout: UICollectionViewLayout {
         let y = horizontalSpacing + (verticalSpacing + boardHeight) * CGFloat(row)
 
         return CGRect(x: x, y: y, width: boardWidth, height: boardHeight)
+    }
+
+    private func calculateSelectedFrame() -> CGRect {
+        let center = CGPoint(x: contentsSize.width / 2, y: contentsSize.height / 2)
+        let size = CGSize(width: boardWidth, height: boardHeight)
+        return CGRect(center: center, size: size)
     }
 
     private func calculateLayoutDimensions(availableWidth: CGFloat) ->
@@ -116,11 +124,46 @@ class BoardBrowserLayout: UICollectionViewLayout {
     private func calculateContentSize(numberOfItems: Int) -> CGSize {
         let numberOfRows = Int((CGFloat(numberOfItems) / CGFloat(numberOfColumns)).rounded(.up))
         let bottomRightItem = numberOfRows * numberOfColumns - 1
-        let outermostFrame = calculateRect(for: bottomRightItem)
+        let outermostFrame = calculateFrame(for: bottomRightItem)
         let x = outermostFrame.maxX + horizontalSpacing
         let y = outermostFrame.maxY + verticalSpacing
         let contentsSize = CGSize(width: x, height: y)
 
         return contentsSize
+    }
+
+    private func generateLayoutAttributes(for indexPath: IndexPath) -> UICollectionViewLayoutAttributes {
+        let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+
+        let frame = calculateFrame(for: indexPath.item)
+        let progress = calculateTransitionProgress(for: frame, in: effectiveBounds)
+
+        attributes.frame = frame
+        attributes.alpha = 1 - abs(progress)
+        attributes.transform = generateTransform(for: progress)
+
+        return attributes
+    }
+
+    private func generateSelectedLayoutAttributes(for indexPath: IndexPath) -> UICollectionViewLayoutAttributes {
+        let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+
+        let selectedFrame = calculateSelectedFrame()
+        let originalSelectedFrame = calculateFrame(for: selectedIndexPath!.item)
+        let translation = CGPoint(x: selectedFrame.center.x - originalSelectedFrame.center.x, y: selectedFrame.center.y - originalSelectedFrame.center.y)
+
+        if indexPath == selectedIndexPath {
+            attributes.frame = selectedFrame
+            attributes.alpha = 1
+            let scaleFactor: CGFloat = 1.1
+            attributes.transform = CGAffineTransform(scaleX: scaleFactor, y: scaleFactor)
+        } else {
+            attributes.frame = calculateFrame(for: indexPath.item)
+            attributes.alpha = 0
+            let scaleFactor: CGFloat = 0.9
+            attributes.transform = CGAffineTransform(translationX: translation.x, y: translation.y).scaledBy(x: scaleFactor, y: scaleFactor)
+        }
+
+        return attributes
     }
 }

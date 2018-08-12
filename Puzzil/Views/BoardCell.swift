@@ -9,11 +9,14 @@
 import UIKit
 
 class BoardCell: UICollectionViewCell {
-    private let boardView = StaticBoardView(board: BoardStyle.original.board)
-    private let titleLabel = UILabel()
+    var boardView: BoardView {
+        return staticBoardView
+    }
+    private let staticBoardView = StaticBoardView(board: BoardStyle.original.board)
+    let titleLabel = UILabel()
     var boardStyle = BoardStyle.original {
         didSet {
-            boardView.staticBoard = boardStyle.board
+            staticBoardView.staticBoard = boardStyle.board
             titleLabel.text = boardStyle.rawValue.capitalized
         }
     }
@@ -21,14 +24,14 @@ class BoardCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        boardView.translatesAutoresizingMaskIntoConstraints = false
+        staticBoardView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .medium)
+        titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
 
         let boardLayoutGuide = UILayoutGuide()
 
-        contentView.addSubview(boardView)
+        contentView.addSubview(staticBoardView)
         contentView.addSubview(titleLabel)
         contentView.addLayoutGuide(boardLayoutGuide)
 
@@ -38,18 +41,18 @@ class BoardCell: UICollectionViewCell {
             boardLayoutGuide.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             boardLayoutGuide.rightAnchor.constraint(equalTo: contentView.rightAnchor),
 
-            boardView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
-            boardView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
-            boardView.widthAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.widthAnchor),
-            boardView.heightAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.heightAnchor),
+            staticBoardView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
+            staticBoardView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
+            staticBoardView.widthAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.widthAnchor),
+            staticBoardView.heightAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.heightAnchor),
 
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             titleLabel.firstBaselineAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
 
         let optionalConstraints = [
-            boardView.widthAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
+            staticBoardView.widthAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
+            staticBoardView.heightAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
         ]
 
         optionalConstraints.forEach { $0.priority = UILayoutPriority.defaultHigh }
