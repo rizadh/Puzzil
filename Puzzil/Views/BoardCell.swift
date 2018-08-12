@@ -12,6 +12,7 @@ class BoardCell: UICollectionViewCell {
     var boardView: BoardView {
         return staticBoardView
     }
+
     private let staticBoardView = StaticBoardView(board: BoardStyle.original.board)
     let titleLabel = UILabel()
     var boardStyle = BoardStyle.original {

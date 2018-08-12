@@ -69,15 +69,14 @@ class BoardBrowserLayout: UICollectionViewLayout {
         }
     }
 
-    private func calculateLayoutDimensions(availableWidth: CGFloat) ->
-        (numberOfColumns: Int, columnWidth: CGFloat, spacing: CGFloat) {
-            let numberOfColumns = ((availableWidth - minimumSpacing) / (minimumBoardWidth + minimumSpacing)).rounded(.down)
-            let minimumTotalSpacing = minimumSpacing * (1 + numberOfColumns)
-            let totalBoardWidth = min(maximumBoardWidth * numberOfColumns, availableWidth - minimumTotalSpacing)
-            let columnWidth = totalBoardWidth / numberOfColumns
-            let totalSpacing = availableWidth - totalBoardWidth
-            let spacing = totalSpacing / (numberOfColumns + 1)
-            return (Int(numberOfColumns), columnWidth, spacing)
+    private func calculateLayoutDimensions(availableWidth: CGFloat) -> (numberOfColumns: Int, columnWidth: CGFloat, spacing: CGFloat) {
+        let numberOfColumns = ((availableWidth - minimumSpacing) / (minimumBoardWidth + minimumSpacing)).rounded(.down)
+        let minimumTotalSpacing = minimumSpacing * (1 + numberOfColumns)
+        let totalBoardWidth = min(maximumBoardWidth * numberOfColumns, availableWidth - minimumTotalSpacing)
+        let columnWidth = totalBoardWidth / numberOfColumns
+        let totalSpacing = availableWidth - totalBoardWidth
+        let spacing = totalSpacing / (numberOfColumns + 1)
+        return (Int(numberOfColumns), columnWidth, spacing)
     }
 
     private func calculateContentSize(numberOfItems: Int) -> CGSize {
