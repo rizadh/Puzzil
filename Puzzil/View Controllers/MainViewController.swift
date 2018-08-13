@@ -9,8 +9,10 @@
 import UIKit
 
 private let cellIdentifier = "BoardCell"
-private let headerHeight: CGFloat = 64
-private let footerHeight: CGFloat = 80
+private let regularHeaderHeight: CGFloat = 64
+private let compactHeaderHeight: CGFloat = 56
+private let horizontalFooterHeight: CGFloat = 80
+private let verticalFooterWidth: CGFloat = 128
 
 class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, BoardSelectorLayoutDelegate {
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -28,10 +30,11 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     var selectedItem = 0
     var bestTimesController: BestTimesController!
 
+    var portraitLayoutConstraints = [NSLayoutConstraint]()
+    var landscapeLayoutConstraints = [NSLayoutConstraint]()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: footerHeight, right: 0)
 
         headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -52,13 +55,20 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         NSLayoutConstraint.activate([
             headerLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            headerLabel.centerYAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -headerHeight / 2),
 
             headerBorder.heightAnchor.constraint(equalToConstant: 1),
             headerBorder.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
             headerBorder.leftAnchor.constraint(equalTo: headerView.leftAnchor),
             headerBorder.rightAnchor.constraint(equalTo: headerView.rightAnchor),
         ])
+
+        portraitLayoutConstraints.append(
+            headerLabel.centerYAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -regularHeaderHeight / 2)
+        )
+
+        landscapeLayoutConstraints.append(
+            headerLabel.centerYAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -compactHeaderHeight / 2)
+        )
 
         collectionViewLayout = BoardSelectorLayout()
         collectionViewLayout.delegate = self
@@ -97,7 +107,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         footerStackView = UIStackView(arrangedSubviews: [leadingSpacerView, bestTimeStat, startButton, trailingSpacerView])
         footerStackView.translatesAutoresizingMaskIntoConstraints = false
         footerStackView.distribution = .equalCentering
-        footerStackView.exerciseAmbiguityInLayout()
+        footerStackView.alignment = .center
 
         footerView.addSubview(effectView)
         footerView.addSubview(footerBorder)
@@ -109,20 +119,35 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             effectView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
             effectView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
 
-            footerBorder.heightAnchor.constraint(equalToConstant: 1),
             footerBorder.topAnchor.constraint(equalTo: footerView.topAnchor),
             footerBorder.leftAnchor.constraint(equalTo: footerView.leftAnchor),
-            footerBorder.rightAnchor.constraint(equalTo: footerView.rightAnchor),
 
-            footerStackView.centerYAnchor.constraint(equalTo: footerView.topAnchor, constant: footerHeight / 2),
             footerStackView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
-            footerStackView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
+            footerStackView.topAnchor.constraint(equalTo: footerView.topAnchor),
 
             startButton.heightAnchor.constraint(equalToConstant: 48),
             startButton.widthAnchor.constraint(equalToConstant: 96),
 
             leadingSpacerView.widthAnchor.constraint(equalToConstant: 0),
+            leadingSpacerView.heightAnchor.constraint(equalToConstant: 0),
             trailingSpacerView.widthAnchor.constraint(equalToConstant: 0),
+            trailingSpacerView.heightAnchor.constraint(equalToConstant: 0),
+        ])
+
+        portraitLayoutConstraints.append(contentsOf: [
+            footerBorder.rightAnchor.constraint(equalTo: footerView.rightAnchor),
+            footerBorder.heightAnchor.constraint(equalToConstant: 1),
+
+            footerStackView.heightAnchor.constraint(equalToConstant: horizontalFooterHeight),
+            footerStackView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
+        ])
+
+        landscapeLayoutConstraints.append(contentsOf: [
+            footerBorder.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
+            footerBorder.widthAnchor.constraint(equalToConstant: 1),
+
+            footerStackView.widthAnchor.constraint(equalToConstant: verticalFooterWidth),
+            footerStackView.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
         ])
 
         view.addSubview(collectionView)
@@ -140,10 +165,18 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             collectionView.leftAnchor.constraint(equalTo: view.leftAnchor),
             collectionView.rightAnchor.constraint(equalTo: view.rightAnchor),
 
-            footerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             footerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            footerView.leftAnchor.constraint(equalTo: view.leftAnchor),
             footerView.rightAnchor.constraint(equalTo: view.rightAnchor),
+        ])
+
+        portraitLayoutConstraints.append(contentsOf: [
+            footerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            footerView.leftAnchor.constraint(equalTo: view.leftAnchor),
+        ])
+
+        landscapeLayoutConstraints.append(contentsOf: [
+            footerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            footerView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
         ])
     }
 
@@ -196,6 +229,33 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             bestTimeStat.valueLabel.text = String(format: "%.1f s", bestTime)
         } else {
             bestTimeStat.valueLabel.text = "—"
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) != (previousTraitCollection?.horizontalSizeClass, previousTraitCollection?.verticalSizeClass) {
+            adjustLayoutToSizeClass()
+        }
+    }
+
+    private func adjustLayoutToSizeClass() {
+        switch (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) {
+        case (.regular, _), (.compact, .compact):
+            footerStackView.axis = .vertical
+
+            additionalSafeAreaInsets = UIEdgeInsets(top: compactHeaderHeight, left: 0, bottom: 0, right: verticalFooterWidth)
+
+            NSLayoutConstraint.deactivate(portraitLayoutConstraints)
+            NSLayoutConstraint.activate(landscapeLayoutConstraints)
+        default:
+            footerStackView.axis = .horizontal
+
+            additionalSafeAreaInsets = UIEdgeInsets(top: regularHeaderHeight, left: 0, bottom: horizontalFooterHeight, right: 0)
+
+            NSLayoutConstraint.deactivate(landscapeLayoutConstraints)
+            NSLayoutConstraint.activate(portraitLayoutConstraints)
         }
     }
 }
