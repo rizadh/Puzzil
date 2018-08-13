@@ -33,7 +33,7 @@ class MainViewController: UIViewController {
 
     // MARK: - Controller Dependencies
 
-    private var bestTimesController: BestTimesController!
+    var bestTimesController: BestTimesController!
 
     // MARK: - Adaptive Layout Constraints
 
