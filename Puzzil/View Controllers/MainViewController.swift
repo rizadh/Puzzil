@@ -14,29 +14,38 @@ private let compactHeaderHeight: CGFloat = 56
 private let horizontalFooterHeight: CGFloat = 80
 private let verticalFooterWidth: CGFloat = 128
 
-class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, BoardSelectorLayoutDelegate {
+class MainViewController: UIViewController {
+    // MARK: - UIViewController Property Overrides
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
 
-    var collectionView: UICollectionView!
-    var collectionViewLayout: BoardSelectorLayout!
-    var headerView: UIView!
-    var footerView: UIView!
-    var footerStackView: UIStackView!
-    var bestTimeStat: StatView!
-    var startButton: UIButton!
+    // MARK: - Subviews
 
-    var selectedItem = 0
-    var bestTimesController: BestTimesController!
+    private var collectionViewLayout: BoardSelectorLayout!
+    private var footerStackView: UIStackView!
+    private var bestTimeStat: StatView!
 
-    var portraitLayoutConstraints = [NSLayoutConstraint]()
-    var landscapeLayoutConstraints = [NSLayoutConstraint]()
+    // MARK: - Private Properties
+
+    private var selectedItem = 0 { didSet { updateStatView() } }
+
+    // MARK: - Controller Dependencies
+
+    private var bestTimesController: BestTimesController!
+
+    // MARK: - Adaptive Layout Constraints
+
+    private var portraitLayoutConstraints = [NSLayoutConstraint]()
+    private var landscapeLayoutConstraints = [NSLayoutConstraint]()
+
+    // MARK: - UIViewController Method Overrides
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        headerView = UIView()
+        let headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.backgroundColor = ColorTheme.selected.primary
 
@@ -72,7 +81,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         collectionViewLayout = BoardSelectorLayout()
         collectionViewLayout.delegate = self
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = ColorTheme.selected.background
         collectionView.showsVerticalScrollIndicator = false
@@ -82,7 +91,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.register(BoardCell.self, forCellWithReuseIdentifier: cellIdentifier)
         collectionView.contentInsetAdjustmentBehavior = .always
 
-        footerView = UIView()
+        let footerView = UIView()
         footerView.translatesAutoresizingMaskIntoConstraints = false
 
         let effectView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
@@ -96,7 +105,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         bestTimeStat.titleLabel.text = "Best Time"
         bestTimeStat.valueLabel.text = "N/A"
 
-        startButton = ThemedButton()
+        let startButton = ThemedButton()
         startButton.setTitle("Start", for: .normal)
         startButton.setTitleColor(.white, for: .normal)
         startButton.addTarget(self, action: #selector(startGame), for: .primaryActionTriggered)
@@ -186,26 +195,16 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         updateStatView()
     }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return BoardStyle.allCases.count
-    }
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BoardCell
-
-        cell.boardStyle = BoardStyle.allCases[indexPath.item]
-
-        return cell
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if indexPath.item == selectedItem {
-            startGame()
-        } else {
-            let contentOffset = collectionViewLayout.calculateContentOffset(for: indexPath)
-            collectionView.setContentOffset(contentOffset, animated: true)
+        if (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) !=
+            (previousTraitCollection?.horizontalSizeClass, previousTraitCollection?.verticalSizeClass) {
+            adjustLayoutToSizeClass()
         }
     }
+
+    // MARK: - Private Methods
 
     @objc private func startGame() {
         let boardStyle = BoardStyle.allCases[selectedItem]
@@ -215,11 +214,6 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         present(gameViewController, animated: true) {
             gameViewController.beginGame()
         }
-    }
-
-    func boardSelector(didSelectItemAt indexPath: IndexPath) {
-        selectedItem = indexPath.item
-        updateStatView()
     }
 
     private func updateStatView() {
@@ -232,30 +226,69 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-
-        if (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) != (previousTraitCollection?.horizontalSizeClass, previousTraitCollection?.verticalSizeClass) {
-            adjustLayoutToSizeClass()
-        }
-    }
-
     private func adjustLayoutToSizeClass() {
         switch (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) {
         case (.regular, _), (.compact, .compact):
             footerStackView.axis = .vertical
 
-            additionalSafeAreaInsets = UIEdgeInsets(top: compactHeaderHeight, left: 0, bottom: 0, right: verticalFooterWidth)
+            additionalSafeAreaInsets = UIEdgeInsets(
+                top: compactHeaderHeight,
+                left: 0,
+                bottom: 0,
+                right: verticalFooterWidth
+            )
 
             NSLayoutConstraint.deactivate(portraitLayoutConstraints)
             NSLayoutConstraint.activate(landscapeLayoutConstraints)
         default:
             footerStackView.axis = .horizontal
 
-            additionalSafeAreaInsets = UIEdgeInsets(top: regularHeaderHeight, left: 0, bottom: horizontalFooterHeight, right: 0)
+            additionalSafeAreaInsets = UIEdgeInsets(
+                top: regularHeaderHeight,
+                left: 0,
+                bottom: horizontalFooterHeight,
+                right: 0
+            )
 
             NSLayoutConstraint.deactivate(landscapeLayoutConstraints)
             NSLayoutConstraint.activate(portraitLayoutConstraints)
         }
+    }
+}
+
+// MARK: - UICollectionViewDataSource Conformance
+
+extension MainViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return BoardStyle.allCases.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BoardCell
+
+        cell.boardStyle = BoardStyle.allCases[indexPath.item]
+
+        return cell
+    }
+}
+
+// MARK: - UICollectionViewDelegate Conformance
+
+extension MainViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if indexPath.item == selectedItem {
+            startGame()
+        } else {
+            let contentOffset = collectionViewLayout.calculateContentOffset(for: indexPath)
+            collectionView.setContentOffset(contentOffset, animated: true)
+        }
+    }
+}
+
+// MARK: - BoardSelectorLayoutDelegate Conformance
+
+extension MainViewController: BoardSelectorLayoutDelegate {
+    func boardSelector(didSelectItemAt indexPath: IndexPath) {
+        selectedItem = indexPath.item
     }
 }
