@@ -106,7 +106,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         footerStackView = UIStackView(arrangedSubviews: [leadingSpacerView, bestTimeStat, startButton, trailingSpacerView])
         footerStackView.translatesAutoresizingMaskIntoConstraints = false
-        footerStackView.distribution = .equalCentering
+        footerStackView.distribution = .equalSpacing
         footerStackView.alignment = .center
 
         footerView.addSubview(effectView)
