@@ -10,31 +10,28 @@ import UIKit
 
 private let cellIdentifier = "BoardCell"
 private let headerHeight: CGFloat = 64
-private let regularFooterHeight: CGFloat = 64
-private let expandedFooterHeight: CGFloat = 80
+private let footerHeight: CGFloat = 80
 
-class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, BoardSelectorLayoutDelegate {
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
 
     var collectionView: UICollectionView!
-    var collectionViewLayout: BoardBrowserLayout!
-
+    var collectionViewLayout: BoardSelectorLayout!
     var headerView: UIView!
-
     var footerView: UIView!
-    var footerLabel: UILabel!
     var footerStackView: UIStackView!
     var bestTimeStat: StatView!
     var startButton: UIButton!
 
+    var selectedItem = 0
     var bestTimesController: BestTimesController!
 
-    private var footerIsExpanded = false
-
     override func viewDidLoad() {
-        additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: regularFooterHeight, right: 0)
+        super.viewDidLoad()
+
+        additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: footerHeight, right: 0)
 
         headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -63,29 +60,23 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             headerBorder.rightAnchor.constraint(equalTo: headerView.rightAnchor),
         ])
 
-        collectionViewLayout = BoardBrowserLayout()
+        collectionViewLayout = BoardSelectorLayout()
+        collectionViewLayout.delegate = self
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = ColorTheme.selected.background
         collectionView.showsVerticalScrollIndicator = false
+        collectionView.showsHorizontalScrollIndicator = false
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(BoardCell.self, forCellWithReuseIdentifier: cellIdentifier)
         collectionView.contentInsetAdjustmentBehavior = .always
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(collectionViewWasTapped))
-        tapGestureRecognizer.cancelsTouchesInView = false
-        collectionView.addGestureRecognizer(tapGestureRecognizer)
 
         footerView = UIView()
         footerView.translatesAutoresizingMaskIntoConstraints = false
 
         let effectView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
         effectView.translatesAutoresizingMaskIntoConstraints = false
-
-        footerLabel = UILabel()
-        footerLabel.translatesAutoresizingMaskIntoConstraints = false
-        footerLabel.text = "Select a board above to begin"
-        footerLabel.textColor = UIColor.black.withAlphaComponent(0.5)
 
         let footerBorder = UIView()
         footerBorder.translatesAutoresizingMaskIntoConstraints = false
@@ -106,11 +97,9 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         footerStackView = UIStackView(arrangedSubviews: [leadingSpacerView, bestTimeStat, startButton, trailingSpacerView])
         footerStackView.translatesAutoresizingMaskIntoConstraints = false
         footerStackView.distribution = .equalCentering
-        footerStackView.alpha = 0
         footerStackView.exerciseAmbiguityInLayout()
 
         footerView.addSubview(effectView)
-        footerView.addSubview(footerLabel)
         footerView.addSubview(footerBorder)
         footerView.addSubview(footerStackView)
 
@@ -120,20 +109,17 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             effectView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
             effectView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
 
-            footerLabel.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
-            footerLabel.centerYAnchor.constraint(equalTo: footerView.topAnchor, constant: regularFooterHeight / 2),
-
             footerBorder.heightAnchor.constraint(equalToConstant: 1),
             footerBorder.topAnchor.constraint(equalTo: footerView.topAnchor),
             footerBorder.leftAnchor.constraint(equalTo: footerView.leftAnchor),
             footerBorder.rightAnchor.constraint(equalTo: footerView.rightAnchor),
 
-            footerStackView.centerYAnchor.constraint(equalTo: footerView.topAnchor, constant: expandedFooterHeight / 2),
+            footerStackView.centerYAnchor.constraint(equalTo: footerView.topAnchor, constant: footerHeight / 2),
             footerStackView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
             footerStackView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
 
-            startButton.heightAnchor.constraint(equalTo: footerStackView.heightAnchor),
-            startButton.widthAnchor.constraint(equalTo: footerStackView.heightAnchor, multiplier: 2),
+            startButton.heightAnchor.constraint(equalToConstant: 48),
+            startButton.widthAnchor.constraint(equalToConstant: 96),
 
             leadingSpacerView.widthAnchor.constraint(equalToConstant: 0),
             trailingSpacerView.widthAnchor.constraint(equalToConstant: 0),
@@ -161,6 +147,12 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         ])
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        updateStatView()
+    }
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return BoardStyle.allCases.count
     }
@@ -174,44 +166,13 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let selectedIndexPath = collectionViewLayout.selectedIndexPath, indexPath == selectedIndexPath {
-            footerIsExpanded = false
-        } else {
-            footerIsExpanded = true
-        }
-
-        if footerIsExpanded {
-            additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: expandedFooterHeight, right: 0)
-            collectionViewLayout.selectedIndexPath = indexPath
-        } else {
-            additionalSafeAreaInsets = UIEdgeInsets(top: headerHeight, left: 0, bottom: regularFooterHeight, right: 0)
-            collectionViewLayout.selectedIndexPath = nil
-        }
-
         let boardCell = collectionView.cellForItem(at: indexPath) as! BoardCell
 
-        if let bestTime = bestTimesController.getBestTime(for: boardCell.boardStyle) {
-            bestTimeStat.valueLabel.text = String(format: "%.1f s", bestTime)
-        } else {
-            bestTimeStat.valueLabel.text = "N/A"
-        }
-
-        UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.8) {
-            self.footerLabel.alpha = self.footerIsExpanded ? 0 : 1
-            self.footerStackView.alpha = self.footerIsExpanded ? 1 : 0
-            self.collectionViewLayout.invalidateLayout()
-            self.view.layoutIfNeeded()
-        }.startAnimation()
-    }
-
-    func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
-        return true
+        print(boardCell.boardStyle.rawValue.capitalized)
     }
 
     @objc private func startGame() {
-        guard let item = collectionViewLayout.selectedIndexPath?.item else { return }
-
-        let boardStyle = BoardStyle.allCases[item]
+        let boardStyle = BoardStyle.allCases[selectedItem]
         let gameViewController = GameViewController(boardStyle: boardStyle)
         gameViewController.bestTimesController = bestTimesController
 
@@ -220,7 +181,18 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
 
-    @objc private func collectionViewWasTapped() {
-        print("collectionViewWasTapped")
+    func boardSelector(didSelectItemAt indexPath: IndexPath) {
+        selectedItem = indexPath.item
+        updateStatView()
+    }
+
+    private func updateStatView() {
+        let boardStyle = BoardStyle.allCases[selectedItem]
+
+        if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
+            bestTimeStat.valueLabel.text = String(format: "%.1f s", bestTime)
+        } else {
+            bestTimeStat.valueLabel.text = "—"
+        }
     }
 }
