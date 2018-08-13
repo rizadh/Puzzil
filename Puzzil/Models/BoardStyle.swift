@@ -11,10 +11,12 @@ import Foundation
 enum BoardStyle: String, CaseIterable {
     case original
     case telephone
-    case compass
+    case arrows
     case vortex
     case fifteen
     case cyclone
+    case lunar
+    case arrowKeys = "arrow keys"
 
     var board: Board {
         switch self {
@@ -31,11 +33,11 @@ enum BoardStyle: String, CaseIterable {
                 [7, 8, 9],
                 [nil, 0, nil],
             ])
-        case .compass:
+        case .arrows:
             return Board(matrix: [
-                ["NW", "N", "NE"],
-                ["W", nil, "E"],
-                ["SW", "S", "SE"],
+                ["↖", "↑", "↗"],
+                ["←", nil, "→"],
+                ["↙", "↓", "↘"],
             ])
         case .vortex:
             return Board(matrix: [
@@ -56,6 +58,17 @@ enum BoardStyle: String, CaseIterable {
                 [8, 1, 2, 13],
                 [7, nil, 3, 14],
                 [6, 5, 4, 15],
+            ])
+        case .lunar:
+            return Board(matrix: [
+                ["🌘", "🌚", "🌒"],
+                ["🌗", nil, "🌓"],
+                ["🌖", "🌕", "🌔"],
+            ])
+        case .arrowKeys:
+            return Board(matrix: [
+                [nil, "↑", nil],
+                ["←", "↓", "→"],
             ])
         }
     }
