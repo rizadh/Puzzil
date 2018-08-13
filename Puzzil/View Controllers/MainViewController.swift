@@ -166,8 +166,12 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let contentOffset = collectionViewLayout.calculateContentOffset(for: indexPath)
-        collectionView.setContentOffset(contentOffset, animated: true)
+        if indexPath.item == selectedItem {
+            startGame()
+        } else {
+            let contentOffset = collectionViewLayout.calculateContentOffset(for: indexPath)
+            collectionView.setContentOffset(contentOffset, animated: true)
+        }
     }
 
     @objc private func startGame() {
