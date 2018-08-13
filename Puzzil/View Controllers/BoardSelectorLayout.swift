@@ -98,9 +98,10 @@ class BoardSelectorLayout: UICollectionViewLayout {
         contentsSize = BoardSelectorLayout.calculateContentSize(rows: rows, columns: columns, horizontalMargin: horizontalMargin, verticalMargin: verticalMargin)
 
         let selectedPosition = closestPosition(to: collectionView.contentOffset)
-        let selectedIndex = positions.firstIndex(where: { $0 == selectedPosition })!
-        selectedIndexPath = attributes[selectedIndex].indexPath
-        delegate?.boardSelector(didSelectItemAt: selectedIndexPath)
+        if let selectedIndex = positions.firstIndex(where: { $0 == selectedPosition }) {
+            selectedIndexPath = attributes[selectedIndex].indexPath
+            delegate?.boardSelector(didSelectItemAt: selectedIndexPath)
+        }
     }
 
     private static func getNextPosition(previousPosition: BoardPosition) -> BoardPosition {
@@ -148,19 +149,33 @@ class BoardSelectorLayout: UICollectionViewLayout {
     }
 
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
-        let (proposedRow, proposedColumn) = closestPosition(to: proposedContentOffset)
-        let adjustedBoardOffset = calculateContentOffset(for: (proposedRow, proposedColumn))
+        let proposedPosition = closestPosition(to: proposedContentOffset)
+        let adjacentPosition: BoardPosition
 
-        return adjustedBoardOffset
+        if abs(velocity.x) > abs(velocity.y) {
+            // Scrolling left
+            if velocity.x < 0 { adjacentPosition = (proposedPosition.row, proposedPosition.column + 1) }
+            // Scrolling right
+            else { adjacentPosition = (proposedPosition.row, proposedPosition.column - 1) }
+        } else {
+            // Scrolling up
+            if velocity.y < 0 { adjacentPosition = (proposedPosition.row + 1, proposedPosition.column) }
+            // Scrolling down
+            else { adjacentPosition = (proposedPosition.row - 1, proposedPosition.column) }
+        }
+
+        if positions.contains(where: { $0 == proposedPosition }) {
+            return calculateContentOffset(for: proposedPosition)
+        } else if positions.contains(where: { $0 == adjacentPosition }) {
+            return calculateContentOffset(for: adjacentPosition)
+        } else {
+            return calculateContentOffset(for: IndexPath(item: 0, section: 0))
+        }
     }
 
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         // TODO: Select previously selected item
-
-        let (proposedRow, proposedColumn) = closestPosition(to: proposedContentOffset)
-        let adjustedBoardOffset = calculateContentOffset(for: (proposedRow, proposedColumn))
-
-        return adjustedBoardOffset
+        return targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: .zero)
     }
 
     func calculateContentOffset(for indexPath: IndexPath) -> CGPoint {
