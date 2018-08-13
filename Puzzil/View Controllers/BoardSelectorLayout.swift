@@ -30,6 +30,7 @@ class BoardSelectorLayout: UICollectionViewLayout {
     var positions: [BoardPosition]!
     var attributes: [UICollectionViewLayoutAttributes]!
     var contentsSize: CGSize!
+    var selectedIndexPath: IndexPath!
 
     override var collectionViewContentSize: CGSize {
         return contentsSize
@@ -98,7 +99,7 @@ class BoardSelectorLayout: UICollectionViewLayout {
 
         let selectedPosition = closestPosition(to: collectionView.contentOffset)
         let selectedIndex = positions.firstIndex(where: { $0 == selectedPosition })!
-        let selectedIndexPath = attributes[selectedIndex].indexPath
+        selectedIndexPath = attributes[selectedIndex].indexPath
         delegate?.boardSelector(didSelectItemAt: selectedIndexPath)
     }
 
@@ -151,6 +152,21 @@ class BoardSelectorLayout: UICollectionViewLayout {
         let adjustedBoardOffset = calculateContentOffset(for: (proposedRow, proposedColumn))
 
         return adjustedBoardOffset
+    }
+
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+        // TODO: Select previously selected item
+
+        let (proposedRow, proposedColumn) = closestPosition(to: proposedContentOffset)
+        let adjustedBoardOffset = calculateContentOffset(for: (proposedRow, proposedColumn))
+
+        return adjustedBoardOffset
+    }
+
+    func calculateContentOffset(for indexPath: IndexPath) -> CGPoint {
+        let position = positions[indexPath.item]
+
+        return calculateContentOffset(for: position)
     }
 
     private func calculateContentOffset(for position: BoardPosition) -> CGPoint {
