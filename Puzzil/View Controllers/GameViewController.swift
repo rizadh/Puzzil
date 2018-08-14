@@ -31,6 +31,7 @@ class GameViewController: UIViewController {
     let bestTimeStat = StatView()
     let timeStat = StatView()
     let movesStat = StatView()
+    let solvedBoardView: StaticBoardView
     let boardView = BoardView()
     let resultView = ResultView()
     let buttons = UIStackView()
@@ -64,6 +65,7 @@ class GameViewController: UIViewController {
 
     init(boardStyle: BoardStyle) {
         self.boardStyle = boardStyle
+        self.solvedBoardView = StaticBoardView(board: boardStyle.board)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -149,6 +151,9 @@ class GameViewController: UIViewController {
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
+        solvedBoardView.translatesAutoresizingMaskIntoConstraints = false
+        solvedBoardView.isHidden = true
+
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.delegate = self
 
@@ -157,13 +162,19 @@ class GameViewController: UIViewController {
 
         endButton = ThemedButton()
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
-        endButton.setTitle("End", for: .normal)
+        endButton.setTitle("◀", for: .normal)
+
+        let peekButton = ThemedButton()
+        peekButton.setTitle("Peek", for: .normal)
+        peekButton.addTarget(self, action: #selector(peekButtonWasPressed), for: [.touchDown, .touchDragEnter])
+        peekButton.addTarget(self, action: #selector(peekButtonWasReleased), for: [.touchUpInside, .touchDragExit, .touchCancel])
 
         restartButton = ThemedButton()
         restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
         restartButton.setTitle("Restart", for: .normal)
 
         buttons.addArrangedSubview(endButton)
+        buttons.addArrangedSubview(peekButton)
         buttons.addArrangedSubview(restartButton)
         buttons.translatesAutoresizingMaskIntoConstraints = false
         buttons.distribution = .fillEqually
@@ -178,6 +189,7 @@ class GameViewController: UIViewController {
 
         view.addSubview(stats)
         view.addSubview(boardView)
+        view.addSubview(solvedBoardView)
         view.addSubview(resultView)
         view.addSubview(buttons)
         view.addSubview(progressBar)
@@ -199,6 +211,11 @@ class GameViewController: UIViewController {
             boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
             boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
+
+            solvedBoardView.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            solvedBoardView.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            solvedBoardView.topAnchor.constraint(equalTo: boardView.topAnchor),
+            solvedBoardView.bottomAnchor.constraint(equalTo: boardView.bottomAnchor),
 
             resultView.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
             resultView.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
@@ -235,6 +252,8 @@ class GameViewController: UIViewController {
         resultView.result = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
 
         resetStats()
+
+        solvedBoardView.isHidden = true
 
         UIView.animatedSwap(outgoingView: boardView, incomingView: resultView) {
             self.resultsAreVisible = true
@@ -325,6 +344,20 @@ class GameViewController: UIViewController {
         } else {
             beginGame()
         }
+    }
+
+    @objc private func peekButtonWasPressed() {
+        guard gameIsRunning else { return }
+
+        boardView.isHidden = true
+        solvedBoardView.isHidden = false
+    }
+
+    @objc private func peekButtonWasReleased() {
+        guard gameIsRunning else { return }
+
+        boardView.isHidden = false
+        solvedBoardView.isHidden = true
     }
 
     @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {
