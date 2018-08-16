@@ -19,7 +19,6 @@ class BoardView: UIView {
     // MARK: - Board Properties
 
     private(set) var board: Board!
-    var isDynamic = true
     var progress: Double {
         return board.progress + dragCoordinators.map { $0.value.boardProgressChange }.reduce(0, +)
     }
@@ -138,9 +137,7 @@ class BoardView: UIView {
             let tileView = TileView()
             tileView.text = text
 
-            if isDynamic {
-                attachGestureRecognizers(to: tileView)
-            }
+            attachGestureRecognizers(to: tileView)
 
             addSubview(tileView)
             tilePositions[tileView] = position
