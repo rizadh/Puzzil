@@ -11,7 +11,7 @@ import UIKit
 class BoardView: UIView {
     // MARK: - Dimension Constants
 
-    private static let maxTileSize: CGFloat = 96
+    private static let maxTileSize: CGFloat = 120
     private static let cornerRadius: CGFloat = 32
     private static let boardMargins: CGFloat = 16
     private static let boardPadding: CGFloat = 8
@@ -63,13 +63,12 @@ class BoardView: UIView {
         tileSizeGuide = guide
         addLayoutGuide(guide)
 
-        guide.widthAnchor.constraint(equalTo: guide.heightAnchor).isActive = true
-        widthAnchor
-            .constraint(equalTo: guide.widthAnchor, multiplier: columns, constant: horizontalSpacing)
-            .isActive = true
-        heightAnchor
-            .constraint(equalTo: guide.heightAnchor, multiplier: rows, constant: verticalSpacing)
-            .isActive = true
+        NSLayoutConstraint.activate([
+            guide.widthAnchor.constraint(equalTo: guide.heightAnchor),
+            guide.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
+            widthAnchor.constraint(equalTo: guide.widthAnchor, multiplier: columns, constant: horizontalSpacing),
+            heightAnchor.constraint(equalTo: guide.heightAnchor, multiplier: rows, constant: verticalSpacing),
+        ])
     }
 
     override func layoutSubviews() {
