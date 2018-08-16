@@ -29,6 +29,7 @@ class BoardCell: UICollectionViewCell {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = ColorTheme.selected.primaryTextOnBackground
 
         let boardLayoutGuide = UILayoutGuide()
 

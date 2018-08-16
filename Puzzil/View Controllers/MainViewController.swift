@@ -55,20 +55,10 @@ class MainViewController: UIViewController {
         headerLabel.font = .systemFont(ofSize: 32, weight: .heavy)
         headerLabel.textColor = ColorTheme.selected.primaryTextOnPrimary
 
-        let headerBorder = UIView()
-        headerBorder.translatesAutoresizingMaskIntoConstraints = false
-        headerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.1)
-
         headerView.addSubview(headerLabel)
-        headerView.addSubview(headerBorder)
 
         NSLayoutConstraint.activate([
             headerLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-
-            headerBorder.heightAnchor.constraint(equalToConstant: 1),
-            headerBorder.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
-            headerBorder.leftAnchor.constraint(equalTo: headerView.leftAnchor),
-            headerBorder.rightAnchor.constraint(equalTo: headerView.rightAnchor),
         ])
 
         portraitLayoutConstraints.append(
@@ -94,12 +84,16 @@ class MainViewController: UIViewController {
         let footerView = UIView()
         footerView.translatesAutoresizingMaskIntoConstraints = false
 
-        let effectView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
+        let effectView = UIVisualEffectView(effect: UIBlurEffect(
+            style: ColorTheme.selected.background.isLight ? .light : .dark
+        ))
         effectView.translatesAutoresizingMaskIntoConstraints = false
 
         let footerBorder = UIView()
         footerBorder.translatesAutoresizingMaskIntoConstraints = false
-        footerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+        if ColorTheme.selected.background.isLight {
+            footerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.2)
+        }
 
         bestTimeStat = StatView()
         bestTimeStat.titleLabel.text = "Best Time"
@@ -144,7 +138,7 @@ class MainViewController: UIViewController {
 
         portraitLayoutConstraints.append(contentsOf: [
             footerBorder.rightAnchor.constraint(equalTo: footerView.rightAnchor),
-            footerBorder.heightAnchor.constraint(equalToConstant: 1),
+            footerBorder.heightAnchor.constraint(equalToConstant: 0.5),
 
             footerStackView.heightAnchor.constraint(equalToConstant: horizontalFooterHeight),
             footerStackView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
@@ -152,7 +146,7 @@ class MainViewController: UIViewController {
 
         landscapeLayoutConstraints.append(contentsOf: [
             footerBorder.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
-            footerBorder.widthAnchor.constraint(equalToConstant: 1),
+            footerBorder.widthAnchor.constraint(equalToConstant: 0.5),
 
             footerStackView.widthAnchor.constraint(equalToConstant: verticalFooterWidth),
             footerStackView.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
