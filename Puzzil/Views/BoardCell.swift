@@ -9,15 +9,18 @@
 import UIKit
 
 class BoardCell: UICollectionViewCell {
-    var boardView: BoardView {
-        return staticBoardView
-    }
+    private static var cachedSnapshots = [BoardStyle: (view: UIView, size: CGSize)]()
 
-    private let staticBoardView = StaticBoardView(board: BoardStyle.original.board)
-    let titleLabel = UILabel()
+    private var snapshotView: UIView!
+    private var snapshotSize: CGSize!
+    private let titleLabel = UILabel()
+    private let boardLayoutGuide = UILayoutGuide()
     var boardStyle: BoardStyle! {
         didSet {
-            staticBoardView.staticBoard = boardStyle.board
+            guard boardStyle != oldValue else { return }
+            let (view, size) = BoardCell.fetchSnapshot(for: boardStyle)
+            (snapshotView, snapshotSize) = (view, size)
+            layoutSnapshotView()
             titleLabel.text = boardStyle.rawValue.capitalized
         }
     }
@@ -25,15 +28,10 @@ class BoardCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        staticBoardView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
         titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         titleLabel.textColor = ColorTheme.selected.primaryTextOnBackground
 
-        let boardLayoutGuide = UILayoutGuide()
-
-        contentView.addSubview(staticBoardView)
         contentView.addSubview(titleLabel)
         contentView.addLayoutGuide(boardLayoutGuide)
 
@@ -43,25 +41,47 @@ class BoardCell: UICollectionViewCell {
             boardLayoutGuide.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             boardLayoutGuide.rightAnchor.constraint(equalTo: contentView.rightAnchor),
 
-            staticBoardView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
-            staticBoardView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
-            staticBoardView.widthAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.widthAnchor),
-            staticBoardView.heightAnchor.constraint(lessThanOrEqualTo: boardLayoutGuide.heightAnchor),
-
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             titleLabel.firstBaselineAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
-
-        let optionalConstraints = [
-            staticBoardView.widthAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
-            staticBoardView.heightAnchor.constraint(equalTo: boardLayoutGuide.widthAnchor),
-        ]
-
-        optionalConstraints.forEach { $0.priority = UILayoutPriority.defaultHigh }
-        NSLayoutConstraint.activate(optionalConstraints)
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    private func layoutSnapshotView() {
+        snapshotView.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(snapshotView)
+
+        NSLayoutConstraint.activate([
+            snapshotView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
+            snapshotView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
+            snapshotView.widthAnchor.constraint(equalToConstant: snapshotSize.width),
+            snapshotView.heightAnchor.constraint(equalToConstant: snapshotSize.height),
+        ])
+    }
+
+    private static func fetchSnapshot(for style: BoardStyle) -> (view: UIView, size: CGSize) {
+        return cachedSnapshots[style] ?? generateSnapshot(for: style)
+    }
+
+    private static func generateSnapshot(for style: BoardStyle) -> (view: UIView, size: CGSize) {
+        let boardView = StaticBoardView(board: style.board)
+        boardView.translatesAutoresizingMaskIntoConstraints = false
+        let optionalConstraints = [
+            boardView.widthAnchor.constraint(equalToConstant: 180),
+            boardView.heightAnchor.constraint(equalToConstant: 180),
+        ]
+        optionalConstraints.forEach { $0.priority = .defaultHigh }
+        NSLayoutConstraint.activate(optionalConstraints)
+        boardView.layoutIfNeeded()
+
+        let snapshot = boardView.snapshotView(afterScreenUpdates: true)!
+
+        BoardCell.cachedSnapshots[style] = (snapshot, boardView.bounds.size)
+
+        return (snapshot, boardView.bounds.size)
     }
 }
