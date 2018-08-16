@@ -80,10 +80,7 @@ class GameViewController: UIViewController {
         timeStat.titleLabel.text = "Time"
         movesStat.titleLabel.text = "Moves"
 
-        let stats = UIStackView()
-        stats.addArrangedSubview(bestTimeStat)
-        stats.addArrangedSubview(timeStat)
-        stats.addArrangedSubview(movesStat)
+        let stats = UIStackView(arrangedSubviews: [bestTimeStat, timeStat, movesStat])
         stats.translatesAutoresizingMaskIntoConstraints = false
         stats.distribution = .fillEqually
 
