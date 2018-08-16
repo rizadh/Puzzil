@@ -215,7 +215,7 @@ class MainViewController: UIViewController {
         if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
             bestTimeStat.valueLabel.text = String(format: "%.1f s", bestTime)
         } else {
-            bestTimeStat.valueLabel.text = "—"
+            bestTimeStat.valueLabel.text = "N/A"
         }
     }
 
