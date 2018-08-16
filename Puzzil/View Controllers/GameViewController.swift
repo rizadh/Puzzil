@@ -13,30 +13,17 @@ class GameViewController: UIViewController {
 
     private let boardStyle: BoardStyle
     private var minProgress: Double!
-    private var gameIsRunning = false {
-        didSet {
-            restartButton.isEnabled = gameIsRunning || resultsAreVisible
-        }
-    }
-
-    private var resultsAreVisible = false {
-        didSet {
-            restartButton.isEnabled = gameIsRunning || resultsAreVisible
-        }
-    }
+    private var gameIsRunning = false
+    private var resultsAreVisible = false
 
     // MARK: - Subviews
 
-    let stats = UIStackView()
     let bestTimeStat = StatView()
     let timeStat = StatView()
     let movesStat = StatView()
     let solvedBoardView: StaticBoardView
     let boardView = BoardView()
     let resultView = ResultView()
-    let buttons = UIStackView()
-    private var endButton: UIButton!
-    private var restartButton: UIButton!
     let progressBar = UIProgressView(progressViewStyle: .bar)
 
     // MARK: - Stat Management
@@ -65,7 +52,7 @@ class GameViewController: UIViewController {
 
     init(boardStyle: BoardStyle) {
         self.boardStyle = boardStyle
-        self.solvedBoardView = StaticBoardView(board: boardStyle.board)
+        solvedBoardView = StaticBoardView(board: boardStyle.board)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -81,8 +68,114 @@ class GameViewController: UIViewController {
 
         view.backgroundColor = ColorTheme.selected.background
 
-        setupSubviews()
-        setupConstraints()
+        timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStatWithoutAnimation))
+        timeStatRefresher.preferredFramesPerSecond = 10
+        timeStatRefresher.isPaused = true
+        timeStatRefresher.add(to: .main, forMode: RunLoop.Mode.default)
+
+        let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
+        bestTimeStat.addGestureRecognizer(resetRecognizer)
+
+        bestTimeStat.titleLabel.text = "Best Time"
+        timeStat.titleLabel.text = "Time"
+        movesStat.titleLabel.text = "Moves"
+
+        let stats = UIStackView()
+        stats.addArrangedSubview(bestTimeStat)
+        stats.addArrangedSubview(timeStat)
+        stats.addArrangedSubview(movesStat)
+        stats.translatesAutoresizingMaskIntoConstraints = false
+        stats.distribution = .fillEqually
+
+        solvedBoardView.translatesAutoresizingMaskIntoConstraints = false
+        solvedBoardView.isHidden = true
+
+        boardView.translatesAutoresizingMaskIntoConstraints = false
+        boardView.delegate = self
+
+        resultView.translatesAutoresizingMaskIntoConstraints = false
+        resultView.isHidden = true
+
+        let endButton = ThemedButton()
+        endButton.setImage(UIImage(named: "round_close_black_36pt"), for: .normal)
+        endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
+
+        let peekButton = ThemedButton()
+        peekButton.setImage(UIImage(named: "outline_visibility_black_36pt"), for: .normal)
+        peekButton.addTarget(self, action: #selector(peekButtonWasPressed), for: [.touchDown, .touchDragEnter])
+        peekButton.addTarget(self, action: #selector(peekButtonWasReleased),
+                             for: [.touchUpInside, .touchDragExit, .touchCancel])
+
+        let restartButton = ThemedButton()
+        restartButton.setImage(UIImage(named: "round_refresh_black_36pt"), for: .normal)
+        restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
+
+        let buttons = UIStackView()
+        buttons.addArrangedSubview(endButton)
+        buttons.addArrangedSubview(peekButton)
+        buttons.addArrangedSubview(restartButton)
+        buttons.translatesAutoresizingMaskIntoConstraints = false
+        buttons.distribution = .fillEqually
+        buttons.spacing = 8
+
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        progressBar.trackTintColor = ColorTheme.selected.secondary
+        progressBar.progressTintColor = ColorTheme.selected.primary
+        progressBar.subviews.forEach { $0.clipsToBounds = true; $0.layer.cornerRadius = 4 }
+        progressBar.layer.cornerRadius = 4
+        progressBar.clipsToBounds = true
+
+        view.addSubview(stats)
+        view.addSubview(boardView)
+        view.addSubview(solvedBoardView)
+        view.addSubview(resultView)
+        view.addSubview(buttons)
+        view.addSubview(progressBar)
+
+        let statsLayoutGuide = UILayoutGuide()
+        view.addLayoutGuide(statsLayoutGuide)
+
+        NSLayoutConstraint.activate([
+            statsLayoutGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+
+            stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
+            stats.heightAnchor.constraint(lessThanOrEqualTo: statsLayoutGuide.heightAnchor),
+
+            boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
+            boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
+            boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
+
+            solvedBoardView.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            solvedBoardView.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            solvedBoardView.topAnchor.constraint(equalTo: boardView.topAnchor),
+            solvedBoardView.bottomAnchor.constraint(equalTo: boardView.bottomAnchor),
+
+            resultView.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
+            resultView.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
+
+            buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
+            buttons.heightAnchor.constraint(equalToConstant: 48),
+
+            progressBar.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            progressBar.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            progressBar.topAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 8),
+            progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -16),
+            progressBar.heightAnchor.constraint(equalToConstant: 8),
+        ])
+
+        let optionalConstraints = [
+            progressBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            boardView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
+        ]
+        optionalConstraints.forEach { $0.priority = .defaultHigh }
+        NSLayoutConstraint.activate(optionalConstraints)
 
         updateBestTimeStat(animated: false)
         updateMovesStat(animated: false)
@@ -130,115 +223,6 @@ class GameViewController: UIViewController {
 
     private func boardFromConfiguration() -> Board {
         return boardStyle.board
-    }
-
-    private func setupSubviews() {
-        timeStatRefresher = CADisplayLink(target: self, selector: #selector(updateTimeStatWithoutAnimation))
-        timeStatRefresher.preferredFramesPerSecond = 10
-        timeStatRefresher.isPaused = true
-        timeStatRefresher.add(to: .main, forMode: RunLoop.Mode.default)
-
-        let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
-        bestTimeStat.addGestureRecognizer(resetRecognizer)
-
-        bestTimeStat.titleLabel.text = "Best Time"
-        timeStat.titleLabel.text = "Time"
-        movesStat.titleLabel.text = "Moves"
-
-        stats.addArrangedSubview(bestTimeStat)
-        stats.addArrangedSubview(timeStat)
-        stats.addArrangedSubview(movesStat)
-        stats.translatesAutoresizingMaskIntoConstraints = false
-        stats.distribution = .fillEqually
-
-        solvedBoardView.translatesAutoresizingMaskIntoConstraints = false
-        solvedBoardView.isHidden = true
-
-        boardView.translatesAutoresizingMaskIntoConstraints = false
-        boardView.delegate = self
-
-        resultView.translatesAutoresizingMaskIntoConstraints = false
-        resultView.isHidden = true
-
-        endButton = ThemedButton()
-        endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
-        endButton.setTitle("◀", for: .normal)
-
-        let peekButton = ThemedButton()
-        peekButton.setTitle("Peek", for: .normal)
-        peekButton.addTarget(self, action: #selector(peekButtonWasPressed), for: [.touchDown, .touchDragEnter])
-        peekButton.addTarget(self, action: #selector(peekButtonWasReleased), for: [.touchUpInside, .touchDragExit, .touchCancel])
-
-        restartButton = ThemedButton()
-        restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
-        restartButton.setTitle("Restart", for: .normal)
-
-        buttons.addArrangedSubview(endButton)
-        buttons.addArrangedSubview(peekButton)
-        buttons.addArrangedSubview(restartButton)
-        buttons.translatesAutoresizingMaskIntoConstraints = false
-        buttons.distribution = .fillEqually
-        buttons.spacing = 8
-
-        progressBar.translatesAutoresizingMaskIntoConstraints = false
-        progressBar.trackTintColor = ColorTheme.selected.secondary
-        progressBar.progressTintColor = ColorTheme.selected.primary
-        progressBar.subviews.forEach { $0.clipsToBounds = true; $0.layer.cornerRadius = 4 }
-        progressBar.layer.cornerRadius = 4
-        progressBar.clipsToBounds = true
-
-        view.addSubview(stats)
-        view.addSubview(boardView)
-        view.addSubview(solvedBoardView)
-        view.addSubview(resultView)
-        view.addSubview(buttons)
-        view.addSubview(progressBar)
-    }
-
-    private func setupConstraints() {
-        let statsLayoutGuide = UILayoutGuide()
-        view.addLayoutGuide(statsLayoutGuide)
-
-        NSLayoutConstraint.activate([
-            statsLayoutGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-
-            stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
-            stats.heightAnchor.constraint(lessThanOrEqualTo: statsLayoutGuide.heightAnchor),
-
-            boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
-            boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
-            boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
-
-            solvedBoardView.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            solvedBoardView.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            solvedBoardView.topAnchor.constraint(equalTo: boardView.topAnchor),
-            solvedBoardView.bottomAnchor.constraint(equalTo: boardView.bottomAnchor),
-
-            resultView.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
-            resultView.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
-
-            buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
-            buttons.heightAnchor.constraint(equalToConstant: 48),
-
-            progressBar.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            progressBar.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            progressBar.topAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 8),
-            progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -16),
-            progressBar.heightAnchor.constraint(equalToConstant: 8),
-        ] + [
-            progressBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            boardView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-            boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
-            boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
-        ].map {
-            $0.priority = .defaultHigh
-            return $0
-        })
     }
 
     private func navigateToMainMenu() {

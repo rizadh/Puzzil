@@ -53,7 +53,7 @@ class MainViewController: UIViewController {
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
         headerLabel.font = .systemFont(ofSize: 32, weight: .heavy)
-        headerLabel.textColor = .white
+        headerLabel.textColor = ColorTheme.selected.primaryTextOnPrimary
 
         let headerBorder = UIView()
         headerBorder.translatesAutoresizingMaskIntoConstraints = false
@@ -107,7 +107,6 @@ class MainViewController: UIViewController {
 
         let startButton = ThemedButton()
         startButton.setTitle("Start", for: .normal)
-        startButton.setTitleColor(.white, for: .normal)
         startButton.addTarget(self, action: #selector(startGame), for: .primaryActionTriggered)
 
         let leadingSpacerView = UIView(frame: .zero)

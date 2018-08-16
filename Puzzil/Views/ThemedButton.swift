@@ -11,8 +11,8 @@ import UIKit
 class ThemedButton: UIButton {
     private let highlightLayer = CALayer()
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    convenience init() {
+        self.init(type: .custom)
 
         layer.cornerRadius = 16
         highlightLayer.cornerRadius = 16
@@ -25,16 +25,14 @@ class ThemedButton: UIButton {
         }
         layer.addSublayer(highlightLayer)
         backgroundColor = ColorTheme.selected.primary
+        tintColor = ColorTheme.selected.primaryTextOnPrimary
         setTitleColor(ColorTheme.selected.primaryTextOnPrimary, for: .normal)
-        setTitleColor(ColorTheme.selected.primaryTextOnPrimary.withAlphaComponent(0.5), for: .disabled)
         titleLabel!.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        adjustsImageWhenHighlighted = false
+        adjustsImageWhenDisabled = false
 
         addTarget(self, action: #selector(buttonWasPressed), for: [.touchDown, .touchDragEnter])
         addTarget(self, action: #selector(buttonWasReleased), for: [.touchUpInside, .touchCancel, .touchDragExit])
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
     @objc private func buttonWasPressed() {
