@@ -161,6 +161,7 @@ class GameViewController: UIViewController {
             progressBar.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             progressBar.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             progressBar.topAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 8),
+            progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
             progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -16),
             progressBar.heightAnchor.constraint(equalToConstant: 8),
         ])
