@@ -11,6 +11,10 @@ import UIKit
 class BoardCell: UICollectionViewCell {
     private static var cachedSnapshots = [BoardStyle: (view: UIView, size: CGSize)]()
 
+    static func flushCache() {
+        cachedSnapshots.removeAll()
+    }
+
     private var snapshotView: UIView!
     private var snapshotSize: CGSize!
     private let titleLabel = UILabel()

@@ -12,15 +12,11 @@ enum ColorTheme: Int {
     case light
     case dark
 
-    static func loadFromUserDefaults() -> Bool {
-        let existingTheme = ColorTheme.selected
-        let themeFromUserDefaults = ColorTheme(rawValue: UserDefaults().integer(forKey: "theme_preference"))!
-        ColorTheme.selected = themeFromUserDefaults
-
-        return existingTheme != themeFromUserDefaults
-    }
-
     static var selected: ColorTheme = .light
+
+    static func fromUserDefaults() -> ColorTheme? {
+        return ColorTheme(rawValue: UserDefaults().integer(forKey: "theme_preference"))
+    }
 
     var background: UIColor {
         switch self {

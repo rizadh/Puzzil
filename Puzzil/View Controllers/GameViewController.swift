@@ -362,7 +362,7 @@ class GameViewController: UIViewController {
     }
 }
 
-// MARK: BoardViewDelegate
+// MARK: - BoardViewDelegate Conformance
 
 extension GameViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
