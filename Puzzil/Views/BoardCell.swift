@@ -7,23 +7,17 @@
 //
 
 import UIKit
+import os
 
 class BoardCell: UICollectionViewCell {
     private static var cachedSnapshots = [BoardStyle: (view: UIView, size: CGSize)]()
 
-    static func flushCache() {
-        cachedSnapshots.removeAll()
-    }
-
-    private var snapshotView: UIView!
-    private var snapshotSize: CGSize!
     private let titleLabel = UILabel()
     private let boardLayoutGuide = UILayoutGuide()
+    private var lastSnapshotView: UIView?
     var boardStyle: BoardStyle! {
         didSet {
             guard boardStyle != oldValue else { return }
-            let (view, size) = BoardCell.fetchSnapshot(for: boardStyle)
-            (snapshotView, snapshotSize) = (view, size)
             layoutSnapshotView()
             titleLabel.text = boardStyle.rawValue.capitalized
         }
@@ -55,8 +49,12 @@ class BoardCell: UICollectionViewCell {
     }
 
     private func layoutSnapshotView() {
+        let (snapshotView, snapshotSize) = BoardCell.fetchSnapshot(for: boardStyle)
         snapshotView.translatesAutoresizingMaskIntoConstraints = false
-
+        if lastSnapshotView.flatMap(contentView.subviews.contains) ?? false {
+            lastSnapshotView?.removeFromSuperview()
+        }
+        lastSnapshotView = snapshotView
         contentView.addSubview(snapshotView)
 
         NSLayoutConstraint.activate([
@@ -67,8 +65,23 @@ class BoardCell: UICollectionViewCell {
         ])
     }
 
+    static func flushCache() {
+        cachedSnapshots.removeAll()
+    }
+
+    static func generateSnapshots() {
+        BoardStyle.allCases.forEach {
+            _ = generateSnapshot(for: $0)
+        }
+    }
+
     private static func fetchSnapshot(for style: BoardStyle) -> (view: UIView, size: CGSize) {
-        return cachedSnapshots[style] ?? generateSnapshot(for: style)
+        if let cachedSnapshot = cachedSnapshots[style] {
+            return cachedSnapshot
+        } else {
+            os_log("Cached board snapshot not available. Generating snapshot on-demand.")
+            return generateSnapshot(for: style)
+        }
     }
 
     private static func generateSnapshot(for style: BoardStyle) -> (view: UIView, size: CGSize) {

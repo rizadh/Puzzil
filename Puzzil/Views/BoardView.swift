@@ -26,9 +26,10 @@ class BoardView: UIView {
     weak var delegate: BoardViewDelegate!
     private var tilePositions = [TileView: TilePosition]()
     private var dragCoordinators = [UIPanGestureRecognizer: DragCoordinator]()
-    private var tileGuides = [[UILayoutGuide]]()
-    private var tileSize: CGFloat = 0
-    private var tileSizeGuide: UILayoutGuide?
+    private var tileSize: CGFloat {
+        return tileSizeGuide!.layoutFrame.width
+    }
+    private var tileSizeGuide: UILayoutGuide!
     private var dragDistance: CGFloat {
         return tileSize + BoardView.boardPadding
     }
@@ -74,11 +75,6 @@ class BoardView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let totalMargins = 2 * BoardView.boardMargins
-        let horizontalPadding = BoardView.boardPadding * CGFloat(board.columnCount - 1)
-        let tileWidth = (bounds.width - horizontalPadding - totalMargins) / CGFloat(board.columnCount)
-        tileSize = tileWidth
-
         tilePositions.forEach { place($0, at: $1) }
     }
 
@@ -122,9 +118,6 @@ class BoardView: UIView {
     private func clearBoard() {
         tilePositions.keys.forEach { $0.removeFromSuperview() }
         tilePositions.removeAll()
-
-        tileGuides.forEach { $0.forEach(removeLayoutGuide(_:)) }
-        tileGuides.removeAll()
     }
 
     // MARK: Tile Creation

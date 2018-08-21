@@ -27,11 +27,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func loadMainViewController() {
-        BoardCell.flushCache()
-
         if let selectedColorTheme = ColorTheme.fromUserDefaults() {
             ColorTheme.selected = selectedColorTheme
         }
+
+        BoardCell.flushCache()
+        BoardCell.generateSnapshots()
 
         window = UIWindow(frame: UIScreen.main.bounds)
         let mainViewController = MainViewController()
