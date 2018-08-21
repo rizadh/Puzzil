@@ -27,6 +27,7 @@ class MainViewController: UIViewController {
     private var collectionViewLayout: BoardSelectorLayout!
     private var footerStackView: UIStackView!
     private var bestTimeStat: StatView!
+    private var startButton: UIButton!
 
     // MARK: - Private Properties
 
@@ -101,7 +102,7 @@ class MainViewController: UIViewController {
         bestTimeStat.titleLabel.text = "Best Time"
         bestTimeStat.valueLabel.text = "N/A"
 
-        let startButton = ThemedButton()
+        startButton = ThemedButton()
         startButton.setTitle("Start", for: .normal)
         startButton.addTarget(self, action: #selector(startGame), for: .primaryActionTriggered)
 
@@ -281,7 +282,7 @@ extension MainViewController: UICollectionViewDataSource {
 extension MainViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if indexPath.item == selectedItem {
-            startGame()
+            startButton.shake()
         } else {
             collectionView.scrollToItem(at: indexPath, at: [.centeredHorizontally, .centeredVertically], animated: true)
         }

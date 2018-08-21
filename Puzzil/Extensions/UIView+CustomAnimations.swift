@@ -37,6 +37,30 @@ extension UIView {
             incomingView.transform = .identity
         }) { _ in completion?() }
     }
+
+    func shake() {
+        let angle: CGFloat = .pi / 32
+
+        UIViewPropertyAnimator(duration: 0.25, curve: .easeOut) {
+            UIView.animateKeyframes(withDuration: 0, delay: 0, options: [], animations: {
+                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.125, animations: {
+                    self.transform = CGAffineTransform(rotationAngle: angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.125, relativeDuration: 0.25, animations: {
+                    self.transform = CGAffineTransform(rotationAngle: -angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.375, relativeDuration: 0.25, animations: {
+                    self.transform = CGAffineTransform(rotationAngle: angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.625, relativeDuration: 0.25, animations: {
+                    self.transform = CGAffineTransform(rotationAngle: -angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.875, relativeDuration: 0.125, animations: {
+                    self.transform = .identity
+                })
+            })
+        }.startAnimation()
+    }
 }
 
 extension CGAffineTransform {
