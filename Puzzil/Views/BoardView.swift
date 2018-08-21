@@ -26,13 +26,11 @@ class BoardView: UIView {
     weak var delegate: BoardViewDelegate!
     private var tilePositions = [TileView: TilePosition]()
     private var dragCoordinators = [UIPanGestureRecognizer: DragCoordinator]()
-    private var tileSize: CGFloat {
-        return tileSizeGuide!.layoutFrame.width
-    }
     private var tileSizeGuide: UILayoutGuide!
-    private var dragDistance: CGFloat {
-        return tileSize + BoardView.boardPadding
-    }
+    private var tileWidth: CGFloat { return tileSizeGuide!.layoutFrame.width }
+    private var tileHeight: CGFloat { return tileSizeGuide!.layoutFrame.height }
+    private var horizontalDragDistance: CGFloat { return tileWidth + BoardView.boardPadding }
+    private var verticalDragDistance: CGFloat { return tileHeight + BoardView.boardPadding }
 
     // MARK: - Constructors
 
@@ -64,9 +62,14 @@ class BoardView: UIView {
         tileSizeGuide = guide
         addLayoutGuide(guide)
 
-        NSLayoutConstraint.activate([
+        let tileSizingConstraints = [
             guide.widthAnchor.constraint(equalTo: guide.heightAnchor),
             guide.widthAnchor.constraint(lessThanOrEqualToConstant: BoardView.maxTileSize),
+        ]
+        tileSizingConstraints.forEach { $0.priority = .defaultHigh }
+        NSLayoutConstraint.activate(tileSizingConstraints)
+
+        NSLayoutConstraint.activate([
             widthAnchor.constraint(equalTo: guide.widthAnchor, multiplier: columns, constant: horizontalSpacing),
             heightAnchor.constraint(equalTo: guide.heightAnchor, multiplier: rows, constant: verticalSpacing),
         ])
@@ -145,9 +148,9 @@ class BoardView: UIView {
     // MARK: Tile Placement
 
     private func place(_ tileView: TileView, at position: TilePosition) {
-        let x = BoardView.boardMargins + CGFloat(position.column) * (tileSize + BoardView.boardPadding)
-        let y = BoardView.boardMargins + CGFloat(position.row) * (tileSize + BoardView.boardPadding)
-        tileView.frame = CGRect(x: x, y: y, width: tileSize, height: tileSize)
+        let x = BoardView.boardMargins + CGFloat(position.column) * (tileWidth + BoardView.boardPadding)
+        let y = BoardView.boardMargins + CGFloat(position.row) * (tileHeight + BoardView.boardPadding)
+        tileView.frame = CGRect(x: x, y: y, width: tileWidth, height: tileHeight)
     }
 }
 
@@ -209,7 +212,15 @@ extension BoardView {
         private var averageVelocity: CGFloat = 0
 
         private(set) var state: State = .active(progress: 0)
-        private var dragDistance: CGFloat { return boardView.dragDistance }
+        private var dragDistance: CGFloat {
+            switch direction {
+            case .left, .right:
+                return boardView.horizontalDragDistance
+            case .up, .down:
+                return boardView.verticalDragDistance
+            }
+        }
+
         var boardProgressChange: Double {
             var board = boardView.board!
             let startProgress = board.progress

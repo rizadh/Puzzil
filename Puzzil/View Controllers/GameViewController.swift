@@ -176,7 +176,7 @@ class GameViewController: UIViewController {
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
         ]
-        optionalConstraints.forEach { $0.priority = .defaultHigh }
+        optionalConstraints.forEach { $0.priority = .defaultLow + 1 }
         NSLayoutConstraint.activate(optionalConstraints)
 
         updateBestTimeStat(animated: false)

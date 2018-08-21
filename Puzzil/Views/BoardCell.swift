@@ -6,8 +6,8 @@
 //  Copyright © 2018 Rizadh Nizam. All rights reserved.
 //
 
-import UIKit
 import os
+import UIKit
 
 class BoardCell: UICollectionViewCell {
     private static var cachedSnapshots = [BoardStyle: (view: UIView, size: CGSize)]()
@@ -91,7 +91,7 @@ class BoardCell: UICollectionViewCell {
             boardView.widthAnchor.constraint(equalToConstant: 180),
             boardView.heightAnchor.constraint(equalToConstant: 180),
         ]
-        optionalConstraints.forEach { $0.priority = .defaultHigh }
+        optionalConstraints.forEach { $0.priority = .defaultLow }
         NSLayoutConstraint.activate(optionalConstraints)
         boardView.layoutIfNeeded()
 

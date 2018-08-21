@@ -89,6 +89,7 @@ class TileView: UIView {
         layer.cornerRadius = cornerRadius
         highlightLayer.cornerRadius = cornerRadius
         highlightLayer.frame = layer.bounds
-        labelView.font = UIFont.systemFont(ofSize: frame.height / 2, weight: .bold)
+        let fontSize = min(frame.height / 2, 60)
+        labelView.font = UIFont.systemFont(ofSize: fontSize, weight: .bold)
     }
 }
