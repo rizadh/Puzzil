@@ -178,7 +178,7 @@ class BoardSelectorLayout: UICollectionViewLayout {
         return targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: .zero)
     }
 
-    func calculateContentOffset(for indexPath: IndexPath) -> CGPoint {
+    private func calculateContentOffset(for indexPath: IndexPath) -> CGPoint {
         let position = positions[indexPath.item]
 
         return calculateContentOffset(for: position)

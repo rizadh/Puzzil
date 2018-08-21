@@ -23,12 +23,14 @@ class MainViewController: UIViewController {
 
     // MARK: - Subviews
 
+    private var collectionView: UICollectionView!
     private var collectionViewLayout: BoardSelectorLayout!
     private var footerStackView: UIStackView!
     private var bestTimeStat: StatView!
 
     // MARK: - Private Properties
 
+    private var didScrollToFirstBoard = false
     private var selectedItem = 0 { didSet { updateStatView() } }
 
     // MARK: - Controller Dependencies
@@ -71,7 +73,7 @@ class MainViewController: UIViewController {
 
         collectionViewLayout = BoardSelectorLayout()
         collectionViewLayout.delegate = self
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = ColorTheme.selected.background
         collectionView.showsVerticalScrollIndicator = false
@@ -188,6 +190,15 @@ class MainViewController: UIViewController {
         updateStatView()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(true)
+
+        if !didScrollToFirstBoard {
+            didScrollToFirstBoard = true
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: [.centeredVertically, .centeredHorizontally], animated: false)
+        }
+    }
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
 
@@ -272,8 +283,7 @@ extension MainViewController: UICollectionViewDelegate {
         if indexPath.item == selectedItem {
             startGame()
         } else {
-            let contentOffset = collectionViewLayout.calculateContentOffset(for: indexPath)
-            collectionView.setContentOffset(contentOffset, animated: true)
+            collectionView.scrollToItem(at: indexPath, at: [.centeredHorizontally, .centeredVertically], animated: true)
         }
     }
 }
