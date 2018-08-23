@@ -6,9 +6,16 @@
 //  Copyright © 2018 Rizadh Nizam. All rights reserved.
 //
 
+import os
 import Foundation
 
 class BestTimesController {
+    enum UpdateResult {
+        case created(time: Double)
+        case replaced(oldTime: Double, newTime: Double)
+        case preserved(oldTime: Double, newTime: Double)
+    }
+
     private static var bestTimesKey = "bestTimes"
 
     private var bestTimes =
@@ -21,12 +28,13 @@ class BestTimesController {
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
             object: nil,
             queue: .main,
-            using: bestTimesDidChangeExternally
+            using: didReceiveExternalChangeNotification
         )
         NSUbiquitousKeyValueStore.default.synchronize()
+        mergeExternalKeys()
     }
 
-    func boardWasSolved(boardStyle: BoardStyle, seconds newTime: Double) -> BestTimeUpdateResult {
+    func boardWasSolved(boardStyle: BoardStyle, seconds newTime: Double) -> UpdateResult {
         let boardName = boardStyle.rawValue
 
         guard let existingTime = bestTimes[boardName] else {
@@ -54,19 +62,17 @@ class BestTimesController {
 
     private func saveBestTimes() {
         UserDefaults.standard.set(bestTimes, forKey: BestTimesController.bestTimesKey)
-        NSUbiquitousKeyValueStore.default.set(bestTimes, forKey: BestTimesController.bestTimesKey)
+        NSUbiquitousKeyValueStore.default.set(bestTimes.mapValues { NSNumber(value: $0) }, forKey: BestTimesController.bestTimesKey)
     }
 
-    private func bestTimesDidChangeExternally(notification: Notification) {
+    private func didReceiveExternalChangeNotification(_ notification: Notification) {
+        mergeExternalKeys()
+    }
+
+    private func mergeExternalKeys() {
         if let remoteBestTimes =
-            NSUbiquitousKeyValueStore.default.dictionary(forKey: BestTimesController.bestTimesKey) as? [String: Double] {
-            bestTimes.merge(remoteBestTimes, uniquingKeysWith: min)
+            NSUbiquitousKeyValueStore.default.dictionary(forKey: BestTimesController.bestTimesKey) as? [String: NSNumber] {
+            bestTimes.merge(remoteBestTimes.mapValues { Double(truncating: $0) }, uniquingKeysWith: min)
         }
     }
-}
-
-enum BestTimeUpdateResult {
-    case created(time: Double)
-    case replaced(oldTime: Double, newTime: Double)
-    case preserved(oldTime: Double, newTime: Double)
 }

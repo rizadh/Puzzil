@@ -9,7 +9,7 @@
 import UIKit
 
 class ResultView: UIView {
-    var result: BestTimeUpdateResult? {
+    var result: BestTimesController.UpdateResult? {
         didSet { updateLabels() }
     }
 

@@ -48,6 +48,7 @@
 		4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TilePosition.swift; sourceTree = "<group>"; };
 		4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		4A75ABC61FF0517000B0897F /* Tile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
+		4AA35C11212CA2D3007C4573 /* Puzzil.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Puzzil.entitlements; sourceTree = "<group>"; };
 		4AB63DC51FEDA6B2003EBC29 /* Puzzil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puzzil.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4AB63DCA1FEDA6B2003EBC29 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -112,11 +113,19 @@
 			path = "Service Controllers";
 			sourceTree = "<group>";
 		};
+		4A90AECA212CB0BE0002CA86 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		4AB63DBC1FEDA6B2003EBC29 = {
 			isa = PBXGroup;
 			children = (
 				4AB63DC71FEDA6B2003EBC29 /* Puzzil */,
 				4AB63DC61FEDA6B2003EBC29 /* Products */,
+				4A90AECA212CB0BE0002CA86 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -131,6 +140,7 @@
 		4AB63DC71FEDA6B2003EBC29 /* Puzzil */ = {
 			isa = PBXGroup;
 			children = (
+				4AA35C11212CA2D3007C4573 /* Puzzil.entitlements */,
 				4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */,
 				4A2940C9201422770077EE36 /* Service Controllers */,
 				4AB63DDD1FEDCEA1003EBC29 /* View Controllers */,
@@ -198,6 +208,14 @@
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 0;
+							};
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -391,6 +409,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Puzzil/Puzzil.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = UZW69BGU4W;
 				INFOPLIST_FILE = Puzzil/Info.plist;
@@ -407,6 +426,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Puzzil/Puzzil.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = UZW69BGU4W;
 				INFOPLIST_FILE = Puzzil/Info.plist;
