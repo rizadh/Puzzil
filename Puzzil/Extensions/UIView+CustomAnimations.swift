@@ -23,19 +23,27 @@ extension UIView {
                        completion: completion)
     }
 
-    static func animatedSwap(outgoingView: UIView, incomingView: UIView, midCompletion: (() -> Void)? = nil, completion: (() -> Void)? = nil) {
-        UIView.animate(withDuration: 0.125, delay: 0, options: [.curveEaseIn], animations: {
+    static func animatedSwap(outgoingView: UIView, incomingView: UIView, completion completionOrNil: ((UIViewAnimatingPosition) -> Void)? = nil) {
+        let outgoingDuration: TimeInterval = 0.125
+        let incomingDuration: TimeInterval = 0.25
+
+        let outgoingAnimator = UIViewPropertyAnimator(duration: outgoingDuration, curve: .easeIn) {
             outgoingView.transform = .zero
-        }) { _ in
-            outgoingView.isHidden = true
-            midCompletion?()
         }
+        outgoingAnimator.addCompletion { _ in
+            outgoingView.isHidden = true
+        }
+        outgoingAnimator.startAnimation()
 
         incomingView.isHidden = false
         incomingView.transform = .zero
-        UIView.animate(withDuration: 0.25, delay: 0.125, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [], animations: {
+        let incomingAnimator = UIViewPropertyAnimator(duration: incomingDuration, dampingRatio: 0.8) {
             incomingView.transform = .identity
-        }) { _ in completion?() }
+        }
+        if let completion = completionOrNil {
+            incomingAnimator.addCompletion(completion)
+        }
+        incomingAnimator.startAnimation(afterDelay: outgoingDuration)
     }
 
     func shake() {

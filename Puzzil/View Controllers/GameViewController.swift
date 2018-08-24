@@ -95,6 +95,7 @@ class GameViewController: UIViewController {
         boardView.delegate = self
 
         resultView.translatesAutoresizingMaskIntoConstraints = false
+        resultView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(resultViewWasDragged)))
         resultView.isHidden = true
 
         let endButton = ThemedButton()
@@ -194,12 +195,13 @@ class GameViewController: UIViewController {
 
     func beginGame() {
         if resultsAreVisible {
+            resultsAreVisible = false
             boardView.isHidden = false
             boardView.reloadBoard()
 
-            UIView.animatedSwap(outgoingView: resultView, incomingView: boardView, midCompletion: {
-                self.resultsAreVisible = false
-            }, completion: resetBoard)
+            UIView.animatedSwap(outgoingView: resultView, incomingView: boardView) { _ in
+                self.resetBoard()
+            }
         } else {
             resetBoard()
         }
@@ -236,12 +238,13 @@ class GameViewController: UIViewController {
         gameIsRunning = false
 
         resultView.result = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
+        resultView.alpha = 1
 
         resetStats()
 
         solvedBoardView.isHidden = true
 
-        UIView.animatedSwap(outgoingView: boardView, incomingView: resultView) {
+        UIView.animatedSwap(outgoingView: boardView, incomingView: resultView) { _ in
             self.resultsAreVisible = true
         }
     }
@@ -359,6 +362,56 @@ class GameViewController: UIViewController {
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
         present(alertController, animated: true)
+    }
+
+    @objc private func resultViewWasDragged(_ sender: UIPanGestureRecognizer) {
+        let dragThreshold: CGFloat = 250
+        let translation = sender.translation(in: view)
+        let velocity = sender.velocity(in: view)
+
+        func transform(for translation: CGPoint) -> CGAffineTransform {
+            return CGAffineTransform(translationX: translation.x, y: translation.y).rotated(by: .pi * translation.x / 2000)
+        }
+
+        switch sender.state {
+        case .began, .changed:
+            resultView.transform = transform(for: translation)
+            resultView.alpha = 1 - translation.magnitude / dragThreshold
+        case .ended, .cancelled:
+            let projectedTranslation = translation.projected(
+                by: velocity,
+                decelerationRate: UIScrollView.DecelerationRate.normal.rawValue
+            )
+
+            if projectedTranslation.magnitude > dragThreshold {
+                resultsAreVisible = false
+                UIViewPropertyAnimator(duration: 0.25, curve: .easeIn) {
+                    self.resultView.transform = transform(for: projectedTranslation)
+                }.startAnimation()
+
+                UIViewPropertyAnimator(duration: 0.5, curve: .linear) {
+                    self.resultView.alpha = 0
+                }.startAnimation()
+
+                boardView.reloadBoard()
+                boardView.isHidden = false
+                let boardAnimator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.8) {
+                    self.boardView.transform = .identity
+                }
+                boardAnimator.addCompletion { _ in
+                    self.resetBoard()
+                }
+                boardAnimator.startAnimation()
+            } else {
+                UIViewPropertyAnimator(duration: 0.5, dampingRatio: 1) {
+                    self.resultView.transform = .identity
+                    self.resultView.alpha = 1
+                }.startAnimation()
+            }
+
+        default:
+            break
+        }
     }
 }
 

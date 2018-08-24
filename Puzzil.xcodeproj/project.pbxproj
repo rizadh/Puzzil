@@ -31,7 +31,7 @@
 		4AC3D18820DCB92000EC7820 /* ThemedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC3D18720DCB92000EC7820 /* ThemedButton.swift */; };
 		4ACDEB77211CC9B30024FDB1 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ACDEB76211CC9B30024FDB1 /* MainViewController.swift */; };
 		4AE7F1BB20B5DBFE008AAEC6 /* BoardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE7F1BA20B5DBFE008AAEC6 /* BoardStyle.swift */; };
-		4AEF9AC02120944D00AC67B6 /* CGRect+Center.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEF9ABF2120944D00AC67B6 /* CGRect+Center.swift */; };
+		4AEF9AC02120944D00AC67B6 /* CGPoint+Projection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEF9ABF2120944D00AC67B6 /* CGPoint+Projection.swift */; };
 		4AEF9AC22120BB4900AC67B6 /* BoardSelectorLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEF9AC12120BB4900AC67B6 /* BoardSelectorLayout.swift */; };
 		4AEF9AC42120F2B200AC67B6 /* BoardSelectorLayoutDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEF9AC32120F2B200AC67B6 /* BoardSelectorLayoutDelegate.swift */; };
 /* End PBXBuildFile section */
@@ -63,7 +63,7 @@
 		4AC3D18720DCB92000EC7820 /* ThemedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemedButton.swift; sourceTree = "<group>"; };
 		4ACDEB76211CC9B30024FDB1 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		4AE7F1BA20B5DBFE008AAEC6 /* BoardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStyle.swift; sourceTree = "<group>"; };
-		4AEF9ABF2120944D00AC67B6 /* CGRect+Center.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Center.swift"; sourceTree = "<group>"; };
+		4AEF9ABF2120944D00AC67B6 /* CGPoint+Projection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGPoint+Projection.swift"; sourceTree = "<group>"; };
 		4AEF9AC12120BB4900AC67B6 /* BoardSelectorLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardSelectorLayout.swift; sourceTree = "<group>"; };
 		4AEF9AC32120F2B200AC67B6 /* BoardSelectorLayoutDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardSelectorLayoutDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -154,7 +154,7 @@
 			children = (
 				4AB63DDA1FEDB34F003EBC29 /* UIColor+HelperProperties.swift */,
 				4A12B22E201DCC9D006B039F /* UIView+CustomAnimations.swift */,
-				4AEF9ABF2120944D00AC67B6 /* CGRect+Center.swift */,
+				4AEF9ABF2120944D00AC67B6 /* CGPoint+Projection.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -243,7 +243,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4AEF9AC02120944D00AC67B6 /* CGRect+Center.swift in Sources */,
+				4AEF9AC02120944D00AC67B6 /* CGPoint+Projection.swift in Sources */,
 				4ABAB82220065BC300D09C93 /* StatView.swift in Sources */,
 				4A1B65EB1FEE409700A98FF7 /* Board.swift in Sources */,
 				4AB63DCB1FEDA6B2003EBC29 /* GameViewController.swift in Sources */,
