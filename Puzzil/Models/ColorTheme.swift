@@ -65,7 +65,7 @@ enum ColorTheme: Int {
     var primaryTextOnSecondary: UIColor {
         switch self {
         case .light:
-            return UIColor(hue: 345 / 360, saturation: 0.75, brightness: 0.9, alpha: 1)
+            return UIColor(hue: 345 / 360, saturation: 0.15, brightness: 0.3, alpha: 1)
         case .dark:
             return .white
         }
@@ -74,7 +74,7 @@ enum ColorTheme: Int {
     var secondaryTextOnSecondary: UIColor {
         switch self {
         case .light:
-            return UIColor(hue: 345 / 360, saturation: 0.5, brightness: 0.8, alpha: 1)
+            return UIColor(hue: 345 / 360, saturation: 0.5, brightness: 0.75, alpha: 1)
         case .dark:
             return UIColor(hue: 345 / 360, saturation: 0.15, brightness: 0.75, alpha: 1)
         }

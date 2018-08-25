@@ -18,27 +18,22 @@ class ResultView: UIView {
     let statusTag = UIView()
     let statusText = UILabel()
 
-    var statusTagConstraint: NSLayoutConstraint!
-    var noStatusTagConstraint: NSLayoutConstraint!
+    var statusTagConstraints = [NSLayoutConstraint]()
+    var noStatusTagConstraints = [NSLayoutConstraint]()
 
     init() {
         super.init(frame: .zero)
 
-        setupSubviews()
-    }
+        backgroundColor = ColorTheme.selected.secondary
+        layer.cornerRadius = 16
 
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupSubviews() {
         messageText.translatesAutoresizingMaskIntoConstraints = false
         messageText.font = UIFont.systemFont(ofSize: UIFont.labelFontSize * 1.25, weight: .medium)
-        messageText.textColor = ColorTheme.selected.secondaryTextOnBackground
+        messageText.textColor = ColorTheme.selected.secondaryTextOnSecondary
 
         timeText.translatesAutoresizingMaskIntoConstraints = false
         timeText.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize * 3)
-        timeText.textColor = ColorTheme.selected.primaryTextOnBackground
+        timeText.textColor = ColorTheme.selected.primaryTextOnSecondary
 
         statusTag.translatesAutoresizingMaskIntoConstraints = false
         statusTag.layer.cornerRadius = 8
@@ -54,29 +49,40 @@ class ResultView: UIView {
         addSubview(timeText)
         addSubview(statusTag)
 
-        let padding: CGFloat = 32
+        let margin: CGFloat = 16
         let tagPadding: CGFloat = 8
 
-        statusTagConstraint = bottomAnchor.constraint(equalTo: statusTag.bottomAnchor)
-        noStatusTagConstraint = bottomAnchor.constraint(equalTo: timeText.bottomAnchor)
+        let timeTextLayoutGuide = UILayoutGuide()
+        addLayoutGuide(timeTextLayoutGuide)
+
+        statusTagConstraints = [
+            bottomAnchor.constraint(equalTo: statusTag.bottomAnchor, constant: margin),
+            timeTextLayoutGuide.bottomAnchor.constraint(equalTo: statusTag.topAnchor),
+        ]
+        noStatusTagConstraints = [
+            bottomAnchor.constraint(greaterThanOrEqualTo: timeText.bottomAnchor, constant: margin),
+            timeTextLayoutGuide.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ]
 
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(greaterThanOrEqualTo: heightAnchor),
+            widthAnchor.constraint(greaterThanOrEqualToConstant: 200),
+            heightAnchor.constraint(greaterThanOrEqualToConstant: 200),
 
-            messageText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
-            messageText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor),
+            messageText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
+            messageText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: -margin),
             messageText.centerXAnchor.constraint(equalTo: centerXAnchor),
-            messageText.topAnchor.constraint(equalTo: topAnchor),
+            messageText.topAnchor.constraint(equalTo: topAnchor, constant: margin),
 
-            timeText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
-            timeText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor),
+            timeTextLayoutGuide.topAnchor.constraint(equalTo: messageText.bottomAnchor),
+
+            timeText.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
+            timeText.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: -margin),
             timeText.centerXAnchor.constraint(equalTo: centerXAnchor),
-            timeText.topAnchor.constraint(equalTo: messageText.bottomAnchor, constant: padding),
+            timeText.centerYAnchor.constraint(equalTo: timeTextLayoutGuide.centerYAnchor),
 
-            statusTag.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
-            statusTag.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor),
+            statusTag.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: margin),
+            statusTag.rightAnchor.constraint(lessThanOrEqualTo: rightAnchor, constant: -margin),
             statusTag.centerXAnchor.constraint(equalTo: centerXAnchor),
-            statusTag.topAnchor.constraint(equalTo: timeText.bottomAnchor, constant: padding),
 
             statusText.centerXAnchor.constraint(equalTo: statusTag.centerXAnchor),
             statusText.centerYAnchor.constraint(equalTo: statusTag.centerYAnchor),
@@ -87,6 +93,10 @@ class ResultView: UIView {
         ])
     }
 
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     private func updateLabels() {
         guard let result = result else { return }
 
@@ -95,22 +105,22 @@ class ResultView: UIView {
             messageText.text = MessageProvider.nextFirstSolveMessage()
             timeText.text = String(format: "%.1f s", time)
             statusTag.isHidden = true
-            noStatusTagConstraint.isActive = true
-            statusTagConstraint.isActive = false
+            NSLayoutConstraint.deactivate(statusTagConstraints)
+            NSLayoutConstraint.activate(noStatusTagConstraints)
         case let .preserved(oldTime, newTime):
             messageText.text = MessageProvider.nextSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
-            statusText.text = String(format: "Current Best: %.1f s", oldTime)
+            statusText.text = String(format: "Best: %.1f s", oldTime)
             statusTag.isHidden = false
-            noStatusTagConstraint.isActive = false
-            statusTagConstraint.isActive = true
+            NSLayoutConstraint.deactivate(noStatusTagConstraints)
+            NSLayoutConstraint.activate(statusTagConstraints)
         case let .replaced(oldTime, newTime):
             messageText.text = MessageProvider.nextBestSolveMessage()
             timeText.text = String(format: "%.1f s", newTime)
             statusText.text = String(format: "Previous Best: %.1f s", oldTime)
             statusTag.isHidden = false
-            noStatusTagConstraint.isActive = false
-            statusTagConstraint.isActive = true
+            NSLayoutConstraint.deactivate(noStatusTagConstraints)
+            NSLayoutConstraint.activate(statusTagConstraints)
         }
     }
 }
