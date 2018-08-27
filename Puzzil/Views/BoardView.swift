@@ -93,14 +93,13 @@ class BoardView: UIView {
         if let dragCoordinator = dragCoordinators[sender] {
             dragCoordinator.update(with: sender)
 
-            delegate.progressDidChange(self)
-
             switch sender.state {
             case .cancelled, .ended, .failed:
                 dragCoordinators[sender] = nil
                 if dragCoordinator.tileWasMoved { delegate.boardDidChange(self) }
+                delegate.progressDidChange(self, incremental: false)
             default:
-                break
+                delegate.progressDidChange(self, incremental: true)
             }
         } else {
             dragCoordinators[sender] = DragCoordinator(boardView: self, sender: sender)

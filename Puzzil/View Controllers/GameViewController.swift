@@ -8,7 +8,19 @@
 
 import UIKit
 
+private let outerLeftTransform = CGAffineTransform(translationX: -200, y: 50).scaledBy(x: 0.5, y: 0.5).rotated(by: -.pi / 16)
+private let outerRightTransform = CGAffineTransform(translationX: 200, y: 50).scaledBy(x: 0.5, y: 0.5).rotated(by: .pi / 16)
+
 class GameViewController: UIViewController {
+    enum GameState {
+        case waiting
+        case running(startTime: Date, moves: Int)
+        case solved
+        case transitioning
+    }
+
+    // MARK: UIViewController Property Overrides
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return ColorTheme.selected.background.isLight ? .default : .lightContent
     }
@@ -16,9 +28,33 @@ class GameViewController: UIViewController {
     // MARK: - Board Management
 
     private let boardStyle: BoardStyle
-    private var minProgress: Double!
-    private var gameIsRunning = false
-    private var resultsAreVisible = false
+    private var minimumProgress: Double!
+    private var gameState: GameState = .waiting {
+        didSet {
+            switch gameState {
+            case .waiting:
+                endButton.isEnabled = true
+                peekButton.isEnabled = true
+                restartButton.isEnabled = true
+                timeStatRefresher.isPaused = true
+            case .running:
+                endButton.isEnabled = true
+                peekButton.isEnabled = true
+                restartButton.isEnabled = true
+                timeStatRefresher.isPaused = false
+            case .solved:
+                endButton.isEnabled = true
+                peekButton.isEnabled = false
+                restartButton.isEnabled = true
+                timeStatRefresher.isPaused = true
+            case .transitioning:
+                endButton.isEnabled = false
+                peekButton.isEnabled = false
+                restartButton.isEnabled = false
+                timeStatRefresher.isPaused = true
+            }
+        }
+    }
 
     // MARK: - Subviews
 
@@ -28,29 +64,26 @@ class GameViewController: UIViewController {
     let solvedBoardView: StaticBoardView
     let boardView = BoardView()
     let resultView = ResultView()
-    let progressBar = UIProgressView(progressViewStyle: .bar)
+    let progressBar = UIProgressView(progressViewStyle: .default)
+    let endButton = ThemedButton()
+    let peekButton = ThemedButton()
+    let restartButton = ThemedButton()
+    let buttons = UIStackView()
 
-    // MARK: - Stat Management
+    // MARK: - Stat Management Properties
 
     private var timeStatRefresher: CADisplayLink!
-    private var startTime = Date()
-    private var moves = 0
-
-    private var elapsedSeconds: TimeInterval {
-        return Date().timeIntervalSince(startTime)
-    }
-
-    private var progressWasMade: Bool {
-        return moves > 0
-    }
-
-    private static func secondsToTimeString(_ rawSeconds: Double) -> String {
-        return String(format: "%.1f s", rawSeconds)
-    }
+    private var statsBeingReloaded = Set<StatView>()
 
     // MARK: - Controller Dependencies
 
     var bestTimesController: BestTimesController!
+
+    // MARK: - Static Helper Methods
+
+    private static func secondsToTimeString(_ rawSeconds: Double) -> String {
+        return String(format: "%.1f s", rawSeconds)
+    }
 
     // MARK: - Constructors
 
@@ -77,7 +110,7 @@ class GameViewController: UIViewController {
         timeStatRefresher.isPaused = true
         timeStatRefresher.add(to: .main, forMode: RunLoop.Mode.default)
 
-        let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(displayResetBestTimePrompt))
+        let resetRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(bestTimeWasLongPressed))
         bestTimeStat.addGestureRecognizer(resetRecognizer)
 
         bestTimeStat.titleLabel.text = "Best Time"
@@ -95,24 +128,19 @@ class GameViewController: UIViewController {
         boardView.delegate = self
 
         resultView.translatesAutoresizingMaskIntoConstraints = false
-        resultView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(resultViewWasDragged)))
         resultView.isHidden = true
 
-        let endButton = ThemedButton()
         endButton.setImage(UIImage(named: "round_close_black_36pt"), for: .normal)
         endButton.addTarget(self, action: #selector(endButtonWasTapped), for: .primaryActionTriggered)
 
-        let peekButton = ThemedButton()
         peekButton.setImage(UIImage(named: "outline_visibility_black_36pt"), for: .normal)
         peekButton.addTarget(self, action: #selector(peekButtonWasPressed), for: [.touchDown, .touchDragEnter])
         peekButton.addTarget(self, action: #selector(peekButtonWasReleased),
                              for: [.touchUpInside, .touchDragExit, .touchCancel])
 
-        let restartButton = ThemedButton()
         restartButton.setImage(UIImage(named: "round_refresh_black_36pt"), for: .normal)
         restartButton.addTarget(self, action: #selector(restartButtonWasTapped), for: .primaryActionTriggered)
 
-        let buttons = UIStackView()
         buttons.addArrangedSubview(endButton)
         buttons.addArrangedSubview(peekButton)
         buttons.addArrangedSubview(restartButton)
@@ -191,78 +219,134 @@ class GameViewController: UIViewController {
         timeStatRefresher.invalidate()
     }
 
-    // MARK: Public Methods
+    // MARK: - View Transitioning
 
-    func beginGame() {
-        if resultsAreVisible {
-            resultsAreVisible = false
-            boardView.isHidden = false
-            boardView.reloadBoard()
+    private func reloadBoard() {
+        // Animate outgoing view
 
-            UIView.animatedSwap(outgoingView: resultView, incomingView: boardView) { _ in
-                self.resetBoard()
+        let outgoingView: UIView
+        let outgoingAnimator = UIViewPropertyAnimator(duration: 0.125, curve: .easeIn)
+
+        switch gameState {
+        case .waiting, .running:
+            let snapshotView = boardView.snapshotView(afterScreenUpdates: false)!
+            snapshotView.frame = boardView.frame
+            view.insertSubview(snapshotView, belowSubview: boardView)
+            outgoingView = snapshotView
+            outgoingAnimator.addCompletion { _ in
+                snapshotView.removeFromSuperview()
             }
-        } else {
-            resetBoard()
+        case .solved:
+            outgoingView = resultView
+            outgoingAnimator.addCompletion { _ in
+                self.resultView.isHidden = true
+            }
+        case .transitioning:
+            return
         }
-    }
 
-    func resetBoard() {
-        gameIsRunning = true
+        outgoingAnimator.addAnimations {
+            outgoingView.transform = outerLeftTransform
+            outgoingView.alpha = 0
+        }
+        outgoingAnimator.startAnimation()
+
+        // Animate incoming view
+
         boardView.reloadBoard()
-        progressBar.progress = 0
-        resetStats()
+        boardView.transform = outerRightTransform
+        boardView.alpha = 0
+        boardView.isHidden = false
+        let incomingAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+            self.boardView.transform = .identity
+            self.boardView.alpha = 1
+        }
+        incomingAnimator.addCompletion { _ in
+            self.gameState = .waiting
+        }
+        incomingAnimator.startAnimation()
+
+        // Set state variable and reset stats
+
+        gameState = .transitioning
+        updateAllStats()
+        progressBar.setProgress(0, animated: true)
     }
 
-    // MARK: - Private Methods
+    private func showResult() {
+        guard case let .running(startTime, _) = gameState else { fatalError("Board was solved before game ran.") }
+        gameState = .solved
 
-    private func resetStats() {
-        moves = 0
-        startTime = Date()
+        let boardAnimator = UIViewPropertyAnimator(duration: 0.125, curve: .easeIn) {
+            self.boardView.transform = outerLeftTransform
+            self.boardView.alpha = 0
+        }
+        boardAnimator.addCompletion { _ in
+            self.boardView.isHidden = true
+        }
+        boardAnimator.startAnimation()
 
-        updateBestTimeStat(animated: true)
-        updateTimeStat(animated: true)
-        updateMovesStat(animated: true)
-    }
+        resultView.result = bestTimesController.boardWasSolved(
+            boardStyle: boardStyle,
+            seconds: -startTime.timeIntervalSinceNow
+        )
 
-    private func boardFromConfiguration() -> Board {
-        return boardStyle.board
+        resultView.isHidden = false
+        resultView.transform = outerRightTransform
+        resultView.alpha = 0
+        let resultAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 0.8) {
+            self.resultView.transform = .identity
+            self.resultView.alpha = 1
+        }
+        resultAnimator.startAnimation()
+
+        updateAllStats()
     }
 
     private func navigateToMainMenu() {
-        gameIsRunning = false
+        gameState = .transitioning
         dismiss(animated: true)
     }
 
-    private func boardWasSolved() {
-        gameIsRunning = false
+    // MARK: - Stat Update Methods
 
-        resultView.result = bestTimesController.boardWasSolved(boardStyle: boardStyle, seconds: elapsedSeconds)
-        resultView.alpha = 1
+    private func updateStat(_ statView: StatView, newValue: String, animated: Bool) {
+        if statsBeingReloaded.contains(statView) { return }
 
-        resetStats()
+        guard statView.valueLabel.text != newValue else { return }
 
-        solvedBoardView.isHidden = true
+        if animated {
+            statsBeingReloaded.insert(statView)
 
-        UIView.animatedSwap(outgoingView: boardView, incomingView: resultView) { _ in
-            self.resultsAreVisible = true
+            let exitAnimator = UIViewPropertyAnimator(duration: 0.125, curve: .easeIn) {
+                statView.valueLabel.transform = CGAffineTransform(scaleX: 1e-5, y: 1e-5)
+            }
+            exitAnimator.addCompletion { _ in
+                statView.valueLabel.text = newValue
+                self.statsBeingReloaded.remove(statView)
+            }
+            exitAnimator.startAnimation()
+
+            UIViewPropertyAnimator(duration: 0.25, dampingRatio: 0.8) {
+                statView.valueLabel.transform = .identity
+            }.startAnimation(afterDelay: 0.125)
+        } else {
+            statView.valueLabel.text = newValue
         }
     }
 
-    // MARK: - Stat Management
-
     private func updateBestTimeStat(animated: Bool) {
-        let newValue: String
-
-        if !gameIsRunning {
-            newValue = "—"
-        } else if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
-            newValue = GameViewController.secondsToTimeString(bestTime)
-        } else {
-            newValue = "N/A"
+        switch gameState {
+        case .waiting, .running, .transitioning:
+            if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
+                let timeString = GameViewController.secondsToTimeString(bestTime)
+                updateStat(bestTimeStat, newValue: timeString, animated: animated)
+            } else {
+                updateStat(bestTimeStat, newValue: "N/A", animated: animated)
+            }
+        case .solved:
+            updateStat(bestTimeStat, newValue: "—", animated: animated)
         }
-
-        updateStat(bestTimeStat, newValue: newValue, animated: animated)
     }
 
     @objc private func updateTimeStatWithoutAnimation() {
@@ -270,44 +354,38 @@ class GameViewController: UIViewController {
     }
 
     private func updateTimeStat(animated: Bool) {
-        timeStatRefresher.isPaused = true
-
-        if gameIsRunning {
-            updateStat(timeStat, newValue: GameViewController.secondsToTimeString(elapsedSeconds), animated: animated) { _ in
-                self.timeStatRefresher.isPaused = !self.gameIsRunning
-            }
-        } else {
-            updateStat(timeStat, newValue: "—", animated: animated) { _ in
-                self.timeStatRefresher.isPaused = !self.gameIsRunning
-            }
+        switch gameState {
+        case let .running(startTime, _):
+            let elapsedTime = -startTime.timeIntervalSinceNow
+            let timeString = GameViewController.secondsToTimeString(elapsedTime)
+            updateStat(timeStat, newValue: timeString, animated: animated)
+        case .waiting, .solved, .transitioning:
+            updateStat(timeStat, newValue: "—", animated: animated)
         }
     }
 
     private func updateMovesStat(animated: Bool) {
-        if gameIsRunning {
+        switch gameState {
+        case .waiting, .transitioning:
+            updateStat(movesStat, newValue: "0", animated: animated)
+        case let .running(_, moves):
             updateStat(movesStat, newValue: moves.description, animated: animated)
-        } else {
+        case .solved:
             updateStat(movesStat, newValue: "—", animated: animated)
         }
     }
 
-    private func updateStat(_ statView: StatView, newValue: String, animated: Bool, completion: ((Bool) -> Void)? = nil) {
-        let oldValue = statView.valueLabel.text
-
-        if animated && newValue != oldValue {
-            statView.valueLabel.springReload(reloadBlock: { _ in
-                statView.valueLabel.text = newValue
-            }, completion: completion)
-        } else {
-            statView.valueLabel.text = newValue
-            completion?(true)
-        }
+    private func updateAllStats() {
+        updateBestTimeStat(animated: true)
+        updateMovesStat(animated: true)
+        updateTimeStat(animated: true)
     }
 
     // MARK: - Event Handlers
 
     @objc private func endButtonWasTapped() {
-        if progressWasMade {
+        switch gameState {
+        case let .running(_, moves) where moves > 0:
             let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
                 self.navigateToMainMenu()
@@ -315,41 +393,38 @@ class GameViewController: UIViewController {
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
             present(alertController, animated: true)
-        } else {
+        default:
             navigateToMainMenu()
         }
     }
 
     @objc private func restartButtonWasTapped() {
-        if progressWasMade {
+        switch gameState {
+        case let .running(_, moves) where moves > 0:
             let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
 
             alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
-                self.beginGame()
+                self.reloadBoard()
             })
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
             present(alertController, animated: true)
-        } else {
-            beginGame()
+        default:
+            reloadBoard()
         }
     }
 
     @objc private func peekButtonWasPressed() {
-        guard gameIsRunning else { return }
-
         boardView.isHidden = true
         solvedBoardView.isHidden = false
     }
 
     @objc private func peekButtonWasReleased() {
-        guard gameIsRunning else { return }
-
         boardView.isHidden = false
         solvedBoardView.isHidden = true
     }
 
-    @objc private func displayResetBestTimePrompt(_ sender: UILongPressGestureRecognizer) {
+    @objc private func bestTimeWasLongPressed(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began else { return }
         guard bestTimesController.getBestTime(for: boardStyle) != nil else { return }
 
@@ -363,85 +438,37 @@ class GameViewController: UIViewController {
 
         present(alertController, animated: true)
     }
-
-    @objc private func resultViewWasDragged(_ sender: UIPanGestureRecognizer) {
-        let dragThreshold: CGFloat = 250
-        let translation = sender.translation(in: view)
-        let velocity = sender.velocity(in: view)
-
-        func transform(for translation: CGPoint) -> CGAffineTransform {
-            return CGAffineTransform(translationX: translation.x, y: translation.y).rotated(by: .pi * translation.x / 2000)
-        }
-
-        switch sender.state {
-        case .began, .changed:
-            resultView.transform = transform(for: translation)
-            resultView.alpha = 1 - translation.magnitude / dragThreshold
-        case .ended, .cancelled:
-            let projectedTranslation = translation.projected(
-                by: velocity,
-                decelerationRate: UIScrollView.DecelerationRate.normal.rawValue
-            )
-
-            if projectedTranslation.magnitude > dragThreshold {
-                resultsAreVisible = false
-                UIViewPropertyAnimator(duration: 0.25, curve: .easeIn) {
-                    self.resultView.transform = transform(for: projectedTranslation)
-                }.startAnimation()
-
-                UIViewPropertyAnimator(duration: 0.5, curve: .linear) {
-                    self.resultView.alpha = 0
-                }.startAnimation()
-
-                boardView.reloadBoard()
-                boardView.isHidden = false
-                let boardAnimator = UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.8) {
-                    self.boardView.transform = .identity
-                }
-                boardAnimator.addCompletion { _ in
-                    self.resetBoard()
-                }
-                boardAnimator.startAnimation()
-            } else {
-                UIViewPropertyAnimator(duration: 0.5, dampingRatio: 1) {
-                    self.resultView.transform = .identity
-                    self.resultView.alpha = 1
-                }.startAnimation()
-            }
-
-        default:
-            break
-        }
-    }
 }
 
 // MARK: - BoardViewDelegate Conformance
 
 extension GameViewController: BoardViewDelegate {
     func newBoard(for boardView: BoardView) -> Board {
-        if gameIsRunning {
-            var board = boardStyle.board
-            board.shuffle()
-            minProgress = board.progress
-            return board
-        } else {
-            return boardStyle.board.clearingAllTiles()
-        }
+        var board = boardStyle.board
+        board.shuffle()
+        minimumProgress = board.progress
+        return board
     }
 
     func boardDidChange(_ boardView: BoardView) {
-        guard gameIsRunning else { return }
+        switch gameState {
+        case .waiting:
+            gameState = .running(startTime: Date(), moves: 1)
+            updateTimeStat(animated: true)
+        case let .running(startTime, moves):
+            gameState = .running(startTime: startTime, moves: moves + 1)
+        default:
+            fatalError("Invalid game state for board change.")
+        }
 
-        moves += 1
-
-        if boardView.board.isSolved { boardWasSolved() }
+        if boardView.board.isSolved { showResult() }
         else { updateMovesStat(animated: false) }
     }
 
-    func progressDidChange(_ boardView: BoardView) {
+    func progressDidChange(_ boardView: BoardView, incremental: Bool) {
         let progress = boardView.progress
-        minProgress = min(progress, minProgress)
-        let mappedProgress = (progress - minProgress) / (1 - minProgress)
-        progressBar.setProgress(Float(mappedProgress), animated: false)
+        minimumProgress = min(progress, minimumProgress)
+        let mappedProgress = (progress - minimumProgress) / (1 - minimumProgress)
+        progressBar.setProgress(Float(mappedProgress), animated: !incremental)
     }
 }

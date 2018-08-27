@@ -216,9 +216,7 @@ class MainViewController: UIViewController {
         let gameViewController = GameViewController(boardStyle: boardStyle)
         gameViewController.bestTimesController = bestTimesController
 
-        present(gameViewController, animated: true) {
-            gameViewController.beginGame()
-        }
+        present(gameViewController, animated: true)
     }
 
     private func updateStatView() {
@@ -259,6 +257,30 @@ class MainViewController: UIViewController {
             NSLayoutConstraint.activate(portraitLayoutConstraints)
         }
     }
+
+    private func shakeStartButton() {
+        let angle: CGFloat = .pi / 32
+
+        UIViewPropertyAnimator(duration: 0.25, curve: .easeOut) {
+            UIView.animateKeyframes(withDuration: 0, delay: 0, options: [], animations: {
+                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.125, animations: {
+                    self.startButton.transform = CGAffineTransform(rotationAngle: angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.125, relativeDuration: 0.25, animations: {
+                    self.startButton.transform = CGAffineTransform(rotationAngle: -angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.375, relativeDuration: 0.25, animations: {
+                    self.startButton.transform = CGAffineTransform(rotationAngle: angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.625, relativeDuration: 0.25, animations: {
+                    self.startButton.transform = CGAffineTransform(rotationAngle: -angle)
+                })
+                UIView.addKeyframe(withRelativeStartTime: 0.875, relativeDuration: 0.125, animations: {
+                    self.startButton.transform = .identity
+                })
+            })
+        }.startAnimation()
+    }
 }
 
 // MARK: - UICollectionViewDataSource Conformance
@@ -282,7 +304,7 @@ extension MainViewController: UICollectionViewDataSource {
 extension MainViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if indexPath.item == selectedItem {
-            startButton.shake()
+            shakeStartButton()
         } else {
             collectionView.scrollToItem(at: indexPath, at: [.centeredHorizontally, .centeredVertically], animated: true)
         }

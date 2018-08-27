@@ -37,7 +37,7 @@ class StaticBoardView: BoardView, BoardViewDelegate {
         fatalError("Static board cannot change")
     }
 
-    func progressDidChange(_ boardView: BoardView) {
+    func progressDidChange(_ boardView: BoardView, incremental: Bool) {
         fatalError("Static board progress cannot change")
     }
 }
