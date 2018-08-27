@@ -87,14 +87,19 @@ class MainViewController: UIViewController {
         let footerView = UIView()
         footerView.translatesAutoresizingMaskIntoConstraints = false
 
-        let effectView = UIVisualEffectView(effect: UIBlurEffect(
-            style: ColorTheme.selected.background.isLight ? .light : .dark
-        ))
+        let blurEffectStyle: UIBlurEffect.Style
+        switch ColorTheme.selected {
+        case .light:
+            blurEffectStyle = .light
+        case .dark:
+            blurEffectStyle = .dark
+        }
+        let effectView = UIVisualEffectView(effect: UIBlurEffect(style: blurEffectStyle))
         effectView.translatesAutoresizingMaskIntoConstraints = false
 
         let footerBorder = UIView()
         footerBorder.translatesAutoresizingMaskIntoConstraints = false
-        if ColorTheme.selected.background.isLight {
+        if ColorTheme.selected == .light {
             footerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         }
 

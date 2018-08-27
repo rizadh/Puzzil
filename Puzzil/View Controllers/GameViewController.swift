@@ -22,7 +22,12 @@ class GameViewController: UIViewController {
     // MARK: UIViewController Property Overrides
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ColorTheme.selected.background.isLight ? .default : .lightContent
+        switch ColorTheme.selected {
+        case .light:
+            return .default
+        case .dark:
+            return .lightContent
+        }
     }
 
     // MARK: - Board Management
