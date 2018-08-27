@@ -29,7 +29,7 @@ class GameViewController: UIViewController {
 
     private let boardStyle: BoardStyle
     private var minimumProgress: Double!
-    private var gameState: GameState = .waiting {
+    private var gameState: GameState = .transitioning {
         didSet {
             switch gameState {
             case .waiting:
@@ -213,6 +213,18 @@ class GameViewController: UIViewController {
         updateTimeStat(animated: false)
 
         boardView.reloadBoard()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        gameState = .waiting
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        gameState = .transitioning
     }
 
     override func viewDidDisappear(_ animated: Bool) {
