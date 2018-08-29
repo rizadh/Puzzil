@@ -34,10 +34,6 @@ class MainViewController: UIViewController {
     private var didScrollToFirstBoard = false
     private var selectedItem = 0 { didSet { updateStatView() } }
 
-    // MARK: - Controller Dependencies
-
-    var bestTimesController: BestTimesController!
-
     // MARK: - Adaptive Layout Constraints
 
     private var portraitLayoutConstraints = [NSLayoutConstraint]()
@@ -188,6 +184,12 @@ class MainViewController: UIViewController {
             footerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             footerView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
         ])
+
+        BestTimesController.shared.addSubscriptionHandler {
+            DispatchQueue.main.async {
+                self.updateStatView()
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -219,7 +221,6 @@ class MainViewController: UIViewController {
     @objc private func startGame() {
         let boardStyle = BoardStyle.allCases[selectedItem]
         let gameViewController = GameViewController(boardStyle: boardStyle)
-        gameViewController.bestTimesController = bestTimesController
 
         present(gameViewController, animated: true)
     }
@@ -227,7 +228,7 @@ class MainViewController: UIViewController {
     private func updateStatView() {
         let boardStyle = BoardStyle.allCases[selectedItem]
 
-        if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
+        if let bestTime = BestTimesController.shared.getBestTime(for: boardStyle) {
             bestTimeStat.valueLabel.text = String(format: "%.1f s", bestTime)
         } else {
             bestTimeStat.valueLabel.text = "N/A"

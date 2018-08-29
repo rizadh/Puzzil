@@ -80,10 +80,6 @@ class GameViewController: UIViewController {
     private var timeStatRefresher: CADisplayLink!
     private var statsBeingReloaded = Set<StatView>()
 
-    // MARK: - Controller Dependencies
-
-    var bestTimesController: BestTimesController!
-
     // MARK: - Static Helper Methods
 
     private static func secondsToTimeString(_ rawSeconds: Double) -> String {
@@ -218,6 +214,12 @@ class GameViewController: UIViewController {
         updateTimeStat(animated: false)
 
         boardView.reloadBoard()
+
+        BestTimesController.shared.addSubscriptionHandler {
+            DispatchQueue.main.async {
+                self.updateBestTimeStat(animated: true)
+            }
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -303,10 +305,7 @@ class GameViewController: UIViewController {
         }
         boardAnimator.startAnimation()
 
-        resultView.result = bestTimesController.boardWasSolved(
-            boardStyle: boardStyle,
-            seconds: -startTime.timeIntervalSinceNow
-        )
+        resultView.result = BestTimesController.shared.saveBestTime(-startTime.timeIntervalSinceNow, for: boardStyle)
 
         resultView.isHidden = false
         resultView.transform = outerRightTransform
@@ -355,7 +354,7 @@ class GameViewController: UIViewController {
     private func updateBestTimeStat(animated: Bool) {
         switch gameState {
         case .waiting, .running, .transitioning:
-            if let bestTime = bestTimesController.getBestTime(for: boardStyle) {
+            if let bestTime = BestTimesController.shared.getBestTime(for: boardStyle) {
                 let timeString = GameViewController.secondsToTimeString(bestTime)
                 updateStat(bestTimeStat, newValue: timeString, animated: animated)
             } else {
@@ -443,12 +442,12 @@ class GameViewController: UIViewController {
 
     @objc private func bestTimeWasLongPressed(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began else { return }
-        guard bestTimesController.getBestTime(for: boardStyle) != nil else { return }
+        guard BestTimesController.shared.getBestTime(for: boardStyle) != nil else { return }
 
         let boardName = boardStyle.rawValue.capitalized
         let alertController = UIAlertController(title: "Reset your best time?", message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Reset Best Time", style: .destructive) { _ in
-            _ = self.bestTimesController.resetBestTime(for: self.boardStyle)
+            BestTimesController.shared.removeBestTime(for: self.boardStyle)
             self.updateBestTimeStat(animated: true)
         })
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))

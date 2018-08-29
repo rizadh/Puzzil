@@ -25,6 +25,7 @@
 		4AB63DD01FEDA6B2003EBC29 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DCF1FEDA6B2003EBC29 /* Assets.xcassets */; };
 		4AB63DD31FEDA6B2003EBC29 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB63DD11FEDA6B2003EBC29 /* LaunchScreen.storyboard */; };
 		4ABAB82220065BC300D09C93 /* StatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABAB82120065BC300D09C93 /* StatView.swift */; };
+		4ABB59122137439A006CA3C7 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABB59112137439A006CA3C7 /* CloudKit.framework */; };
 		4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ABC2364200341D70042592B /* TileMoveOperation.swift */; };
 		4AC3D18820DCB92000EC7820 /* ThemedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC3D18720DCB92000EC7820 /* ThemedButton.swift */; };
 		4ACDEB77211CC9B30024FDB1 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ACDEB76211CC9B30024FDB1 /* MainViewController.swift */; };
@@ -56,6 +57,7 @@
 		4AB63DD21FEDA6B2003EBC29 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4AB63DD41FEDA6B3003EBC29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4ABAB82120065BC300D09C93 /* StatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatView.swift; sourceTree = "<group>"; };
+		4ABB59112137439A006CA3C7 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		4ABC2364200341D70042592B /* TileMoveOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileMoveOperation.swift; sourceTree = "<group>"; };
 		4AC3D18720DCB92000EC7820 /* ThemedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemedButton.swift; sourceTree = "<group>"; };
 		4ACDEB76211CC9B30024FDB1 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -70,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4ABB59122137439A006CA3C7 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +119,7 @@
 		4A90AECA212CB0BE0002CA86 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4ABB59112137439A006CA3C7 /* CloudKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -210,7 +214,7 @@
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Push = {
-								enabled = 0;
+								enabled = 1;
 							};
 							com.apple.iCloud = {
 								enabled = 1;

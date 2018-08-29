@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum BoardStyle: String, CaseIterable {
+enum BoardStyle: String, CaseIterable, Codable {
     case original
     case telephone
     case arrows
