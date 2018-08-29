@@ -53,7 +53,7 @@ class GameViewController: UIViewController {
                 restartButton.isEnabled = true
                 timeStatRefresher.isPaused = true
             case .transitioning:
-                endButton.isEnabled = false
+                endButton.isEnabled = true
                 peekButton.isEnabled = false
                 restartButton.isEnabled = false
                 timeStatRefresher.isPaused = true
