@@ -182,9 +182,9 @@ class MainViewController: UIViewController {
             footerView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
         ])
 
-        BestTimesController.shared.addSubscriptionHandler {
+        BestTimesController.shared.subscribeToChanges { [weak self] in
             DispatchQueue.main.async {
-                self.updateStatView()
+                self?.updateStatView()
             }
         }
     }

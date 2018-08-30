@@ -70,7 +70,7 @@ class BestTimesController {
 
     // MARK: - Subscription Handling
 
-    func addSubscriptionHandler(_ handler: @escaping () -> Void) {
+    func subscribeToChanges(_ handler: @escaping () -> Void) {
         subscriptionHandlers.append(handler)
     }
 

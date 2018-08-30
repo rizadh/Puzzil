@@ -218,9 +218,9 @@ class GameViewController: UIViewController {
 
         boardView.reloadBoard()
 
-        BestTimesController.shared.addSubscriptionHandler {
+        BestTimesController.shared.subscribeToChanges { [weak self] in
             DispatchQueue.main.async {
-                self.updateBestTimeStat(animated: true)
+                self?.updateBestTimeStat(animated: true)
             }
         }
     }
