@@ -247,7 +247,7 @@ class GameViewController: UIViewController {
         // Animate outgoing view
 
         let outgoingView: UIView
-        let outgoingAnimator = UIViewPropertyAnimator(duration: 0.125, curve: .easeIn)
+        let outgoingAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn)
 
         switch gameState {
         case .waiting, .running:
@@ -279,7 +279,7 @@ class GameViewController: UIViewController {
         boardView.transform = outerRightTransform
         boardView.alpha = 0
         boardView.isHidden = false
-        let incomingAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+        let incomingAnimator = UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
             self.boardView.transform = .identity
             self.boardView.alpha = 1
         }
@@ -299,7 +299,7 @@ class GameViewController: UIViewController {
         guard case let .running(startTime, _) = gameState else { fatalError("Board was solved before game ran.") }
         gameState = .solved
 
-        let boardAnimator = UIViewPropertyAnimator(duration: 0.125, curve: .easeIn) {
+        let boardAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
             self.boardView.transform = outerLeftTransform
             self.boardView.alpha = 0
         }
@@ -313,7 +313,7 @@ class GameViewController: UIViewController {
         resultView.isHidden = false
         resultView.transform = outerRightTransform
         resultView.alpha = 0
-        let resultAnimator = UIViewPropertyAnimator(duration: 0.25, dampingRatio: 0.8) {
+        let resultAnimator = UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
             self.resultView.transform = .identity
             self.resultView.alpha = 1
         }
@@ -337,7 +337,7 @@ class GameViewController: UIViewController {
         if animated {
             statsBeingReloaded.insert(statView)
 
-            let exitAnimator = UIViewPropertyAnimator(duration: 0.125, curve: .easeIn) {
+            let exitAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
                 statView.valueLabel.transform = CGAffineTransform(scaleX: 1e-5, y: 1e-5)
             }
             exitAnimator.addCompletion { _ in
@@ -346,7 +346,7 @@ class GameViewController: UIViewController {
             }
             exitAnimator.startAnimation()
 
-            UIViewPropertyAnimator(duration: 0.25, dampingRatio: 0.8) {
+            UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
                 statView.valueLabel.transform = .identity
             }.startAnimation(afterDelay: 0.125)
         } else {
@@ -437,7 +437,7 @@ class GameViewController: UIViewController {
         solvedBoardView.alpha = 0
         solvedBoardView.isHidden = false
         boardView.cancelAllOperations()
-        UIViewPropertyAnimator(duration: 0.125, curve: .linear) {
+        UIViewPropertyAnimator(duration: 0.1, curve: .linear) {
             self.solvedBoardView.alpha = 1
         }.startAnimation()
 
@@ -446,7 +446,7 @@ class GameViewController: UIViewController {
     }
 
     @objc private func peekButtonWasReleased() {
-        let animator = UIViewPropertyAnimator(duration: 0.125, curve: .linear) {
+        let animator = UIViewPropertyAnimator(duration: 0.1, curve: .linear) {
             self.solvedBoardView.alpha = 0
         }
         animator.addCompletion { _ in

@@ -264,7 +264,7 @@ class MainViewController: UIViewController {
     private func shakeStartButton() {
         let angle: CGFloat = .pi / 32
 
-        UIViewPropertyAnimator(duration: 0.25, curve: .easeOut) {
+        UIViewPropertyAnimator(duration: 0.2, curve: .easeOut) {
             UIView.animateKeyframes(withDuration: 0, delay: 0, options: [], animations: {
                 UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.125, animations: {
                     self.startButton.transform = CGAffineTransform(rotationAngle: angle)
