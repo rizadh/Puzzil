@@ -144,7 +144,7 @@ class BoardView: UIView {
         }.startAnimation()
     }
 
-    // MARK: - Tile Layout
+    // MARK: - Tile Operations
 
     func reloadBoard() {
         board = delegate.newBoard(for: self)
@@ -153,6 +153,13 @@ class BoardView: UIView {
         generateTiles()
 
         setNeedsUpdateConstraints()
+    }
+
+    func cancelAllOperations() {
+        dragCoordinators.forEach { recognizer, _ in
+            recognizer.isEnabled.toggle()
+            recognizer.isEnabled.toggle()
+        }
     }
 
     private func clearBoard() {

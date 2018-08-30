@@ -435,12 +435,19 @@ class GameViewController: UIViewController {
 
     @objc private func peekButtonWasPressed() {
         boardView.isHidden = true
+        boardView.cancelAllOperations()
         solvedBoardView.isHidden = false
+
+        endButton.isEnabled = false
+        restartButton.isEnabled = false
     }
 
     @objc private func peekButtonWasReleased() {
         boardView.isHidden = false
         solvedBoardView.isHidden = true
+
+        endButton.isEnabled = true
+        restartButton.isEnabled = true
     }
 
     @objc private func bestTimeWasLongPressed(_ sender: UILongPressGestureRecognizer) {
