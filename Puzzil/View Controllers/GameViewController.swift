@@ -434,17 +434,25 @@ class GameViewController: UIViewController {
     }
 
     @objc private func peekButtonWasPressed() {
-        boardView.isHidden = true
-        boardView.cancelAllOperations()
+        solvedBoardView.alpha = 0
         solvedBoardView.isHidden = false
+        boardView.cancelAllOperations()
+        UIViewPropertyAnimator(duration: 0.125, curve: .linear) {
+            self.solvedBoardView.alpha = 1
+        }.startAnimation()
 
         endButton.isEnabled = false
         restartButton.isEnabled = false
     }
 
     @objc private func peekButtonWasReleased() {
-        boardView.isHidden = false
-        solvedBoardView.isHidden = true
+        let animator = UIViewPropertyAnimator(duration: 0.125, curve: .linear) {
+            self.solvedBoardView.alpha = 0
+        }
+        animator.addCompletion { _ in
+            self.solvedBoardView.isHidden = true
+        }
+        animator.startAnimation()
 
         endButton.isEnabled = true
         restartButton.isEnabled = true
