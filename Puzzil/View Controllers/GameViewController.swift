@@ -504,111 +504,70 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
         }
 
         func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-            if isPresenting {
-                animateForwardTransition(using: transitionContext)
-            } else {
-                animateReverseTransition(using: transitionContext)
-            }
-        }
-
-        func animateForwardTransition(using transitionContext: UIViewControllerContextTransitioning) {
-            let mainViewController = transitionContext.viewController(forKey: .from) as! MainViewController
-            let gameViewController = transitionContext.viewController(forKey: .to) as! GameViewController
+            let mainViewController = transitionContext
+                .viewController(forKey: isPresenting ? .from : .to) as! MainViewController
+            let gameViewController = transitionContext
+                .viewController(forKey: isPresenting ? .to : .from) as! GameViewController
             let containerView = transitionContext.containerView
-
-            containerView.insertSubview(gameViewController.view, aboveSubview: mainViewController.view)
 
             let selectedCell = mainViewController.collectionView.cellForItem(at: [0, mainViewController.selectedItem]) as! BoardCell
             let selectedBoard = selectedCell.lastSnapshotView!
             let selectedBoardFrameInContainer = containerView.convert(selectedBoard.bounds, from: selectedBoard)
-            let selectedBoardSnapshot = selectedBoard.snapshotView(afterScreenUpdates: false)!
-            containerView.addSubview(selectedBoardSnapshot)
+            let selectedBoardSnapshot = selectedBoard.snapshotView(afterScreenUpdates: true)!
 
             gameViewController.view.frame = containerView.bounds
             gameViewController.view.layoutIfNeeded()
-            let finalBoard = gameViewController.boardView
-            let finalBoardFrameInContainer = containerView.convert(finalBoard.bounds, from: finalBoard)
+            let gameBoard = gameViewController.boardView
+            let gameBoardFrameInContainer = containerView.convert(gameBoard.bounds, from: gameBoard)
 
-            let staticBoard = StaticBoardView(board: finalBoard.board)
-            staticBoard.frame = finalBoardFrameInContainer
-            let finalBoardSnapshot = staticBoard.snapshotView(afterScreenUpdates: true)!
-            containerView.addSubview(finalBoardSnapshot)
+            let staticBoard = StaticBoardView(board: gameBoard.board)
+            staticBoard.frame = gameBoardFrameInContainer
+            let gameBoardSnapshot = staticBoard.snapshotView(afterScreenUpdates: true)!
 
-            selectedBoardSnapshot.frame = selectedBoardFrameInContainer
-            finalBoardSnapshot.frame = selectedBoardFrameInContainer
-            finalBoardSnapshot.alpha = 0
-
-            finalBoard.alpha = 0
+            gameBoard.alpha = 0
             selectedBoard.alpha = 0
 
-            gameViewController.view.alpha = 0
+            let initialFrame = isPresenting ? selectedBoardFrameInContainer : gameBoardFrameInContainer
+            let finalFrame = isPresenting ? gameBoardFrameInContainer : selectedBoardFrameInContainer
 
-            let animator = UIViewPropertyAnimator(duration: transitionDuration, dampingRatio: 1) {
-                selectedBoardSnapshot.frame = finalBoardFrameInContainer
-                finalBoardSnapshot.frame = finalBoardFrameInContainer
+            selectedBoardSnapshot.frame = initialFrame
+            gameBoardSnapshot.frame = initialFrame
+            if isPresenting {
+                containerView.addSubview(gameViewController.view)
+                containerView.addSubview(selectedBoardSnapshot)
+                containerView.addSubview(gameBoardSnapshot)
+
+                gameBoardSnapshot.alpha = 0
+                gameViewController.view.alpha = 0
+            } else {
+                containerView.addSubview(mainViewController.view)
+                containerView.addSubview(gameBoardSnapshot)
+                containerView.addSubview(selectedBoardSnapshot)
 
                 selectedBoardSnapshot.alpha = 0
-                finalBoardSnapshot.alpha = 1
-
-                gameViewController.view.alpha = 1
+                mainViewController.view.alpha = 0
             }
-            animator.addCompletion { _ in
-                transitionContext.completeTransition(true)
-                finalBoard.alpha = 1
-                selectedBoard.alpha = 1
-                selectedBoardSnapshot.removeFromSuperview()
-                finalBoardSnapshot.removeFromSuperview()
-            }
-            animator.startAnimation()
-        }
-
-        func animateReverseTransition(using transitionContext: UIViewControllerContextTransitioning) {
-            let mainViewController = transitionContext.viewController(forKey: .to) as! MainViewController
-            let gameViewController = transitionContext.viewController(forKey: .from) as! GameViewController
-            let containerView = transitionContext.containerView
-
-            containerView.insertSubview(mainViewController.view, aboveSubview: gameViewController.view)
-
-            let selectedCell = mainViewController.collectionView.cellForItem(at: [0, mainViewController.selectedItem]) as! BoardCell
-            let selectedBoard = selectedCell.lastSnapshotView!
-            let selectedBoardFrameInContainer = containerView.convert(selectedBoard.bounds, from: selectedBoard)
-            let selectedBoardSnapshot = selectedBoard.snapshotView(afterScreenUpdates: false)!
-            containerView.addSubview(selectedBoardSnapshot)
-
-            gameViewController.view.frame = containerView.bounds
-            gameViewController.view.layoutIfNeeded()
-            let finalBoard = gameViewController.boardView
-            let finalBoardFrameInContainer = containerView.convert(finalBoard.bounds, from: finalBoard)
-
-            let staticBoard = StaticBoardView(board: finalBoard.board)
-            staticBoard.frame = finalBoardFrameInContainer
-            let finalBoardSnapshot = staticBoard.snapshotView(afterScreenUpdates: true)!
-            containerView.insertSubview(finalBoardSnapshot, belowSubview: selectedBoardSnapshot)
-
-            selectedBoardSnapshot.frame = finalBoardFrameInContainer
-            finalBoardSnapshot.frame = finalBoardFrameInContainer
-            selectedBoardSnapshot.alpha = 0
-
-            finalBoard.alpha = 0
-            selectedBoard.alpha = 0
-
-            mainViewController.view.alpha = 0
 
             let animator = UIViewPropertyAnimator(duration: transitionDuration, dampingRatio: 1) {
-                selectedBoardSnapshot.frame = selectedBoardFrameInContainer
-                finalBoardSnapshot.frame = selectedBoardFrameInContainer
+                selectedBoardSnapshot.frame = finalFrame
+                gameBoardSnapshot.frame = finalFrame
 
-                selectedBoardSnapshot.alpha = 1
-                finalBoardSnapshot.alpha = 0
-
-                mainViewController.view.alpha = 1
+                if self.isPresenting {
+                    selectedBoardSnapshot.alpha = 0
+                    gameBoardSnapshot.alpha = 1
+                    gameViewController.view.alpha = 1
+                } else {
+                    selectedBoardSnapshot.alpha = 1
+                    gameBoardSnapshot.alpha = 0
+                    mainViewController.view.alpha = 1
+                }
             }
             animator.addCompletion { _ in
                 transitionContext.completeTransition(true)
-                finalBoard.alpha = 1
+                gameBoard.alpha = 1
                 selectedBoard.alpha = 1
                 selectedBoardSnapshot.removeFromSuperview()
-                finalBoardSnapshot.removeFromSuperview()
+                gameBoardSnapshot.removeFromSuperview()
             }
             animator.startAnimation()
         }
