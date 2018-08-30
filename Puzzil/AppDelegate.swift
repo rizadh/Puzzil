@@ -22,6 +22,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         loadMainViewController()
 
+        UserDefaults().register(defaults: [
+            .customKey(.tapToMove): true,
+            .customKey(.themePreference): ColorTheme.light.rawValue,
+        ])
+
         return true
     }
 
@@ -43,5 +48,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // TODO: Display a global alert controller in a new window
 
         loadMainViewController()
+    }
+}
+
+enum CustomUserDefaultsKey: String {
+    case tapToMove
+    case themePreference
+    case bestTimes
+}
+
+extension String {
+    static func customKey(_ key: CustomUserDefaultsKey) -> String {
+        return key.rawValue
     }
 }

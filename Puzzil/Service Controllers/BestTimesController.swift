@@ -113,11 +113,11 @@ class BestTimesController {
 
     private func saveBestTimesToDisk() throws {
         let data = try JSONEncoder().encode(bestTimes)
-        UserDefaults.standard.set(data, forKey: .bestTimesUserDefaultsKey)
+        UserDefaults.standard.set(data, forKey: .customKey(.bestTimes))
     }
 
     private func readBestTimesFromDisk() throws -> BestTimes {
-        guard let data = UserDefaults.standard.data(forKey: .bestTimesUserDefaultsKey)
+        guard let data = UserDefaults.standard.data(forKey: .customKey(.bestTimes))
         else { return [:] }
 
         return try JSONDecoder().decode(BestTimes.self, from: data)
@@ -141,10 +141,10 @@ class BestTimesController {
 
     private func createBestTimeInCloud(_ solveTime: Double, for boardStyle: BoardStyle, createdAt solveDate: Date) {
         fetchSavableRecord(for: boardStyle) { record in
-            record[.boardStyleRecordKey] = boardStyle.rawValue
-            record[.solveTimeRecordKey] = solveTime
-            record[.solveDateRecordKey] = solveDate
-            record[.isDeletedRecordKey] = false
+            record[.recordKey(.boardStyle)] = boardStyle.rawValue
+            record[.recordKey(.solveTime)] = solveTime
+            record[.recordKey(.solveDate)] = solveDate
+            record[.recordKey(.isDeleted)] = false
             self.database.save(record) { _, error in
                 guard error == nil else {
                     os_log("Could not save best time to iCloud.", type: .error)
@@ -159,8 +159,8 @@ class BestTimesController {
 
     private func deleteBestTimeInCloud(for boardStyle: BoardStyle, deletedAt deletionDate: Date) {
         fetchSavableRecord(for: boardStyle) { record in
-            record[.isDeletedRecordKey] = true
-            record[.deletionDateRecordKey] = deletionDate
+            record[.recordKey(.isDeleted)] = true
+            record[.recordKey(.deletionDate)] = deletionDate
             self.database.save(record, completionHandler: { _, error in
                 guard error == nil else {
                     os_log("Could not save deleted best time to iCloud.", type: .error)
@@ -190,15 +190,15 @@ class BestTimesController {
             var fetchedBestTimes = BestTimes()
 
             records.forEach { record in
-                guard let boardStyleRawValue = record[.boardStyleRecordKey] as? String,
+                guard let boardStyleRawValue = record[.recordKey(.boardStyle)] as? String,
                     let boardStyle = BoardStyle(rawValue: boardStyleRawValue),
-                    let isDeleted = record[.isDeletedRecordKey] as? Bool else {
+                    let isDeleted = record[.recordKey(.isDeleted)] as? Bool else {
                     os_log("Could not parse best time record from iCloud.", type: .error)
                     return
                 }
 
                 if isDeleted {
-                    guard let deletionDate = record[.deletionDateRecordKey] as? Date else {
+                    guard let deletionDate = record[.recordKey(.deletionDate)] as? Date else {
                         os_log("Could not parse deleted best time record from iCloud.", type: .error)
                         return
                     }
@@ -206,8 +206,8 @@ class BestTimesController {
                     os_log("Parsed deleted best time record from iCloud.")
                     fetchedBestTimes[boardStyle] = .deleted(deletionDate: deletionDate, synced: true)
                 } else {
-                    guard let solveDate = record[.solveDateRecordKey] as? Date,
-                        let solveTime = record[.solveTimeRecordKey] as? Double else {
+                    guard let solveDate = record[.recordKey(.solveDate)] as? Date,
+                        let solveTime = record[.recordKey(.solveTime)] as? Double else {
                         os_log("Could not parse created best time record from iCloud.", type: .error)
                         return
                     }
@@ -222,20 +222,20 @@ class BestTimesController {
     }
 }
 
-// MARK: - Custom UserDefaults Keys
-
-private extension String {
-    static let bestTimesUserDefaultsKey = "bestTimes"
-}
-
 // MARK: - Custom CKRecord Keys
 
 private extension String {
-    static let boardStyleRecordKey = "boardStyle"
-    static let isDeletedRecordKey = "isDeleted"
-    static let solveDateRecordKey = "solveDate"
-    static let solveTimeRecordKey = "solveTime"
-    static let deletionDateRecordKey = "deletionDate"
+    enum RecordKey: String {
+        case boardStyle
+        case isDeleted
+        case solveDate
+        case solveTime
+        case deletionDate
+    }
+
+    static func recordKey(_ key: RecordKey) -> String {
+        return key.rawValue
+    }
 }
 
 // MARK: - Custom CKRecord.RecordType

@@ -23,4 +23,23 @@ extension CGPoint {
             y: y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)
         )
     }
+
+    func magnitude(towards direction: TileMoveDirection, lowerBound: CGFloat = -.infinity, upperBound: CGFloat = .infinity) -> CGFloat {
+        let rawMagnitude: CGFloat
+
+        switch direction {
+        case .left:
+            rawMagnitude = -x
+        case .right:
+            rawMagnitude = x
+        case .up:
+            rawMagnitude = -y
+        case .down:
+            rawMagnitude = y
+        }
+
+        if rawMagnitude < lowerBound { return lowerBound }
+        if rawMagnitude > upperBound { return upperBound }
+        return rawMagnitude
+    }
 }

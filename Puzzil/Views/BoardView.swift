@@ -106,6 +106,44 @@ class BoardView: UIView {
         }
     }
 
+    @objc private func tileWasTapped(_ sender: UITapGestureRecognizer) {
+        guard UserDefaults().bool(forKey: .customKey(.tapToMove)) else { return }
+
+        let position = tilePositions[sender.view as! TileView]!
+
+        typealias OperationSet = (direction: TileMoveDirection, operations: [TileMoveOperation])
+        let operationSets: [OperationSet] = TileMoveDirection.allCases.compactMap({ direction in
+            let moveOperation = TileMoveOperation(position: position, direction: direction)
+            if case let .possible(requiredOperations) = board.canPerform(moveOperation) {
+                return (direction, [moveOperation] + requiredOperations)
+            } else {
+                return nil
+            }
+        })
+        let minimumOperationCount = operationSets.map({ $0.operations.count }).reduce(Int.max, min)
+        let simplestOperationSets = operationSets.filter { $0.operations.count == minimumOperationCount }
+
+        guard simplestOperationSets.count == 1,
+            let simpleOperationSet = simplestOperationSets.first,
+            let keyMoveOperation = simpleOperationSet.operations.first
+        else { return }
+
+        let operations = simpleOperationSet.operations
+        let tileViews = operations.map { tile(at: $0.startPosition)! }
+
+        for (tileView, operation) in zip(tileViews, operations) {
+            tilePositions[tileView] = operation.targetPosition
+        }
+        board.perform(keyMoveOperation)
+        delegate.boardDidChange(self)
+        delegate.progressDidChange(self, incremental: false)
+        UIViewPropertyAnimator(duration: 0.25, dampingRatio: 1) {
+            for (tileView, operation) in zip(tileViews, operations) {
+                self.place(tileView, at: operation.targetPosition)
+            }
+        }.startAnimation()
+    }
+
     // MARK: - Tile Layout
 
     func reloadBoard() {
@@ -142,6 +180,8 @@ class BoardView: UIView {
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(tileWasDragged(_:)))
         panGestureRecognizer.cancelsTouchesInView = false
         tileView.addGestureRecognizer(panGestureRecognizer)
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tileWasTapped(_:)))
+        tileView.addGestureRecognizer(tapGestureRecognizer)
     }
 
     // MARK: Tile Placement
@@ -378,26 +418,5 @@ extension BoardView: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return gestureRecognizer is UILongPressGestureRecognizer
-    }
-}
-
-private extension CGPoint {
-    func magnitude(towards direction: TileMoveDirection, lowerBound: CGFloat = -.infinity, upperBound: CGFloat = .infinity) -> CGFloat {
-        let rawMagnitude: CGFloat
-
-        switch direction {
-        case .left:
-            rawMagnitude = -x
-        case .right:
-            rawMagnitude = x
-        case .up:
-            rawMagnitude = -y
-        case .down:
-            rawMagnitude = y
-        }
-
-        if rawMagnitude < lowerBound { return lowerBound }
-        if rawMagnitude > upperBound { return upperBound }
-        return rawMagnitude
     }
 }

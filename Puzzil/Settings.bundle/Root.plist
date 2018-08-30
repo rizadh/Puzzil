@@ -5,8 +5,22 @@
 	<key>PreferenceSpecifiers</key>
 	<array>
 		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Tap-to-Move</string>
+			<key>Key</key>
+			<string>tapToMove</string>
+			<key>DefaultValue</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSMultiValueSpecifier</string>
 			<key>Title</key>
 			<string>Color Theme</string>
+			<key>Key</key>
+			<string>themePreference</string>
 			<key>Titles</key>
 			<array>
 				<string>Light</string>
@@ -17,12 +31,8 @@
 				<integer>0</integer>
 				<integer>1</integer>
 			</array>
-			<key>Type</key>
-			<string>PSMultiValueSpecifier</string>
 			<key>DefaultValue</key>
-			<string>light</string>
-			<key>Key</key>
-			<string>theme_preference</string>
+			<integer>0</integer>
 		</dict>
 	</array>
 </dict>

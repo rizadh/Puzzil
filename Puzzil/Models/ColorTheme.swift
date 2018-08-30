@@ -15,7 +15,7 @@ enum ColorTheme: Int {
     static var selected: ColorTheme = .light
 
     static func fromUserDefaults() -> ColorTheme? {
-        return ColorTheme(rawValue: UserDefaults().integer(forKey: "theme_preference"))
+        return ColorTheme(rawValue: UserDefaults().integer(forKey: .customKey(.themePreference)))
     }
 
     var background: UIColor {
