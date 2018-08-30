@@ -14,7 +14,7 @@ class BoardCell: UICollectionViewCell {
 
     private let titleLabel = UILabel()
     private let boardLayoutGuide = UILayoutGuide()
-    private var lastSnapshotView: UIView?
+    private(set) var lastSnapshotView: UIView?
     var boardStyle: BoardStyle! {
         didSet {
             guard boardStyle != oldValue else { return }

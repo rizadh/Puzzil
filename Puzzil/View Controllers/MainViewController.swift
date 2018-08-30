@@ -23,16 +23,20 @@ class MainViewController: UIViewController {
 
     // MARK: - Subviews
 
-    private var collectionView: UICollectionView!
-    private var collectionViewLayout: BoardSelectorLayout!
-    private var footerStackView: UIStackView!
-    private var bestTimeStat: StatView!
-    private var startButton: UIButton!
+    lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
+    let headerView = UIView()
+    let footerView = UIView()
+
+    private let collectionViewLayout = BoardSelectorLayout()
+    private let headerLabel = UILabel()
+    private let footerStackView = UIStackView()
+    private let bestTimeStat = StatView()
+    private let startButton = ThemedButton()
 
     // MARK: - Private Properties
 
     private var didScrollToFirstBoard = false
-    private var selectedItem = 0 { didSet { updateStatView() } }
+    private(set) var selectedItem = 0 { didSet { updateStatView() } }
 
     // MARK: - Adaptive Layout Constraints
 
@@ -44,11 +48,9 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.backgroundColor = ColorTheme.selected.primary
 
-        let headerLabel = UILabel()
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
         headerLabel.font = .systemFont(ofSize: 32, weight: .heavy)
@@ -68,9 +70,7 @@ class MainViewController: UIViewController {
             headerLabel.centerYAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -compactHeaderHeight / 2)
         )
 
-        collectionViewLayout = BoardSelectorLayout()
         collectionViewLayout.delegate = self
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = ColorTheme.selected.background
         collectionView.showsVerticalScrollIndicator = false
@@ -80,7 +80,6 @@ class MainViewController: UIViewController {
         collectionView.register(BoardCell.self, forCellWithReuseIdentifier: cellIdentifier)
         collectionView.contentInsetAdjustmentBehavior = .always
 
-        let footerView = UIView()
         footerView.translatesAutoresizingMaskIntoConstraints = false
 
         let blurEffectStyle: UIBlurEffect.Style
@@ -99,18 +98,16 @@ class MainViewController: UIViewController {
             footerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         }
 
-        bestTimeStat = StatView()
         bestTimeStat.titleLabel.text = "Best Time"
         bestTimeStat.valueLabel.text = "N/A"
 
-        startButton = ThemedButton()
         startButton.setTitle("Start", for: .normal)
         startButton.addTarget(self, action: #selector(startGame), for: .primaryActionTriggered)
 
         let leadingSpacerView = UIView(frame: .zero)
         let trailingSpacerView = UIView(frame: .zero)
 
-        footerStackView = UIStackView(arrangedSubviews: [leadingSpacerView, bestTimeStat, startButton, trailingSpacerView])
+        [leadingSpacerView, bestTimeStat, startButton, trailingSpacerView].forEach(footerStackView.addArrangedSubview(_:))
         footerStackView.translatesAutoresizingMaskIntoConstraints = false
         footerStackView.distribution = .equalSpacing
         footerStackView.alignment = .center
