@@ -7,17 +7,16 @@
 //
 
 import CoreGraphics
+import UIKit.UIScrollView
+
+private let defaultDecelerationRate = UIScrollView.DecelerationRate.normal.rawValue
 
 extension CGPoint {
     private func project(initialVelocity: CGFloat, decelerationRate: CGFloat) -> CGFloat {
         return (initialVelocity / 1000) * decelerationRate / (1 - decelerationRate)
     }
 
-    var magnitude: CGFloat {
-        return (pow(x, 2) + pow(y, 2)).squareRoot()
-    }
-
-    func projected(by velocity: CGPoint, decelerationRate: CGFloat) -> CGPoint {
+    func projected(by velocity: CGPoint, decelerationRate: CGFloat = defaultDecelerationRate) -> CGPoint {
         return CGPoint(
             x: x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate),
             y: y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)

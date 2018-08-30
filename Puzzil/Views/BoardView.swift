@@ -343,7 +343,9 @@ extension BoardView {
 
             switch sender.state {
             case .ended, .cancelled, .failed:
-                let projectedTranslation = DragOperation.projectTranslation(translation: clippedTranslation, velocity: averageVelocity)
+                let projectedTranslation = translation
+                    .projected(by: velocity)
+                    .magnitude(towards: direction, lowerBound: 0, upperBound: dragDistance)
                 let projectedProgress = projectedTranslation / dragDistance
 
                 if projectedProgress < 0.5 {
@@ -397,17 +399,6 @@ extension BoardView {
             }
 
             return nil
-        }
-
-        private static func projectTranslation(translation: CGFloat, velocity: CGFloat) -> CGFloat {
-            let deceleration: CGFloat = 1000
-
-            switch velocity.sign {
-            case .minus:
-                return translation - pow(velocity, 2) / deceleration
-            case .plus:
-                return translation + pow(velocity, 2) / deceleration
-            }
         }
     }
 }
