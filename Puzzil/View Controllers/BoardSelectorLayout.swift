@@ -88,7 +88,7 @@ class BoardSelectorLayout: UICollectionViewLayout {
             let totalFalloff = (pow(horizontalFalloff, 2) + pow(verticalFalloff, 2)).squareRoot()
             let easedFalloff = BoardSelectorLayout.easingFunction(totalFalloff / 2)
 
-            attributes.alpha = 1 - min(1, totalFalloff) * 0.5
+            attributes.alpha = max(0.5, min(1, 1.25 - 2 * totalFalloff))
             let scaleFactor = 1 - min(1, easedFalloff) * 0.5
             attributes.transform = CGAffineTransform(scaleX: scaleFactor, y: scaleFactor)
 
