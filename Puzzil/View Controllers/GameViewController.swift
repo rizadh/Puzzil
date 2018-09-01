@@ -417,7 +417,7 @@ class GameViewController: UIViewController {
         }
     }
 
-    @objc private func restartButtonWasTapped() {
+    @objc func restartButtonWasTapped() {
         switch gameState {
         case let .running(_, moves) where moves > 0:
             let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)

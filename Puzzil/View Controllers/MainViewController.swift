@@ -102,7 +102,7 @@ class MainViewController: UIViewController {
         bestTimeStat.valueLabel.text = "N/A"
 
         startButton.setTitle("Start", for: .normal)
-        startButton.addTarget(self, action: #selector(startGame), for: .primaryActionTriggered)
+        startButton.addTarget(self, action: #selector(startGameForSelectedItem), for: .primaryActionTriggered)
 
         let leadingSpacerView = UIView(frame: .zero)
         let trailingSpacerView = UIView(frame: .zero)
@@ -213,13 +213,39 @@ class MainViewController: UIViewController {
         }
     }
 
+    // MARK: - Public Methods
+
+    func automaticallyStartGame(for boardStyle: BoardStyle) {
+        guard presentedViewController == nil else {
+            restartCurrentGame()
+            return
+        }
+
+        let index = BoardStyle.allCases.firstIndex(of: boardStyle)!
+        collectionView.scrollToItem(at: [0, index], at: [.centeredHorizontally, .centeredVertically], animated: false)
+        startGame(for: boardStyle, animated: false)
+    }
+
     // MARK: - Private Methods
 
-    @objc private func startGame() {
+    @objc private func startGameForSelectedItem() {
         let boardStyle = BoardStyle.allCases[selectedItem]
+        startGame(for: boardStyle, animated: true)
+    }
+
+    private func startGame(for boardStyle: BoardStyle, animated: Bool) {
         let gameViewController = GameViewController(boardStyle: boardStyle)
 
-        present(gameViewController, animated: true)
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.lastBoardStyle = boardStyle
+
+        present(gameViewController, animated: animated)
+    }
+
+    private func restartCurrentGame() {
+        let gameViewController = presentedViewController as! GameViewController
+
+        gameViewController.restartButtonWasTapped()
     }
 
     private func updateStatView() {
