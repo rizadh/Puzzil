@@ -289,24 +289,42 @@ class MainViewController: UIViewController {
 
     private func shakeStartButton() {
         let angle: CGFloat = .pi / 32
+        let scaleFactor: CGFloat = 1.2
 
-        UIViewPropertyAnimator(duration: 0.2, curve: .easeOut) {
+        let leftRotationTransform = CGAffineTransform(rotationAngle: -angle)
+        let rightRotationTransform = CGAffineTransform(rotationAngle: angle)
+        let scaleTransform = CGAffineTransform(scaleX: scaleFactor, y: scaleFactor)
+
+        UIViewPropertyAnimator(duration: 0.8, curve: .easeOut) {
             UIView.animateKeyframes(withDuration: 0, delay: 0, options: [], animations: {
-                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.125, animations: {
-                    self.startButton.transform = CGAffineTransform(rotationAngle: angle)
+                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.25, animations: {
+                    self.startButton.transform = scaleTransform
                 })
-                UIView.addKeyframe(withRelativeStartTime: 0.125, relativeDuration: 0.25, animations: {
-                    self.startButton.transform = CGAffineTransform(rotationAngle: -angle)
-                })
-                UIView.addKeyframe(withRelativeStartTime: 0.375, relativeDuration: 0.25, animations: {
-                    self.startButton.transform = CGAffineTransform(rotationAngle: angle)
-                })
-                UIView.addKeyframe(withRelativeStartTime: 0.625, relativeDuration: 0.25, animations: {
-                    self.startButton.transform = CGAffineTransform(rotationAngle: -angle)
-                })
-                UIView.addKeyframe(withRelativeStartTime: 0.875, relativeDuration: 0.125, animations: {
+
+                UIView.addKeyframe(withRelativeStartTime: 0.75, relativeDuration: 0.25, animations: {
                     self.startButton.transform = .identity
                 })
+
+                let shakeDuration = 0.0625
+                var timeElapsed = 0.25
+
+                while timeElapsed < 0.75 {
+                    UIView.addKeyframe(withRelativeStartTime: timeElapsed, relativeDuration: 0.0625, animations: {
+                        self.startButton.transform = scaleTransform.concatenating(rightRotationTransform)
+                    })
+
+                    timeElapsed += shakeDuration
+
+                    UIView.addKeyframe(withRelativeStartTime: timeElapsed + shakeDuration, relativeDuration: 0.0625, animations: {
+                        if timeElapsed + shakeDuration < 0.75 {
+                            self.startButton.transform = scaleTransform.concatenating(leftRotationTransform)
+                        } else {
+                            self.startButton.transform = scaleTransform
+                        }
+                    })
+
+                    timeElapsed += shakeDuration
+                }
             })
         }.startAnimation()
     }
