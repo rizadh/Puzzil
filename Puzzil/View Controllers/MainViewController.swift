@@ -11,8 +11,17 @@ import UIKit
 private let cellIdentifier = "BoardCell"
 private let regularHeaderHeight: CGFloat = 64
 private let compactHeaderHeight: CGFloat = 56
-private let horizontalFooterHeight: CGFloat = 80
-private let verticalFooterWidth: CGFloat = 128
+private let bottomStatViewHeight: CGFloat = 48
+private let rightStatViewWidth: CGFloat = 96
+
+private func blurStyle(for colorTheme: ColorTheme) -> UIBlurEffect.Style {
+    switch colorTheme {
+    case .light:
+        return .dark
+    case .dark:
+        return .light
+    }
+}
 
 class MainViewController: UIViewController {
     // MARK: - UIViewController Property Overrides
@@ -24,14 +33,13 @@ class MainViewController: UIViewController {
     // MARK: - Subviews
 
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
-    let headerView = UIView()
-    let footerView = UIView()
+    private let headerView = UIView()
+    private let bestTimeView = UIVisualEffectView(effect: UIBlurEffect(style: blurStyle(for: .selected)))
 
     private let collectionViewLayout = BoardSelectorLayout()
     private let headerLabel = UILabel()
-    private let footerStackView = UIStackView()
-    private let bestTimeStat = StatView()
-    private let startButton = ThemedButton()
+    private let bestTimeTitle = UILabel()
+    private let bestTimeValue = UILabel()
 
     // MARK: - Private Properties
 
@@ -79,82 +87,60 @@ class MainViewController: UIViewController {
         collectionView.delegate = self
         collectionView.register(BoardCell.self, forCellWithReuseIdentifier: cellIdentifier)
         collectionView.contentInsetAdjustmentBehavior = .always
+        collectionView.scrollsToTop = false
 
-        footerView.translatesAutoresizingMaskIntoConstraints = false
+        bestTimeView.translatesAutoresizingMaskIntoConstraints = false
+        bestTimeView.layer.cornerRadius = 16
+        bestTimeView.clipsToBounds = true
+        bestTimeView.isUserInteractionEnabled = false
 
-        let blurEffectStyle: UIBlurEffect.Style
-        switch ColorTheme.selected {
-        case .light:
-            blurEffectStyle = .light
-        case .dark:
-            blurEffectStyle = .dark
-        }
-        let effectView = UIVisualEffectView(effect: UIBlurEffect(style: blurEffectStyle))
-        effectView.translatesAutoresizingMaskIntoConstraints = false
+        bestTimeTitle.translatesAutoresizingMaskIntoConstraints = false
+        bestTimeTitle.text = "Best Time"
+        bestTimeTitle.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
+        bestTimeTitle.alpha = 0.75
 
-        let footerBorder = UIView()
-        footerBorder.translatesAutoresizingMaskIntoConstraints = false
-        if ColorTheme.selected == .light {
-            footerBorder.backgroundColor = UIColor.black.withAlphaComponent(0.2)
-        }
+        bestTimeValue.translatesAutoresizingMaskIntoConstraints = false
+        bestTimeValue.text = "N/A"
+        bestTimeValue.font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
+        bestTimeValue.alpha = 0.5
 
-        bestTimeStat.titleLabel.text = "Best Time"
-        bestTimeStat.valueLabel.text = "N/A"
+        let vibrancyView = UIVisualEffectView(effect: UIVibrancyEffect(blurEffect: bestTimeView.effect as! UIBlurEffect))
+        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+        vibrancyView.contentView.addSubview(bestTimeTitle)
+        vibrancyView.contentView.addSubview(bestTimeValue)
 
-        startButton.setTitle("Start", for: .normal)
-        startButton.addTarget(self, action: #selector(startGameForSelectedItem), for: .primaryActionTriggered)
-
-        let leadingSpacerView = UIView(frame: .zero)
-        let trailingSpacerView = UIView(frame: .zero)
-
-        [leadingSpacerView, bestTimeStat, startButton, trailingSpacerView].forEach(footerStackView.addArrangedSubview(_:))
-        footerStackView.translatesAutoresizingMaskIntoConstraints = false
-        footerStackView.distribution = .equalSpacing
-        footerStackView.alignment = .center
-
-        footerView.addSubview(effectView)
-        footerView.addSubview(footerBorder)
-        footerView.addSubview(footerStackView)
-
-        // TODO: Fix centering of Start button and best time stat
+        bestTimeView.contentView.addSubview(vibrancyView)
 
         NSLayoutConstraint.activate([
-            effectView.topAnchor.constraint(equalTo: footerView.topAnchor),
-            effectView.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
-            effectView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
-            effectView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
-
-            footerBorder.topAnchor.constraint(equalTo: footerView.topAnchor),
-            footerBorder.leftAnchor.constraint(equalTo: footerView.leftAnchor),
-
-            footerStackView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
-            footerStackView.topAnchor.constraint(equalTo: footerView.topAnchor),
-
-            leadingSpacerView.widthAnchor.constraint(equalToConstant: 0),
-            leadingSpacerView.heightAnchor.constraint(equalToConstant: 0),
-            trailingSpacerView.widthAnchor.constraint(equalToConstant: 0),
-            trailingSpacerView.heightAnchor.constraint(equalToConstant: 0),
+            vibrancyView.topAnchor.constraint(equalTo: bestTimeView.topAnchor),
+            vibrancyView.bottomAnchor.constraint(equalTo: bestTimeView.bottomAnchor),
+            vibrancyView.leftAnchor.constraint(equalTo: bestTimeView.leftAnchor),
+            vibrancyView.rightAnchor.constraint(equalTo: bestTimeView.rightAnchor),
         ])
 
         portraitLayoutConstraints.append(contentsOf: [
-            footerBorder.rightAnchor.constraint(equalTo: footerView.rightAnchor),
-            footerBorder.heightAnchor.constraint(equalToConstant: 0.5),
+            bestTimeTitle.rightAnchor.anchorWithOffset(to: bestTimeValue.leftAnchor).constraint(equalToConstant: 8),
 
-            footerStackView.heightAnchor.constraint(equalToConstant: horizontalFooterHeight),
-            footerStackView.rightAnchor.constraint(equalTo: footerView.rightAnchor),
+            bestTimeTitle.leftAnchor.constraint(equalTo: bestTimeView.leftAnchor, constant: 16),
+            bestTimeTitle.centerYAnchor.constraint(equalTo: bestTimeView.centerYAnchor),
+
+            bestTimeValue.rightAnchor.constraint(equalTo: bestTimeView.rightAnchor, constant: -16),
+            bestTimeValue.centerYAnchor.constraint(equalTo: bestTimeView.centerYAnchor),
         ])
 
         landscapeLayoutConstraints.append(contentsOf: [
-            footerBorder.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
-            footerBorder.widthAnchor.constraint(equalToConstant: 0.5),
+            bestTimeTitle.lastBaselineAnchor.anchorWithOffset(to: bestTimeValue.topAnchor).constraint(equalToConstant: 8),
 
-            footerStackView.widthAnchor.constraint(equalToConstant: verticalFooterWidth),
-            footerStackView.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
+            bestTimeTitle.topAnchor.constraint(equalTo: bestTimeView.topAnchor, constant: 16),
+            bestTimeTitle.centerXAnchor.constraint(equalTo: bestTimeView.centerXAnchor),
+
+            bestTimeValue.lastBaselineAnchor.constraint(equalTo: bestTimeView.bottomAnchor, constant: -16),
+            bestTimeValue.centerXAnchor.constraint(equalTo: bestTimeView.centerXAnchor),
         ])
 
         view.addSubview(collectionView)
         view.addSubview(headerView)
-        view.addSubview(footerView)
+        view.addSubview(bestTimeView)
 
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -166,19 +152,19 @@ class MainViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             collectionView.leftAnchor.constraint(equalTo: view.leftAnchor),
             collectionView.rightAnchor.constraint(equalTo: view.rightAnchor),
-
-            footerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            footerView.rightAnchor.constraint(equalTo: view.rightAnchor),
         ])
 
         portraitLayoutConstraints.append(contentsOf: [
-            footerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            footerView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            bestTimeView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            bestTimeView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            bestTimeView.heightAnchor.constraint(equalToConstant: bottomStatViewHeight),
         ])
 
         landscapeLayoutConstraints.append(contentsOf: [
-            footerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            footerView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
+            bestTimeView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
+            bestTimeView.widthAnchor.constraint(equalToConstant: rightStatViewWidth),
+            bestTimeView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+
         ])
 
         BestTimesController.shared.subscribeToChanges { [weak self] in
@@ -251,83 +237,35 @@ class MainViewController: UIViewController {
         let boardStyle = BoardStyle.allCases[selectedItem]
 
         if let bestTime = BestTimesController.shared.getBestTime(for: boardStyle) {
-            bestTimeStat.valueLabel.text = String(format: "%.1f s", bestTime)
+            bestTimeValue.text = String(format: "%.1f s", bestTime)
         } else {
-            bestTimeStat.valueLabel.text = "N/A"
+            bestTimeValue.text = "N/A"
         }
     }
 
     private func adjustLayoutToSizeClass() {
         switch (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) {
         case (.regular, _), (.compact, .compact):
-            footerStackView.axis = .vertical
-
             additionalSafeAreaInsets = UIEdgeInsets(
                 top: compactHeaderHeight,
                 left: 0,
                 bottom: 0,
-                right: verticalFooterWidth
+                right: rightStatViewWidth + 16
             )
 
             NSLayoutConstraint.deactivate(portraitLayoutConstraints)
             NSLayoutConstraint.activate(landscapeLayoutConstraints)
         default:
-            footerStackView.axis = .horizontal
-
             additionalSafeAreaInsets = UIEdgeInsets(
                 top: regularHeaderHeight,
                 left: 0,
-                bottom: horizontalFooterHeight,
+                bottom: bottomStatViewHeight + 16,
                 right: 0
             )
 
             NSLayoutConstraint.deactivate(landscapeLayoutConstraints)
             NSLayoutConstraint.activate(portraitLayoutConstraints)
         }
-    }
-
-    private func shakeStartButton() {
-        let angle: CGFloat = .pi / 32
-        let scaleFactor: CGFloat = 1.2
-
-        let scaleTransform = CGAffineTransform(scaleX: scaleFactor, y: scaleFactor)
-        let leftRotationTransform = scaleTransform.rotated(by: -angle)
-        let rightRotationTransform = scaleTransform.rotated(by: angle)
-
-        UIViewPropertyAnimator(duration: 0.8, curve: .easeOut) {
-            UIView.animateKeyframes(withDuration: 0, delay: 0, options: [], animations: {
-                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.25, animations: {
-                    self.startButton.transform = scaleTransform
-                })
-
-                let startTime = 0.25
-                let endTime = 0.75
-                let shakeDuration = 0.0625
-                var currentTime = startTime
-
-                while currentTime < endTime {
-                    UIView.addKeyframe(withRelativeStartTime: currentTime, relativeDuration: shakeDuration, animations: {
-                        self.startButton.transform = rightRotationTransform
-                    })
-
-                    currentTime += shakeDuration
-
-                    UIView.addKeyframe(withRelativeStartTime: currentTime, relativeDuration: shakeDuration, animations: {
-                        if currentTime + shakeDuration < endTime {
-                            self.startButton.transform = leftRotationTransform
-                        } else {
-                            self.startButton.transform = scaleTransform
-                        }
-                    })
-
-                    currentTime += shakeDuration
-                }
-
-                UIView.addKeyframe(withRelativeStartTime: 0.75, relativeDuration: 0.25, animations: {
-                    self.startButton.transform = .identity
-                })
-            })
-        }.startAnimation()
     }
 }
 
@@ -352,7 +290,7 @@ extension MainViewController: UICollectionViewDataSource {
 extension MainViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if indexPath.item == selectedItem {
-            shakeStartButton()
+            startGameForSelectedItem()
         } else {
             collectionView.scrollToItem(at: indexPath, at: [.centeredHorizontally, .centeredVertically], animated: true)
         }
