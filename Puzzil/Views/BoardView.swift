@@ -403,6 +403,10 @@ extension BoardView {
                 return horizontalDirection
             } else if possibleDirections.contains(verticalDirection) && translationIsVertical {
                 return verticalDirection
+            } else if possibleDirections.contains(horizontalDirection) {
+                return horizontalDirection
+            } else if possibleDirections.contains(verticalDirection) {
+                return verticalDirection
             }
 
             return nil
