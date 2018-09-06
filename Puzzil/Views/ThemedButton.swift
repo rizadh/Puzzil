@@ -23,6 +23,10 @@ class ThemedButton: UIButton {
         }
     }
 
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: max(super.intrinsicContentSize.width, 96), height: 48)
+    }
+
     convenience init() {
         self.init(type: .custom)
 

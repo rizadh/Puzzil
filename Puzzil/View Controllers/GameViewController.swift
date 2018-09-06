@@ -30,6 +30,11 @@ class GameViewController: UIViewController {
         }
     }
 
+    // MARK: - Layout Contraints
+
+    var portraitLayoutConstraints = [NSLayoutConstraint]()
+    var landscapeLayoutConstraints = [NSLayoutConstraint]()
+
     // MARK: - Board Management
 
     private let boardStyle: BoardStyle
@@ -123,7 +128,7 @@ class GameViewController: UIViewController {
 
         [bestTimeStat, timeStat, movesStat].forEach(stats.addArrangedSubview(_:))
         stats.translatesAutoresizingMaskIntoConstraints = false
-        stats.distribution = .fillEqually
+        stats.alignment = .center
 
         solvedBoardView.translatesAutoresizingMaskIntoConstraints = false
         solvedBoardView.isHidden = true
@@ -149,7 +154,6 @@ class GameViewController: UIViewController {
         buttons.addArrangedSubview(peekButton)
         buttons.addArrangedSubview(restartButton)
         buttons.translatesAutoresizingMaskIntoConstraints = false
-        buttons.distribution = .fillEqually
         buttons.spacing = 8
 
         progressBar.translatesAutoresizingMaskIntoConstraints = false
@@ -166,21 +170,38 @@ class GameViewController: UIViewController {
         view.addSubview(buttons)
         view.addSubview(progressBar)
 
-        let statsLayoutGuide = UILayoutGuide()
-        view.addLayoutGuide(statsLayoutGuide)
-
-        NSLayoutConstraint.activate([
-            statsLayoutGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-
+        portraitLayoutConstraints.append(contentsOf: [
             stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            stats.centerYAnchor.constraint(equalTo: statsLayoutGuide.centerYAnchor),
-            stats.heightAnchor.constraint(lessThanOrEqualTo: statsLayoutGuide.heightAnchor),
+            stats.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            stats.bottomAnchor.constraint(equalTo: boardView.topAnchor, constant: -16),
 
+            buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
+            buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
+
+            progressBar.topAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 8),
+        ])
+
+        landscapeLayoutConstraints.append(contentsOf: [
+            stats.topAnchor.constraint(equalTo: boardView.topAnchor, constant: 16),
+            stats.bottomAnchor.constraint(equalTo: boardView.bottomAnchor, constant: -16),
+            stats.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
+            stats.rightAnchor.constraint(equalTo: boardView.leftAnchor, constant: -16),
+
+            buttons.topAnchor.constraint(equalTo: boardView.topAnchor, constant: 16),
+            buttons.bottomAnchor.constraint(equalTo: boardView.bottomAnchor, constant: -16),
+            buttons.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
+            buttons.leftAnchor.constraint(equalTo: boardView.rightAnchor, constant: 16),
+
+            progressBar.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 8),
+        ])
+
+        NSLayoutConstraint.activate([
+            boardView.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
             boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
             boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            boardView.topAnchor.constraint(equalTo: statsLayoutGuide.bottomAnchor, constant: 16),
 
             solvedBoardView.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             solvedBoardView.rightAnchor.constraint(equalTo: boardView.rightAnchor),
@@ -190,14 +211,8 @@ class GameViewController: UIViewController {
             resultView.centerXAnchor.constraint(equalTo: boardView.centerXAnchor),
             resultView.centerYAnchor.constraint(equalTo: boardView.centerYAnchor),
 
-            buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
-            buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            buttons.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 16),
-            buttons.heightAnchor.constraint(equalToConstant: 48),
-
             progressBar.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             progressBar.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            progressBar.topAnchor.constraint(equalTo: buttons.bottomAnchor, constant: 8),
             progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
             progressBar.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -16),
             progressBar.heightAnchor.constraint(equalToConstant: 8),
@@ -239,6 +254,15 @@ class GameViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         timeStatRefresher.invalidate()
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass ||
+            traitCollection.verticalSizeClass != previousTraitCollection?.verticalSizeClass {
+            adjustLayoutToSizeClass()
+        }
     }
 
     // MARK: - View Transitioning
@@ -325,6 +349,31 @@ class GameViewController: UIViewController {
     private func navigateToMainMenu() {
         gameState = .transitioning
         dismiss(animated: true)
+    }
+
+    private func adjustLayoutToSizeClass() {
+        switch (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) {
+        case (.regular, _), (.compact, .compact):
+            stats.distribution = .equalCentering
+            stats.axis = .vertical
+
+            buttons.distribution = .equalSpacing
+            buttons.alignment = .center
+            buttons.axis = .vertical
+
+            NSLayoutConstraint.deactivate(portraitLayoutConstraints)
+            NSLayoutConstraint.activate(landscapeLayoutConstraints)
+        default:
+            stats.distribution = .fillEqually
+            stats.axis = .horizontal
+
+            buttons.distribution = .fillEqually
+            buttons.alignment = .fill
+            buttons.axis = .horizontal
+
+            NSLayoutConstraint.deactivate(landscapeLayoutConstraints)
+            NSLayoutConstraint.activate(portraitLayoutConstraints)
+        }
     }
 
     // MARK: - Stat Update Methods

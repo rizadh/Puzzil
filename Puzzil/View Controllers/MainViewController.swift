@@ -116,6 +116,8 @@ class MainViewController: UIViewController {
         footerView.addSubview(footerBorder)
         footerView.addSubview(footerStackView)
 
+        // TODO: Fix centering of Start button and best time stat
+
         NSLayoutConstraint.activate([
             effectView.topAnchor.constraint(equalTo: footerView.topAnchor),
             effectView.bottomAnchor.constraint(equalTo: footerView.bottomAnchor),
@@ -127,9 +129,6 @@ class MainViewController: UIViewController {
 
             footerStackView.leftAnchor.constraint(equalTo: footerView.leftAnchor),
             footerStackView.topAnchor.constraint(equalTo: footerView.topAnchor),
-
-            startButton.heightAnchor.constraint(equalToConstant: 48),
-            startButton.widthAnchor.constraint(equalToConstant: 96),
 
             leadingSpacerView.widthAnchor.constraint(equalToConstant: 0),
             leadingSpacerView.heightAnchor.constraint(equalToConstant: 0),
@@ -207,8 +206,8 @@ class MainViewController: UIViewController {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
 
-        if (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) !=
-            (previousTraitCollection?.horizontalSizeClass, previousTraitCollection?.verticalSizeClass) {
+        if traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass ||
+            traitCollection.verticalSizeClass != previousTraitCollection?.verticalSizeClass {
             adjustLayoutToSizeClass()
         }
     }
