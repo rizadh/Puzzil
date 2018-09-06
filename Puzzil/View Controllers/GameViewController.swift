@@ -397,7 +397,7 @@ class GameViewController: UIViewController {
 
             UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
                 statView.valueLabel.transform = .identity
-            }.startAnimation(afterDelay: 0.125)
+            }.startAnimation(afterDelay: 0.1)
         } else {
             statView.valueLabel.text = newValue
         }
@@ -560,7 +560,7 @@ extension GameViewController: BoardViewDelegate {
 
 extension GameViewController: UIViewControllerTransitioningDelegate {
     class Animator: NSObject, UIViewControllerAnimatedTransitioning {
-        let transitionDuration = 0.25
+        let transitionDuration = 0.2
         var isPresenting = true
 
         func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {

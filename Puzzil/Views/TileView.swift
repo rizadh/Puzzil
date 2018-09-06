@@ -33,28 +33,29 @@ class TileView: UIView {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        highlight()
+        activateHighlight()
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        unhighlight()
+        deactivateHighlight()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        unhighlight()
+        deactivateHighlight()
     }
 
-    private func highlight() {
+    private func activateHighlight() {
         CATransaction.begin()
-        CATransaction.setDisableActions(true)
+        CATransaction.setAnimationDuration(0.1)
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
         highlightLayer.opacity = 1
         CATransaction.commit()
     }
 
-    private func unhighlight() {
+    private func deactivateHighlight() {
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.25)
-        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear))
+        CATransaction.setAnimationDuration(0.1)
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
         highlightLayer.opacity = 0
         CATransaction.commit()
     }
