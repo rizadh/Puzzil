@@ -566,7 +566,7 @@ extension GameViewController: BoardViewDelegate {
 
 extension GameViewController: UIViewControllerTransitioningDelegate {
     class Animator: NSObject, UIViewControllerAnimatedTransitioning {
-        var transitionDuration = 0.4
+        var transitionDuration = 0.2
         var isPresenting = true
 
         func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
