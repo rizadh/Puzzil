@@ -590,7 +590,8 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
             gameViewController.view.layoutIfNeeded()
             mainViewController.view.layoutIfNeeded()
 
-            let gameBoard = gameViewController.boardView
+            let gameBoard = gameViewController.boardView.isHidden ?
+                gameViewController.resultView : gameViewController.boardView
             let gameBoardFrameInContainer = containerView.convert(gameBoard.bounds, from: gameBoard)
             let gameBoardSnapshot = gameBoard.snapshotView(afterScreenUpdates: true)!
 
