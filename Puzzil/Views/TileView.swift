@@ -46,7 +46,7 @@ class TileView: UIView {
 
     private func activateHighlight() {
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.1)
+        CATransaction.setAnimationDuration(.quickAnimationDuration)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
         highlightLayer.opacity = 1
         CATransaction.commit()
@@ -54,7 +54,7 @@ class TileView: UIView {
 
     private func deactivateHighlight() {
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.1)
+        CATransaction.setAnimationDuration(.quickAnimationDuration)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
         highlightLayer.opacity = 0
         CATransaction.commit()

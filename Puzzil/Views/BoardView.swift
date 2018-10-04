@@ -137,7 +137,7 @@ class BoardView: UIView {
         board.perform(keyMoveOperation)
         delegate.boardDidChange(self)
         delegate.progressDidChange(self, incremental: false)
-        UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
+        UIViewPropertyAnimator(duration: .normalAnimationDuration, dampingRatio: 1) {
             for (tileView, operation) in zip(tileViews, operations) {
                 self.place(tileView, at: operation.targetPosition)
             }
@@ -305,7 +305,7 @@ extension BoardView {
 
             boardView.board.begin(keyMoveOperation)
 
-            let animator = UIViewPropertyAnimator(duration: 0.2, curve: .linear) {
+            let animator = UIViewPropertyAnimator(duration: .normalAnimationDuration, curve: .linear) {
                 for moveOperation in moveOperations {
                     let tileView = boardView.tile(at: moveOperation.startPosition)!
                     boardView.place(tileView, at: moveOperation.targetPosition)

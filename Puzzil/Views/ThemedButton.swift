@@ -52,20 +52,20 @@ class ThemedButton: UIButton {
     }
 
     private func setEnabledTintColor() {
-        UIViewPropertyAnimator(duration: 0.1, curve: .linear) {
+        UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
             self.tintColor = ColorTheme.selected.primaryTextOnPrimary
         }.startAnimation()
     }
 
     private func setDisabledTintColor() {
-        UIViewPropertyAnimator(duration: 0.1, curve: .linear) {
+        UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
             self.tintColor = ColorTheme.selected.primaryTextOnPrimary.withAlphaComponent(0.5)
         }.startAnimation()
     }
 
     private func activateHighlight() {
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.1)
+        CATransaction.setAnimationDuration(.quickAnimationDuration)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
         highlightLayer.opacity = 1
         CATransaction.commit()
@@ -73,7 +73,7 @@ class ThemedButton: UIButton {
 
     private func deactivateHighlight() {
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.1)
+        CATransaction.setAnimationDuration(.quickAnimationDuration)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
         highlightLayer.opacity = 0
         CATransaction.commit()

@@ -276,7 +276,7 @@ class GameViewController: UIViewController {
         // Animate outgoing view
 
         let outgoingView: UIView
-        let outgoingAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn)
+        let outgoingAnimator = UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .easeIn)
 
         switch gameState {
         case .waiting, .running:
@@ -308,7 +308,7 @@ class GameViewController: UIViewController {
         boardView.transform = outerRightTransform
         boardView.alpha = 0
         boardView.isHidden = false
-        let incomingAnimator = UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
+        let incomingAnimator = UIViewPropertyAnimator(duration: .normalAnimationDuration, dampingRatio: 1) {
             self.boardView.transform = .identity
             self.boardView.alpha = 1
         }
@@ -328,7 +328,7 @@ class GameViewController: UIViewController {
         guard case let .running(startTime, _) = gameState else { fatalError("Board was solved before game ran.") }
         gameState = .solved
 
-        let boardAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
+        let boardAnimator = UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .easeIn) {
             self.boardView.transform = outerLeftTransform
             self.boardView.alpha = 0
         }
@@ -342,7 +342,7 @@ class GameViewController: UIViewController {
         resultView.isHidden = false
         resultView.transform = outerRightTransform
         resultView.alpha = 0
-        let resultAnimator = UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
+        let resultAnimator = UIViewPropertyAnimator(duration: .normalAnimationDuration, dampingRatio: 1) {
             self.resultView.transform = .identity
             self.resultView.alpha = 1
         }
@@ -390,7 +390,7 @@ class GameViewController: UIViewController {
         if animated {
             statsBeingReloaded.insert(statView)
 
-            let exitAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeIn) {
+            let exitAnimator = UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .easeIn) {
                 statView.valueLabel.transform = CGAffineTransform(scaleX: 1e-5, y: 1e-5)
             }
             exitAnimator.addCompletion { _ in
@@ -399,9 +399,9 @@ class GameViewController: UIViewController {
             }
             exitAnimator.startAnimation()
 
-            UIViewPropertyAnimator(duration: 0.2, dampingRatio: 1) {
+            UIViewPropertyAnimator(duration: .normalAnimationDuration, dampingRatio: 1) {
                 statView.valueLabel.transform = .identity
-            }.startAnimation(afterDelay: 0.1)
+            }.startAnimation(afterDelay: .quickAnimationDuration)
         } else {
             statView.valueLabel.text = newValue
         }
@@ -490,7 +490,7 @@ class GameViewController: UIViewController {
         solvedBoardView.alpha = 0
         solvedBoardView.isHidden = false
         boardView.cancelAllOperations()
-        UIViewPropertyAnimator(duration: 0.1, curve: .linear) {
+        UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
             self.solvedBoardView.alpha = 0.5
             self.boardView.alpha = 0
         }.startAnimation()
@@ -500,7 +500,7 @@ class GameViewController: UIViewController {
     }
 
     @objc private func peekButtonWasReleased() {
-        let animator = UIViewPropertyAnimator(duration: 0.1, curve: .linear) {
+        let animator = UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
             self.solvedBoardView.alpha = 0
             self.boardView.alpha = 1
         }
@@ -566,11 +566,10 @@ extension GameViewController: BoardViewDelegate {
 
 extension GameViewController: UIViewControllerTransitioningDelegate {
     class Animator: NSObject, UIViewControllerAnimatedTransitioning {
-        var transitionDuration = 0.2
         var isPresenting = true
 
         func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-            return transitionDuration
+            return .normalAnimationDuration
         }
 
         func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -662,7 +661,7 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
 
             // Setup animations
 
-            let animator = UIViewPropertyAnimator(duration: transitionDuration, dampingRatio: 1) {
+            let animator = UIViewPropertyAnimator(duration: .normalAnimationDuration, dampingRatio: 1) {
                 selectedBoardSnapshot.frame = finalBoardFrame
                 gameBoardSnapshot.frame = finalBoardFrame
                 bestTimeSnapshot.frame = finalFooterFrame
