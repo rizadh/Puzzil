@@ -593,10 +593,7 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
 
             let gameBoard = gameViewController.boardView
             let gameBoardFrameInContainer = containerView.convert(gameBoard.bounds, from: gameBoard)
-
-            let staticBoard = StaticBoardView(board: gameBoard.board)
-            staticBoard.frame = gameBoardFrameInContainer
-            let gameBoardSnapshot = staticBoard.snapshotView(afterScreenUpdates: true)!
+            let gameBoardSnapshot = gameBoard.snapshotView(afterScreenUpdates: true)!
 
             let initialBoardFrame = isPresenting ? selectedBoardFrameInContainer : gameBoardFrameInContainer
             let finalBoardFrame = isPresenting ? gameBoardFrameInContainer : selectedBoardFrameInContainer
