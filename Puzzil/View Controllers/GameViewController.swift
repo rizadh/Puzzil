@@ -170,11 +170,18 @@ class GameViewController: UIViewController {
         view.addSubview(buttons)
         view.addSubview(progressBar)
 
+        let statsTopSpacing = view.safeAreaLayoutGuide.topAnchor.anchorWithOffset(to: stats.topAnchor)
+        let statsBottomSpacing = stats.bottomAnchor.anchorWithOffset(to: boardView.topAnchor)
+        let statsLeftSpacing = view.safeAreaLayoutGuide.leftAnchor.anchorWithOffset(to: stats.leftAnchor)
+        let statsRightSpacing = stats.rightAnchor.anchorWithOffset(to: boardView.leftAnchor)
+
+        let buttonsLeftSpacing = boardView.rightAnchor.anchorWithOffset(to: buttons.leftAnchor)
+        let buttonsRightSpacing = buttons.rightAnchor.anchorWithOffset(to: view.safeAreaLayoutGuide.rightAnchor)
+
         portraitLayoutConstraints.append(contentsOf: [
             stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
-            stats.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            stats.bottomAnchor.constraint(equalTo: boardView.topAnchor, constant: -16),
+            statsTopSpacing.constraint(equalTo: statsBottomSpacing),
 
             buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
@@ -186,13 +193,11 @@ class GameViewController: UIViewController {
         landscapeLayoutConstraints.append(contentsOf: [
             stats.topAnchor.constraint(equalTo: boardView.topAnchor, constant: 16),
             stats.bottomAnchor.constraint(equalTo: boardView.bottomAnchor, constant: -16),
-            stats.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
-            stats.rightAnchor.constraint(equalTo: boardView.leftAnchor, constant: -16),
+            statsLeftSpacing.constraint(equalTo: statsRightSpacing),
 
             buttons.topAnchor.constraint(equalTo: boardView.topAnchor, constant: 16),
             buttons.bottomAnchor.constraint(equalTo: boardView.bottomAnchor, constant: -16),
-            buttons.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
-            buttons.leftAnchor.constraint(equalTo: boardView.rightAnchor, constant: 16),
+            buttonsLeftSpacing.constraint(equalTo: buttonsRightSpacing),
 
             progressBar.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 8),
         ])
@@ -352,8 +357,7 @@ class GameViewController: UIViewController {
     }
 
     private func adjustLayoutToSizeClass() {
-        switch (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) {
-        case (.regular, _), (.compact, .compact):
+        if traitCollection.prefersLandscapeLayout {
             stats.distribution = .equalCentering
             stats.axis = .vertical
 
@@ -363,7 +367,7 @@ class GameViewController: UIViewController {
 
             NSLayoutConstraint.deactivate(portraitLayoutConstraints)
             NSLayoutConstraint.activate(landscapeLayoutConstraints)
-        default:
+        } else {
             stats.distribution = .fillEqually
             stats.axis = .horizontal
 
@@ -562,7 +566,7 @@ extension GameViewController: BoardViewDelegate {
 
 extension GameViewController: UIViewControllerTransitioningDelegate {
     class Animator: NSObject, UIViewControllerAnimatedTransitioning {
-        let transitionDuration = 0.2
+        var transitionDuration = 0.4
         var isPresenting = true
 
         func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
@@ -576,13 +580,17 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
                 .viewController(forKey: isPresenting ? .to : .from) as! GameViewController
             let containerView = transitionContext.containerView
 
+            // Generate board snapshots
+
             let selectedCell = mainViewController.collectionView.cellForItem(at: [0, mainViewController.selectedItem]) as! BoardCell
             let selectedBoard = selectedCell.lastSnapshotView!
             let selectedBoardFrameInContainer = containerView.convert(selectedBoard.bounds, from: selectedBoard)
             let selectedBoardSnapshot = selectedBoard.snapshotView(afterScreenUpdates: true)!
 
-            gameViewController.view.frame = containerView.bounds
+            containerView.addSubview(isPresenting ? gameViewController.view : mainViewController.view)
             gameViewController.view.layoutIfNeeded()
+            mainViewController.view.layoutIfNeeded()
+
             let gameBoard = gameViewController.boardView
             let gameBoardFrameInContainer = containerView.convert(gameBoard.bounds, from: gameBoard)
 
@@ -590,50 +598,117 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
             staticBoard.frame = gameBoardFrameInContainer
             let gameBoardSnapshot = staticBoard.snapshotView(afterScreenUpdates: true)!
 
-            gameBoard.alpha = 0
-            selectedBoard.alpha = 0
+            let initialBoardFrame = isPresenting ? selectedBoardFrameInContainer : gameBoardFrameInContainer
+            let finalBoardFrame = isPresenting ? gameBoardFrameInContainer : selectedBoardFrameInContainer
 
-            let initialFrame = isPresenting ? selectedBoardFrameInContainer : gameBoardFrameInContainer
-            let finalFrame = isPresenting ? gameBoardFrameInContainer : selectedBoardFrameInContainer
+            selectedBoardSnapshot.frame = initialBoardFrame
+            gameBoardSnapshot.frame = initialBoardFrame
 
-            selectedBoardSnapshot.frame = initialFrame
-            gameBoardSnapshot.frame = initialFrame
+            // Generate buttons and stats snapshots
+
+            let bestTimeView = mainViewController.bestTimeView
+            let bestTimeFrameInContainer = containerView.convert(bestTimeView.bounds, from: bestTimeView)
+            let bestTimeSnapshot = bestTimeView.snapshotView(afterScreenUpdates: true)!
+
+            let buttons = gameViewController.buttons
+            let buttonsFrameInContainer = containerView.convert(buttons.bounds, from: buttons)
+            let buttonsSnapshot = buttons.snapshotView(afterScreenUpdates: true)!
+
+            let initialFooterFrame = isPresenting ? bestTimeFrameInContainer : buttonsFrameInContainer
+            let finalFooterFrame = isPresenting ? buttonsFrameInContainer : bestTimeFrameInContainer
+
+            bestTimeSnapshot.frame = initialFooterFrame
+            buttonsSnapshot.frame = initialFooterFrame
+
+            let footerHorizontalStretchRatio = initialFooterFrame.width / finalFooterFrame.width
+            let footerVerticalTranslation = initialFooterFrame.maxY - finalFooterFrame.maxY
+            let presentingTransform = CGAffineTransform(scaleX: footerHorizontalStretchRatio, y: 1)
+                .translatedBy(x: 0, y: footerVerticalTranslation)
+
+            let transformDistance: CGFloat = 16
+            let progressBarTransform = containerView.traitCollection.prefersLandscapeLayout ?
+                CGAffineTransform(translationX: 0, y: transformDistance) :
+                isPresenting ? presentingTransform : presentingTransform.inverted()
+            let statsTransform = containerView.traitCollection.prefersLandscapeLayout ?
+                CGAffineTransform(translationX: -transformDistance, y: 0) :
+                CGAffineTransform(translationX: 0, y: transformDistance)
+
+            gameBoard.isHidden = true
+            selectedBoard.isHidden = true
+            bestTimeView.isHidden = true
+            buttons.isHidden = true
+
+            // Setup initial layout
+
             if isPresenting {
-                containerView.addSubview(gameViewController.view)
                 containerView.addSubview(selectedBoardSnapshot)
                 containerView.addSubview(gameBoardSnapshot)
+                containerView.addSubview(bestTimeSnapshot)
+                containerView.addSubview(buttonsSnapshot)
+
+                gameViewController.progressBar.transform = progressBarTransform
+                gameViewController.stats.transform = statsTransform
 
                 gameBoardSnapshot.alpha = 0
+                buttonsSnapshot.alpha = 0
                 gameViewController.view.alpha = 0
             } else {
-                containerView.addSubview(mainViewController.view)
                 containerView.addSubview(gameBoardSnapshot)
                 containerView.addSubview(selectedBoardSnapshot)
+                containerView.addSubview(buttonsSnapshot)
+                containerView.addSubview(bestTimeSnapshot)
 
                 selectedBoardSnapshot.alpha = 0
+                bestTimeSnapshot.alpha = 0
                 mainViewController.view.alpha = 0
             }
 
+            // Setup animations
+
             let animator = UIViewPropertyAnimator(duration: transitionDuration, dampingRatio: 1) {
-                selectedBoardSnapshot.frame = finalFrame
-                gameBoardSnapshot.frame = finalFrame
+                selectedBoardSnapshot.frame = finalBoardFrame
+                gameBoardSnapshot.frame = finalBoardFrame
+                bestTimeSnapshot.frame = finalFooterFrame
+                buttonsSnapshot.frame = finalFooterFrame
 
                 if self.isPresenting {
                     selectedBoardSnapshot.alpha = 0
                     gameBoardSnapshot.alpha = 1
+                    bestTimeSnapshot.alpha = 0
+                    buttonsSnapshot.alpha = 1
                     gameViewController.view.alpha = 1
+
+                    gameViewController.progressBar.transform = .identity
+                    gameViewController.stats.transform = .identity
+
+                    let headerViewHeight = mainViewController.headerView.bounds.height
+                    mainViewController.headerView.transform = CGAffineTransform(translationX: 0, y: -headerViewHeight)
                 } else {
                     selectedBoardSnapshot.alpha = 1
                     gameBoardSnapshot.alpha = 0
+                    bestTimeSnapshot.alpha = 1
+                    buttonsSnapshot.alpha = 0
                     mainViewController.view.alpha = 1
+
+                    gameViewController.progressBar.transform = progressBarTransform
+                    gameViewController.stats.transform = statsTransform
+
+                    mainViewController.headerView.transform = .identity
                 }
             }
             animator.addCompletion { _ in
-                transitionContext.completeTransition(true)
-                gameBoard.alpha = 1
-                selectedBoard.alpha = 1
+                gameBoard.isHidden = false
+                selectedBoard.isHidden = false
+
+                mainViewController.bestTimeView.isHidden = false
+                gameViewController.buttons.isHidden = false
+
                 selectedBoardSnapshot.removeFromSuperview()
                 gameBoardSnapshot.removeFromSuperview()
+                bestTimeSnapshot.removeFromSuperview()
+                buttonsSnapshot.removeFromSuperview()
+
+                transitionContext.completeTransition(true)
             }
             animator.startAnimation()
         }

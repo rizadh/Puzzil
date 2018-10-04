@@ -14,15 +14,6 @@ private let compactHeaderHeight: CGFloat = 56
 private let bottomStatViewHeight: CGFloat = 48
 private let rightStatViewWidth: CGFloat = 96
 
-private func blurStyle(for colorTheme: ColorTheme) -> UIBlurEffect.Style {
-    switch colorTheme {
-    case .light:
-        return .dark
-    case .dark:
-        return .light
-    }
-}
-
 class MainViewController: UIViewController {
     // MARK: - UIViewController Property Overrides
 
@@ -33,8 +24,8 @@ class MainViewController: UIViewController {
     // MARK: - Subviews
 
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
-    private let headerView = UIView()
-    private let bestTimeView = UIVisualEffectView(effect: UIBlurEffect(style: blurStyle(for: .selected)))
+    let headerView = UIView()
+    let bestTimeView = UIView()
 
     private let collectionViewLayout = BoardSelectorLayout()
     private let headerLabel = UILabel()
@@ -90,33 +81,23 @@ class MainViewController: UIViewController {
         collectionView.scrollsToTop = false
 
         bestTimeView.translatesAutoresizingMaskIntoConstraints = false
-        bestTimeView.layer.cornerRadius = 16
-        bestTimeView.clipsToBounds = true
         bestTimeView.isUserInteractionEnabled = false
+        bestTimeView.backgroundColor = ColorTheme.selected.primary
+        bestTimeView.layer.cornerRadius = 16
 
         bestTimeTitle.translatesAutoresizingMaskIntoConstraints = false
         bestTimeTitle.text = "Best Time"
         bestTimeTitle.font = UIFont.boldSystemFont(ofSize: UIFont.labelFontSize)
-        bestTimeTitle.alpha = 0.75
+        bestTimeTitle.textColor = ColorTheme.selected.primaryTextOnPrimary
 
         bestTimeValue.translatesAutoresizingMaskIntoConstraints = false
         bestTimeValue.text = "N/A"
         bestTimeValue.font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
-        bestTimeValue.alpha = 0.5
+        bestTimeValue.textColor = ColorTheme.selected.primaryTextOnPrimary
+        bestTimeValue.alpha = 0.75
 
-        let vibrancyView = UIVisualEffectView(effect: UIVibrancyEffect(blurEffect: bestTimeView.effect as! UIBlurEffect))
-        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
-        vibrancyView.contentView.addSubview(bestTimeTitle)
-        vibrancyView.contentView.addSubview(bestTimeValue)
-
-        bestTimeView.contentView.addSubview(vibrancyView)
-
-        NSLayoutConstraint.activate([
-            vibrancyView.topAnchor.constraint(equalTo: bestTimeView.topAnchor),
-            vibrancyView.bottomAnchor.constraint(equalTo: bestTimeView.bottomAnchor),
-            vibrancyView.leftAnchor.constraint(equalTo: bestTimeView.leftAnchor),
-            vibrancyView.rightAnchor.constraint(equalTo: bestTimeView.rightAnchor),
-        ])
+        bestTimeView.addSubview(bestTimeTitle)
+        bestTimeView.addSubview(bestTimeValue)
 
         portraitLayoutConstraints.append(contentsOf: [
             bestTimeTitle.rightAnchor.anchorWithOffset(to: bestTimeValue.leftAnchor).constraint(equalToConstant: 8),
@@ -243,9 +224,8 @@ class MainViewController: UIViewController {
         }
     }
 
-    private func adjustLayoutToSizeClass() {
-        switch (traitCollection.horizontalSizeClass, traitCollection.verticalSizeClass) {
-        case (.regular, _), (.compact, .compact):
+    func adjustLayoutToSizeClass() {
+        if traitCollection.prefersLandscapeLayout {
             additionalSafeAreaInsets = UIEdgeInsets(
                 top: compactHeaderHeight,
                 left: 0,
@@ -255,7 +235,7 @@ class MainViewController: UIViewController {
 
             NSLayoutConstraint.deactivate(portraitLayoutConstraints)
             NSLayoutConstraint.activate(landscapeLayoutConstraints)
-        default:
+        } else {
             additionalSafeAreaInsets = UIEdgeInsets(
                 top: regularHeaderHeight,
                 left: 0,

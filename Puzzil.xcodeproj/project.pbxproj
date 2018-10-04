@@ -19,6 +19,7 @@
 		4A502A5F20C83C6900609F93 /* ColorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A502A5E20C83C6900609F93 /* ColorTheme.swift */; };
 		4A59F7DB1FFC34530069ACB9 /* TilePosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */; };
 		4A6C28D41FF5AAD9007D2F80 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */; };
+		4A70D05521659D770063078F /* UITraitCollection+LayoutPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A70D05421659D770063078F /* UITraitCollection+LayoutPreference.swift */; };
 		4A75ABC71FF0517000B0897F /* Tile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A75ABC61FF0517000B0897F /* Tile.swift */; };
 		4AB63DC91FEDA6B2003EBC29 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DC81FEDA6B2003EBC29 /* AppDelegate.swift */; };
 		4AB63DCB1FEDA6B2003EBC29 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB63DCA1FEDA6B2003EBC29 /* GameViewController.swift */; };
@@ -48,6 +49,7 @@
 		4A502A5E20C83C6900609F93 /* ColorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTheme.swift; sourceTree = "<group>"; };
 		4A59F7DA1FFC34530069ACB9 /* TilePosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TilePosition.swift; sourceTree = "<group>"; };
 		4A6C28D31FF5AAD9007D2F80 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		4A70D05421659D770063078F /* UITraitCollection+LayoutPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITraitCollection+LayoutPreference.swift"; sourceTree = "<group>"; };
 		4A75ABC61FF0517000B0897F /* Tile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
 		4AA35C11212CA2D3007C4573 /* Puzzil.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Puzzil.entitlements; sourceTree = "<group>"; };
 		4AB63DC51FEDA6B2003EBC29 /* Puzzil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puzzil.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -163,6 +165,7 @@
 			isa = PBXGroup;
 			children = (
 				4AEF9ABF2120944D00AC67B6 /* CGPoint+Projection.swift */,
+				4A70D05421659D770063078F /* UITraitCollection+LayoutPreference.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -273,6 +276,7 @@
 				4A4573C41FF77FE600F13884 /* TileView.swift in Sources */,
 				4A3772FE2002E2B400C3C0F9 /* TileMoveDirection.swift in Sources */,
 				4AEF9AC42120F2B200AC67B6 /* BoardSelectorLayoutDelegate.swift in Sources */,
+				4A70D05521659D770063078F /* UITraitCollection+LayoutPreference.swift in Sources */,
 				4ABC2365200341D70042592B /* TileMoveOperation.swift in Sources */,
 				4AE7F1BB20B5DBFE008AAEC6 /* BoardStyle.swift in Sources */,
 				4A2E34092032308800986946 /* BestTimesController.swift in Sources */,
