@@ -346,29 +346,29 @@ extension BoardView {
                 completeOperation()
                 animator.stopAnimation(false)
                 animator.finishAnimation(at: .end)
-            }
+            } else {
+                switch sender.state {
+                case .ended, .cancelled, .failed:
+                    let projectedTranslation = translation
+                        .projected(by: velocity)
+                        .magnitude(towards: direction, lowerBound: 0, upperBound: dragDistance)
+                    let projectedProgress = projectedTranslation / dragDistance
 
-            switch sender.state {
-            case .ended, .cancelled, .failed:
-                let projectedTranslation = translation
-                    .projected(by: velocity)
-                    .magnitude(towards: direction, lowerBound: 0, upperBound: dragDistance)
-                let projectedProgress = projectedTranslation / dragDistance
-
-                if projectedProgress < 0.5 {
-                    cancelOperation()
-                    let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
-                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
-                    animator.isReversed = true
-                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
-                } else {
-                    completeOperation()
-                    let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
-                    let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
-                    animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                    if projectedProgress < 0.5 {
+                        cancelOperation()
+                        let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
+                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                        animator.isReversed = true
+                        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                    } else {
+                        completeOperation()
+                        let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
+                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                        animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                    }
+                default:
+                    break
                 }
-            default:
-                break
             }
         }
 
