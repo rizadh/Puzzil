@@ -191,9 +191,8 @@ class MainViewController: UIViewController {
             return
         }
 
-        let index = BoardStyle.allCases.firstIndex(of: boardStyle)!
-        collectionView.scrollToItem(at: [0, index], at: [.centeredHorizontally, .centeredVertically], animated: false)
         startGame(for: boardStyle, animated: false)
+        selectBoardStyle(boardStyle)
     }
 
     // MARK: - Private Methods
@@ -205,11 +204,19 @@ class MainViewController: UIViewController {
 
     private func startGame(for boardStyle: BoardStyle, animated: Bool) {
         let gameViewController = GameViewController(boardStyle: boardStyle)
+        present(gameViewController, animated: animated)
+        didStartGame(for: boardStyle)
+    }
 
+    private func didStartGame(for boardStyle: BoardStyle) {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         appDelegate.lastBoardStyle = boardStyle
+    }
 
-        present(gameViewController, animated: animated)
+    private func selectBoardStyle(_ boardStyle: BoardStyle) {
+        let index = BoardStyle.allCases.firstIndex(of: boardStyle)!
+        let indexPath: IndexPath = [0, index]
+        collectionView.scrollToItem(at: indexPath, at: [.centeredHorizontally, .centeredVertically], animated: false)
     }
 
     private func restartCurrentGame() {
@@ -292,6 +299,8 @@ extension MainViewController: UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BoardCell
 
         cell.boardStyle = BoardStyle.allCases[indexPath.item]
+        // TODO: Use the board snapshot only as a sourceView, without the label
+        registerForPreviewing(with: self, sourceView: cell)
 
         return cell
     }
@@ -314,5 +323,23 @@ extension MainViewController: UICollectionViewDelegate {
 extension MainViewController: BoardSelectorLayoutDelegate {
     func boardSelector(didSelectItemAt indexPath: IndexPath) {
         selectedItem = indexPath.item
+    }
+}
+
+extension MainViewController: UIViewControllerPreviewingDelegate {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        let indexPath = collectionView.indexPath(for: previewingContext.sourceView as! BoardCell)!
+        let boardStyle = BoardStyle.allCases[indexPath.item]
+        return GameViewController(boardStyle: boardStyle)
+    }
+
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+        let cell = previewingContext.sourceView as! BoardCell
+        let indexPath = collectionView.indexPath(for: cell)!
+
+        selectBoardStyle(cell.boardStyle)
+        collectionView.reloadItems(at: [indexPath])
+        present(viewControllerToCommit, animated: false)
+        didStartGame(for: cell.boardStyle)
     }
 }
