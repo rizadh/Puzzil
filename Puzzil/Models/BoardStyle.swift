@@ -17,6 +17,7 @@ enum BoardStyle: String, CaseIterable, Codable {
     case cyclone
     case lunar
     case arrowKeys = "arrow keys"
+    case rocket = "rocket 🚀"
 
     var board: Board {
         switch self {
@@ -69,6 +70,14 @@ enum BoardStyle: String, CaseIterable, Codable {
             return Board(matrix: [
                 [nil, "↑", nil],
                 ["←", "↓", "→"],
+            ])
+        case .rocket:
+            return Board(matrix: [
+                ["B", "O"],
+                ["L", "F"],
+                ["A", "F"],
+                ["S", "!"],
+                ["T", nil],
             ])
         }
     }
