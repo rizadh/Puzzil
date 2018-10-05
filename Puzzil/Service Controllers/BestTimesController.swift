@@ -22,6 +22,7 @@ class BestTimesController {
             do {
                 try saveBestTimesToDisk()
                 saveBestTimesToCloud()
+                // TODO: Use NotificationCenter
                 notifyAllSubscribers()
                 os_log("Saved best times to disk.")
             } catch {

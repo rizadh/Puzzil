@@ -18,51 +18,9 @@ class BoardCell: UICollectionViewCell {
     var boardStyle: BoardStyle! {
         didSet {
             guard boardStyle != oldValue else { return }
-            layoutSnapshotView()
+            layoutSnapshotView(animated: false)
             titleLabel.text = boardStyle.rawValue.capitalized
         }
-    }
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
-        titleLabel.textColor = ColorTheme.selected.primaryTextOnBackground
-
-        contentView.addSubview(titleLabel)
-        contentView.addLayoutGuide(boardLayoutGuide)
-
-        NSLayoutConstraint.activate([
-            boardLayoutGuide.topAnchor.constraint(equalTo: contentView.topAnchor),
-            boardLayoutGuide.heightAnchor.constraint(equalTo: contentView.widthAnchor),
-            boardLayoutGuide.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-            boardLayoutGuide.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-
-            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            titleLabel.firstBaselineAnchor.constraint(equalTo: contentView.bottomAnchor),
-        ])
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func layoutSnapshotView() {
-        let (snapshotView, snapshotSize) = BoardCell.fetchSnapshot(for: boardStyle)
-        snapshotView.translatesAutoresizingMaskIntoConstraints = false
-        if lastSnapshotView.flatMap(contentView.subviews.contains) ?? false {
-            lastSnapshotView?.removeFromSuperview()
-        }
-        lastSnapshotView = snapshotView
-        contentView.addSubview(snapshotView)
-
-        NSLayoutConstraint.activate([
-            snapshotView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
-            snapshotView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
-            snapshotView.widthAnchor.constraint(equalToConstant: snapshotSize.width),
-            snapshotView.heightAnchor.constraint(equalToConstant: snapshotSize.height),
-        ])
     }
 
     static func flushCache() {
@@ -100,5 +58,74 @@ class BoardCell: UICollectionViewCell {
         BoardCell.cachedSnapshots[style] = (snapshot, boardView.bounds.size)
 
         return (snapshot, boardView.bounds.size)
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = ColorTheme.selected.primaryTextOnBackground
+
+        contentView.addSubview(titleLabel)
+        contentView.addLayoutGuide(boardLayoutGuide)
+
+        NSLayoutConstraint.activate([
+            boardLayoutGuide.topAnchor.constraint(equalTo: contentView.topAnchor),
+            boardLayoutGuide.heightAnchor.constraint(equalTo: contentView.widthAnchor),
+            boardLayoutGuide.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            boardLayoutGuide.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            titleLabel.firstBaselineAnchor.constraint(equalTo: contentView.bottomAnchor),
+        ])
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(colorThemeDidChange),
+            name: AppDelegate.colorThemeDidChangeNotification,
+            object: UIApplication.shared.delegate
+        )
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc private func colorThemeDidChange() {
+        _ = BoardCell.generateSnapshot(for: boardStyle)
+
+        layoutSnapshotView(animated: true)
+        titleLabel.textColor = ColorTheme.selected.primaryTextOnBackground
+    }
+
+    private func layoutSnapshotView(animated: Bool) {
+        let (snapshotView, snapshotSize) = BoardCell.fetchSnapshot(for: boardStyle)
+        snapshotView.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(snapshotView)
+
+        let currentSnapshotView: UIView?
+        (currentSnapshotView, lastSnapshotView) = (lastSnapshotView, snapshotView)
+        if animated {
+            snapshotView.alpha = 0
+            let animator = UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
+                snapshotView.alpha = 1
+                currentSnapshotView?.alpha = 0
+            }
+            animator.addCompletion { _ in
+                self.contentView.subviews.first(where: { $0 == currentSnapshotView })?.removeFromSuperview()
+            }
+            animator.startAnimation()
+        } else {
+            contentView.subviews.first(where: { $0 == currentSnapshotView })?.removeFromSuperview()
+        }
+
+        NSLayoutConstraint.activate([
+            snapshotView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
+            snapshotView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
+            snapshotView.widthAnchor.constraint(equalToConstant: snapshotSize.width),
+            snapshotView.heightAnchor.constraint(equalToConstant: snapshotSize.height),
+        ])
     }
 }

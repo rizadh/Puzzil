@@ -10,6 +10,8 @@ import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    static let colorThemeDidChangeNotification = NSNotification.Name(rawValue: "com.rizadh.Puzzil.themeChangedNotification")
+
     var window: UIWindow?
     var lastBoardStyle: BoardStyle? {
         didSet { setShortcutItems() }
@@ -19,11 +21,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: nil) { _ in
             if let newTheme = ColorTheme.fromUserDefaults(),
                 ColorTheme.selected != newTheme {
-                self.themeWasChanged()
+                ColorTheme.selected = newTheme
+                NotificationCenter.default.post(name: AppDelegate.colorThemeDidChangeNotification, object: self)
             }
         }
 
-        loadMainViewController()
+        if let selectedColorTheme = ColorTheme.fromUserDefaults() {
+            ColorTheme.selected = selectedColorTheme
+        }
+
+        window = UIWindow(frame: UIScreen.main.bounds)
+        let mainViewController = MainViewController()
+        window!.rootViewController = mainViewController
+        window!.makeKeyAndVisible()
 
         UserDefaults().register(defaults: [
             .customKey(.tapToMove): true,
@@ -36,26 +46,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         return true
-    }
-
-    private func loadMainViewController() {
-        if let selectedColorTheme = ColorTheme.fromUserDefaults() {
-            ColorTheme.selected = selectedColorTheme
-        }
-
-        BoardCell.flushCache()
-        BoardCell.generateSnapshots()
-
-        window = UIWindow(frame: UIScreen.main.bounds)
-        let mainViewController = MainViewController()
-        window!.rootViewController = mainViewController
-        window!.makeKeyAndVisible()
-    }
-
-    private func themeWasChanged() {
-        // TODO: Display a global alert controller in a new window
-
-        loadMainViewController()
     }
 
     func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {

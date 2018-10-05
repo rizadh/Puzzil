@@ -49,6 +49,8 @@ class MainViewController: UIViewController {
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.backgroundColor = ColorTheme.selected.primary
+        headerView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerWasTapped)))
+        headerView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(headerWasLongPressed)))
 
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
@@ -153,6 +155,8 @@ class MainViewController: UIViewController {
                 self?.updateStatView()
             }
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(colorThemeDidChange), name: AppDelegate.colorThemeDidChangeNotification, object: UIApplication.shared.delegate)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -224,7 +228,7 @@ class MainViewController: UIViewController {
         }
     }
 
-    func adjustLayoutToSizeClass() {
+    private func adjustLayoutToSizeClass() {
         if traitCollection.prefersLandscapeLayout {
             additionalSafeAreaInsets = UIEdgeInsets(
                 top: compactHeaderHeight,
@@ -246,6 +250,34 @@ class MainViewController: UIViewController {
             NSLayoutConstraint.deactivate(landscapeLayoutConstraints)
             NSLayoutConstraint.activate(portraitLayoutConstraints)
         }
+    }
+
+    @objc private func headerWasTapped(sender: UITapGestureRecognizer) {
+        collectionView.scrollToItem(at: [0, 0], at: [.centeredHorizontally, .centeredVertically], animated: true)
+    }
+
+    @objc private func headerWasLongPressed(sender: UILongPressGestureRecognizer) {
+        guard case .began = sender.state else { return }
+
+        if ColorTheme.selected == .light {
+            UserDefaults().set(ColorTheme.dark.rawValue, forKey: .customKey(.themePreference))
+        } else {
+            UserDefaults().set(ColorTheme.light.rawValue, forKey: .customKey(.themePreference))
+        }
+    }
+
+    @objc private func colorThemeDidChange(notification: Notification) {
+        UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
+            self.headerView.backgroundColor = ColorTheme.selected.primary
+            self.collectionView.backgroundColor = ColorTheme.selected.background
+            self.bestTimeView.backgroundColor = ColorTheme.selected.primary
+        }.startAnimation()
+
+        // UILabel.textColor cannot be animated
+
+        headerLabel.textColor = ColorTheme.selected.primaryTextOnPrimary
+        bestTimeTitle.textColor = ColorTheme.selected.primaryTextOnPrimary
+        bestTimeValue.textColor = ColorTheme.selected.primaryTextOnPrimary
     }
 }
 
