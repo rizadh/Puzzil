@@ -181,7 +181,11 @@ class GameViewController: UIViewController {
         portraitLayoutConstraints.append(contentsOf: [
             stats.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             stats.rightAnchor.constraint(equalTo: boardView.rightAnchor),
+            statsTopSpacing.constraint(greaterThanOrEqualToConstant: 16),
             statsTopSpacing.constraint(equalTo: statsBottomSpacing),
+
+            boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
+            boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
 
             buttons.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             buttons.rightAnchor.constraint(equalTo: boardView.rightAnchor),
@@ -191,23 +195,22 @@ class GameViewController: UIViewController {
         ])
 
         landscapeLayoutConstraints.append(contentsOf: [
+            boardView.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+
             stats.topAnchor.constraint(equalTo: boardView.topAnchor, constant: 16),
             stats.bottomAnchor.constraint(equalTo: boardView.bottomAnchor, constant: -16),
+            statsLeftSpacing.constraint(greaterThanOrEqualToConstant: 16),
             statsLeftSpacing.constraint(equalTo: statsRightSpacing),
 
             buttons.topAnchor.constraint(equalTo: boardView.topAnchor, constant: 16),
             buttons.bottomAnchor.constraint(equalTo: boardView.bottomAnchor, constant: -16),
+            buttonsLeftSpacing.constraint(greaterThanOrEqualToConstant: 16),
             buttonsLeftSpacing.constraint(equalTo: buttonsRightSpacing),
 
             progressBar.topAnchor.constraint(greaterThanOrEqualTo: boardView.bottomAnchor, constant: 8),
         ])
 
         NSLayoutConstraint.activate([
-            boardView.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            boardView.leftAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leftAnchor, constant: 16),
-            boardView.rightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.rightAnchor, constant: -16),
-            boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-
             solvedBoardView.leftAnchor.constraint(equalTo: boardView.leftAnchor),
             solvedBoardView.rightAnchor.constraint(equalTo: boardView.rightAnchor),
             solvedBoardView.topAnchor.constraint(equalTo: boardView.topAnchor),
@@ -225,6 +228,7 @@ class GameViewController: UIViewController {
 
         let optionalConstraints = [
             progressBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            boardView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             boardView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
             boardView.widthAnchor.constraint(equalTo: view.widthAnchor),
             boardView.heightAnchor.constraint(equalTo: view.heightAnchor),
