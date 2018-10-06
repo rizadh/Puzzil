@@ -66,7 +66,7 @@ class BoardSelectorLayout: UICollectionViewLayout {
 
         positions = [(0, 0)]
 
-        (1..<numberOfItems).forEach { _ in
+        for _ in 1..<numberOfItems {
             positions.append(BoardSelectorLayout.getNextPosition(previousPosition: positions.last!))
         }
 

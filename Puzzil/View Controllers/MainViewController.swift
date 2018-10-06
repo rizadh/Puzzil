@@ -147,7 +147,6 @@ class MainViewController: UIViewController {
             bestTimeView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
             bestTimeView.widthAnchor.constraint(equalToConstant: rightStatViewWidth),
             bestTimeView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-
         ])
 
         BestTimesController.shared.subscribeToChanges { [weak self] in

@@ -14,10 +14,9 @@ class BoardCell: UICollectionViewCell {
 
     private let titleLabel = UILabel()
     private let boardLayoutGuide = UILayoutGuide()
-    private(set) var lastSnapshotView: UIView?
+    private(set) var snapshotView: UIView?
     var boardStyle: BoardStyle! {
         didSet {
-            guard boardStyle != oldValue else { return }
             layoutSnapshotView(animated: false)
             titleLabel.text = boardStyle.rawValue.capitalized
         }
@@ -100,32 +99,36 @@ class BoardCell: UICollectionViewCell {
     }
 
     private func layoutSnapshotView(animated: Bool) {
-        let (snapshotView, snapshotSize) = BoardCell.fetchSnapshot(for: boardStyle)
-        snapshotView.translatesAutoresizingMaskIntoConstraints = false
+        let (nextSnapshotView, snapshotSize) = BoardCell.fetchSnapshot(for: boardStyle)
+        nextSnapshotView.translatesAutoresizingMaskIntoConstraints = false
 
-        contentView.addSubview(snapshotView)
-
-        let currentSnapshotView: UIView?
-        (currentSnapshotView, lastSnapshotView) = (lastSnapshotView, snapshotView)
+        let lastSnapshotView: UIView?
+        (lastSnapshotView, snapshotView) = (snapshotView, nextSnapshotView)
         if animated {
-            snapshotView.alpha = 0
+            nextSnapshotView.alpha = 0
             let animator = UIViewPropertyAnimator(duration: .quickAnimationDuration, curve: .linear) {
-                snapshotView.alpha = 1
-                currentSnapshotView?.alpha = 0
+                nextSnapshotView.alpha = 1
+                lastSnapshotView?.alpha = 0
             }
             animator.addCompletion { _ in
-                self.contentView.subviews.first(where: { $0 == currentSnapshotView })?.removeFromSuperview()
+                if lastSnapshotView?.superview == self.contentView {
+                    lastSnapshotView?.removeFromSuperview()
+                }
             }
             animator.startAnimation()
         } else {
-            contentView.subviews.first(where: { $0 == currentSnapshotView })?.removeFromSuperview()
+            if lastSnapshotView?.superview == contentView {
+                lastSnapshotView?.removeFromSuperview()
+            }
         }
 
+        contentView.addSubview(nextSnapshotView)
+
         NSLayoutConstraint.activate([
-            snapshotView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
-            snapshotView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
-            snapshotView.widthAnchor.constraint(equalToConstant: snapshotSize.width),
-            snapshotView.heightAnchor.constraint(equalToConstant: snapshotSize.height),
+            nextSnapshotView.centerXAnchor.constraint(equalTo: boardLayoutGuide.centerXAnchor),
+            nextSnapshotView.centerYAnchor.constraint(equalTo: boardLayoutGuide.centerYAnchor),
+            nextSnapshotView.widthAnchor.constraint(equalToConstant: snapshotSize.width),
+            nextSnapshotView.heightAnchor.constraint(equalToConstant: snapshotSize.height),
         ])
     }
 }

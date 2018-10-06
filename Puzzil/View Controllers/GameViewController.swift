@@ -583,16 +583,24 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
                 .viewController(forKey: isPresenting ? .to : .from) as! GameViewController
             let containerView = transitionContext.containerView
 
+            let displayingViewController = isPresenting ? gameViewController : mainViewController
+            containerView.addSubview(displayingViewController.view)
+            displayingViewController.view.frame = containerView.bounds
+            displayingViewController.view.layoutIfNeeded()
+
+            if !isPresenting {
+                let selectedItem = BoardStyle.allCases.firstIndex(of: gameViewController.boardStyle)!
+                let selectedIndexPath: IndexPath = [0, selectedItem]
+                mainViewController.collectionView.scrollToItem(at: selectedIndexPath, at: [.centeredHorizontally, .centeredVertically], animated: false)
+                mainViewController.collectionView.layoutIfNeeded()
+            }
+
             // Generate board snapshots
 
             let selectedCell = mainViewController.collectionView.cellForItem(at: [0, mainViewController.selectedItem]) as! BoardCell
-            let selectedBoard = selectedCell.lastSnapshotView!
+            let selectedBoard = selectedCell.snapshotView!
             let selectedBoardFrameInContainer = containerView.convert(selectedBoard.bounds, from: selectedBoard)
             let selectedBoardSnapshot = selectedBoard.snapshotView(afterScreenUpdates: true)!
-
-            containerView.addSubview(isPresenting ? gameViewController.view : mainViewController.view)
-            gameViewController.view.layoutIfNeeded()
-            mainViewController.view.layoutIfNeeded()
 
             let gameBoard = gameViewController.boardView.isHidden ?
                 gameViewController.resultView : gameViewController.boardView
