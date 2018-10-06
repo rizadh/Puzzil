@@ -8,8 +8,10 @@
 
 import UIKit
 
-private let outerLeftTransform = CGAffineTransform(translationX: -200, y: 50).scaledBy(x: 0.5, y: 0.5).rotated(by: -.pi / 16)
-private let outerRightTransform = CGAffineTransform(translationX: 200, y: 50).scaledBy(x: 0.5, y: 0.5).rotated(by: .pi / 16)
+private let outerLeftTransform = CGAffineTransform(translationX: -200, y: 50)
+    .scaledBy(x: 0.5, y: 0.5).rotated(by: -.pi / 16)
+private let outerRightTransform = CGAffineTransform(translationX: 200, y: 50)
+    .scaledBy(x: 0.5, y: 0.5).rotated(by: .pi / 16)
 
 class GameViewController: UIViewController {
     enum GameState {
@@ -462,7 +464,11 @@ class GameViewController: UIViewController {
     @objc private func endButtonWasTapped() {
         switch gameState {
         case let .running(_, moves) where moves > 0:
-            let alertController = UIAlertController(title: "End the game?", message: "All current progress will be lost!", preferredStyle: .alert)
+            let alertController = UIAlertController(
+                title: "End the game?",
+                message: "All current progress will be lost!",
+                preferredStyle: .alert
+            )
             alertController.addAction(UIAlertAction(title: "End Game", style: .destructive) { _ in
                 self.navigateToMainMenu()
             })
@@ -477,8 +483,10 @@ class GameViewController: UIViewController {
     @objc func restartButtonWasTapped() {
         switch gameState {
         case let .running(_, moves) where moves > 0:
-            let alertController = UIAlertController(title: "Restart the game?", message: "All current progress will be lost!", preferredStyle: .alert)
-
+            let alertController = UIAlertController(
+                title: "Restart the game?",
+                message: "All current progress will be lost!", preferredStyle: .alert
+            )
             alertController.addAction(UIAlertAction(title: "Restart", style: .destructive) { _ in
                 self.reloadBoard()
             })
@@ -522,7 +530,11 @@ class GameViewController: UIViewController {
         guard BestTimesController.shared.getBestTime(for: boardStyle) != nil else { return }
 
         let boardName = boardStyle.rawValue.capitalized
-        let alertController = UIAlertController(title: "Reset your best time?", message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.", preferredStyle: .actionSheet)
+        let alertController = UIAlertController(
+            title: "Reset your best time?",
+            message: "Saved best time for the \(boardName) board will be discarded. This cannot be undone.",
+            preferredStyle: .actionSheet
+        )
         alertController.addAction(UIAlertAction(title: "Reset Best Time", style: .destructive) { _ in
             BestTimesController.shared.removeBestTime(for: self.boardStyle)
             self.updateBestTimeStat(animated: true)
@@ -591,13 +603,16 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
             if !isPresenting {
                 let selectedItem = BoardStyle.allCases.firstIndex(of: gameViewController.boardStyle)!
                 let selectedIndexPath: IndexPath = [0, selectedItem]
-                mainViewController.collectionView.scrollToItem(at: selectedIndexPath, at: [.centeredHorizontally, .centeredVertically], animated: false)
+                mainViewController.collectionView.scrollToItem(at: selectedIndexPath,
+                                                               at: [.centeredHorizontally, .centeredVertically],
+                                                               animated: false)
                 mainViewController.collectionView.layoutIfNeeded()
             }
 
             // Generate board snapshots
 
-            let selectedCell = mainViewController.collectionView.cellForItem(at: [0, mainViewController.selectedItem]) as! BoardCell
+            let selectedCell = mainViewController.collectionView
+                .cellForItem(at: [0, mainViewController.selectedItem]) as! BoardCell
             let selectedBoard = selectedCell.snapshotView!
             let selectedBoardFrameInContainer = containerView.convert(selectedBoard.bounds, from: selectedBoard)
             let selectedBoardSnapshot = selectedBoard.snapshotView(afterScreenUpdates: true)!
@@ -723,7 +738,9 @@ extension GameViewController: UIViewControllerTransitioningDelegate {
         }
     }
 
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+    func animationController(forPresented presented: UIViewController,
+                             presenting: UIViewController,
+                             source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return Animator()
     }
 

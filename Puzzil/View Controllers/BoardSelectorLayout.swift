@@ -81,9 +81,11 @@ class BoardSelectorLayout: UICollectionViewLayout {
         attributes = positions.enumerated().map { item, position in
             let attributes = UICollectionViewLayoutAttributes(forCellWith: IndexPath(item: item, section: 0))
 
-            attributes.frame = BoardSelectorLayout.calculateFrame(for: position, horizontalMargin: horizontalMargin, verticalMargin: verticalMargin)
+            attributes.frame = BoardSelectorLayout.calculateFrame(for: position, horizontalMargin: horizontalMargin,
+                                                                  verticalMargin: verticalMargin)
 
-            let horizontalFalloff = abs(effectiveBounds.midX - attributes.frame.midX) / (boardWidth + horizontalPadding)
+            let horizontalFalloff = abs(effectiveBounds.midX - attributes.frame.midX) /
+                (boardWidth + horizontalPadding)
             let verticalFalloff = abs(effectiveBounds.midY - attributes.frame.midY) / (boardHeight + verticalPadding)
             let totalFalloff = (pow(horizontalFalloff, 2) + pow(verticalFalloff, 2)).squareRoot()
             let easedFalloff = BoardSelectorLayout.easingFunction(totalFalloff / 2)
@@ -95,7 +97,9 @@ class BoardSelectorLayout: UICollectionViewLayout {
             return attributes
         }
 
-        contentsSize = BoardSelectorLayout.calculateContentSize(rows: rows, columns: columns, horizontalMargin: horizontalMargin, verticalMargin: verticalMargin)
+        contentsSize = BoardSelectorLayout.calculateContentSize(rows: rows, columns: columns,
+                                                                horizontalMargin: horizontalMargin,
+                                                                verticalMargin: verticalMargin)
 
         let selectedPosition = closestPosition(to: collectionView.contentOffset)
         if let selectedIndex = positions.firstIndex(where: { $0 == selectedPosition }) {
@@ -130,7 +134,9 @@ class BoardSelectorLayout: UICollectionViewLayout {
         }
     }
 
-    private static func calculateFrame(for position: BoardPosition, horizontalMargin: CGFloat, verticalMargin: CGFloat) -> CGRect {
+    private static func calculateFrame(for position: BoardPosition,
+                                       horizontalMargin: CGFloat,
+                                       verticalMargin: CGFloat) -> CGRect {
         return CGRect(
             x: horizontalMargin + (boardWidth + horizontalPadding) * CGFloat(position.column),
             y: verticalMargin + (boardHeight + verticalPadding) * CGFloat(position.row),
@@ -139,8 +145,11 @@ class BoardSelectorLayout: UICollectionViewLayout {
         )
     }
 
-    private static func calculateContentSize(rows: Int, columns: Int, horizontalMargin: CGFloat, verticalMargin: CGFloat) -> CGSize {
-        let lastFrame = calculateFrame(for: (rows - 1, columns - 1), horizontalMargin: horizontalMargin, verticalMargin: verticalMargin)
+    private static func calculateContentSize(rows: Int, columns: Int,
+                                             horizontalMargin: CGFloat,
+                                             verticalMargin: CGFloat) -> CGSize {
+        let lastFrame = calculateFrame(for: (rows - 1, columns - 1), horizontalMargin: horizontalMargin,
+                                       verticalMargin: verticalMargin)
 
         return CGSize(
             width: lastFrame.maxX + horizontalMargin,
@@ -148,7 +157,8 @@ class BoardSelectorLayout: UICollectionViewLayout {
         )
     }
 
-    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint,
+                                      withScrollingVelocity velocity: CGPoint) -> CGPoint {
         let proposedPosition = closestPosition(to: proposedContentOffset)
         let adjacentPosition: BoardPosition
 

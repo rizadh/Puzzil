@@ -23,7 +23,9 @@ extension CGPoint {
         )
     }
 
-    func magnitude(towards direction: TileMoveDirection, lowerBound: CGFloat = -.infinity, upperBound: CGFloat = .infinity) -> CGFloat {
+    func magnitude(towards direction: TileMoveDirection,
+                   lowerBound: CGFloat = -.infinity,
+                   upperBound: CGFloat = .infinity) -> CGFloat {
         let rawMagnitude: CGFloat
 
         switch direction {

@@ -50,7 +50,8 @@ class MainViewController: UIViewController {
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.backgroundColor = ColorTheme.selected.primary
         headerView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerWasTapped)))
-        headerView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(headerWasLongPressed)))
+        headerView.addGestureRecognizer(UILongPressGestureRecognizer(target: self,
+                                                                     action: #selector(headerWasLongPressed)))
 
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.attributedText = NSAttributedString(string: "PUZZIL", attributes: [.kern: 1.5])
@@ -112,7 +113,9 @@ class MainViewController: UIViewController {
         ])
 
         landscapeLayoutConstraints.append(contentsOf: [
-            bestTimeTitle.lastBaselineAnchor.anchorWithOffset(to: bestTimeValue.topAnchor).constraint(equalToConstant: 8),
+            bestTimeTitle.lastBaselineAnchor
+                .anchorWithOffset(to: bestTimeValue.topAnchor)
+                .constraint(equalToConstant: 8),
 
             bestTimeTitle.topAnchor.constraint(equalTo: bestTimeView.topAnchor, constant: 16),
             bestTimeTitle.centerXAnchor.constraint(equalTo: bestTimeView.centerXAnchor),
@@ -155,7 +158,9 @@ class MainViewController: UIViewController {
             }
         }
 
-        NotificationCenter.default.addObserver(self, selector: #selector(colorThemeDidChange), name: AppDelegate.colorThemeDidChangeNotification, object: UIApplication.shared.delegate)
+        NotificationCenter.default.addObserver(self, selector: #selector(colorThemeDidChange),
+                                               name: AppDelegate.colorThemeDidChangeNotification,
+                                               object: UIApplication.shared.delegate)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -169,7 +174,8 @@ class MainViewController: UIViewController {
 
         if !didScrollToFirstBoard {
             didScrollToFirstBoard = true
-            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: [.centeredVertically, .centeredHorizontally], animated: false)
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0),
+                                        at: [.centeredVertically, .centeredHorizontally], animated: false)
         }
     }
 
@@ -294,8 +300,10 @@ extension MainViewController: UICollectionViewDataSource {
         return BoardStyle.allCases.count
     }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BoardCell
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView
+            .dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BoardCell
 
         cell.boardStyle = BoardStyle.allCases[indexPath.item]
         // TODO: Use the board snapshot only as a sourceView, without the label
@@ -312,7 +320,9 @@ extension MainViewController: UICollectionViewDelegate {
         if indexPath.item == selectedItem {
             startGameForSelectedItem()
         } else {
-            collectionView.scrollToItem(at: indexPath, at: [.centeredHorizontally, .centeredVertically], animated: true)
+            collectionView.scrollToItem(at: indexPath,
+                                        at: [.centeredHorizontally, .centeredVertically],
+                                        animated: true)
         }
     }
 }
@@ -326,13 +336,15 @@ extension MainViewController: BoardSelectorLayoutDelegate {
 }
 
 extension MainViewController: UIViewControllerPreviewingDelegate {
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing,
+                           viewControllerForLocation location: CGPoint) -> UIViewController? {
         let indexPath = collectionView.indexPath(for: previewingContext.sourceView as! BoardCell)!
         let boardStyle = BoardStyle.allCases[indexPath.item]
         return GameViewController(boardStyle: boardStyle)
     }
 
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing,
+                           commit viewControllerToCommit: UIViewController) {
         let cell = previewingContext.sourceView as! BoardCell
         let indexPath = collectionView.indexPath(for: cell)!
 

@@ -357,13 +357,19 @@ extension BoardView {
                     if projectedProgress < 0.5 {
                         cancelOperation()
                         let initialVelocity = CGVector(dx: -averageVelocity / dragDistance, dy: 0)
-                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                        let timingParameters = UISpringTimingParameters(
+                            dampingRatio: 1,
+                            initialVelocity: initialVelocity
+                        )
                         animator.isReversed = true
                         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
                     } else {
                         completeOperation()
                         let initialVelocity = CGVector(dx: averageVelocity / dragDistance, dy: 0)
-                        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: initialVelocity)
+                        let timingParameters = UISpringTimingParameters(
+                            dampingRatio: 1,
+                            initialVelocity: initialVelocity
+                        )
                         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
                     }
                 default:

@@ -10,15 +10,19 @@ import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    static let colorThemeDidChangeNotification = NSNotification.Name(rawValue: "com.rizadh.Puzzil.themeChangedNotification")
+    static let colorThemeDidChangeNotification =
+        NSNotification.Name(rawValue: "com.rizadh.Puzzil.themeChangedNotification")
 
     var window: UIWindow?
     var lastBoardStyle: BoardStyle? {
         didSet { setShortcutItems() }
     }
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: nil) { _ in
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification,
+                                               object: nil,
+                                               queue: nil) { _ in
             if let newTheme = ColorTheme.fromUserDefaults(),
                 ColorTheme.selected != newTheme {
                 ColorTheme.selected = newTheme
@@ -48,7 +52,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+    func application(_ application: UIApplication,
+                     performActionFor shortcutItem: UIApplicationShortcutItem,
+                     completionHandler: @escaping (Bool) -> Void) {
         handleShortcutItem(shortcutItem)
         completionHandler(true)
     }
