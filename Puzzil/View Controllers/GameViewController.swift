@@ -32,6 +32,21 @@ class GameViewController: UIViewController {
         }
     }
 
+    override var previewActionItems: [UIPreviewActionItem] {
+        if let _ = BestTimesController.shared.getBestTime(for: self.boardStyle) {
+            return [
+                UIPreviewActionGroup(title: "Reset Best Time", style: .destructive, actions: [
+                    UIPreviewAction(title: "Reset Best Time", style: .destructive) { _, _ in
+                        BestTimesController.shared.removeBestTime(for: self.boardStyle)
+                    },
+                    UIPreviewAction(title: "Cancel", style: .default) { _, _ in },
+                ]),
+            ]
+        } else {
+            return []
+        }
+    }
+
     // MARK: - Layout Contraints
 
     var portraitLayoutConstraints = [NSLayoutConstraint]()
