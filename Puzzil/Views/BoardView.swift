@@ -256,6 +256,7 @@ extension BoardView {
         private let targetPositions: [(TileView, TilePosition)]
         private let animator: UIViewPropertyAnimator
         private var averageVelocity: CGFloat = 0
+        private let feedbackGenerator = UIImpactFeedbackGenerator()
 
         private(set) var state: State = .active(progress: 0)
         private var dragDistance: CGFloat {
@@ -277,6 +278,7 @@ extension BoardView {
         }
 
         init?(boardView: BoardView, sender: UIPanGestureRecognizer) {
+            feedbackGenerator.prepare()
             self.boardView = boardView
             let tileView = sender.view as! TileView
             let position = boardView.tilePositions[tileView]!
@@ -342,10 +344,12 @@ extension BoardView {
                 cancelOperation()
                 animator.stopAnimation(false)
                 animator.finishAnimation(at: .start)
+                feedbackGenerator.impactOccurred()
             } else if progress == 1 {
                 completeOperation()
                 animator.stopAnimation(false)
                 animator.finishAnimation(at: .end)
+                feedbackGenerator.impactOccurred()
             } else {
                 switch sender.state {
                 case .ended, .cancelled, .failed:
@@ -371,6 +375,9 @@ extension BoardView {
                             initialVelocity: initialVelocity
                         )
                         animator.continueAnimation(withTimingParameters: timingParameters, durationFactor: 1)
+                    }
+                    animator.addCompletion { _ in
+                        self.feedbackGenerator.impactOccurred()
                     }
                 default:
                     break
